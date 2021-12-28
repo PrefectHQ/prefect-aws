@@ -1,21 +1,32 @@
-from functools import wraps
 from threading import Lock
-from typing import Any, Callable, Optional
+from typing import Any, Literal, MutableMapping, Optional, Tuple, Union
 from weakref import WeakValueDictionary
 
 import boto3
 
-_CLIENT_CACHE = WeakValueDictionary()
+_CLIENT_CACHE: MutableMapping[
+    Tuple[
+        Union[str, None],
+        Union[str, None],
+        int,
+        Literal["s3"],
+        Union[str, None],
+        Union[str, None],
+        Union[str, None],
+    ],
+    Any,
+] = WeakValueDictionary()
 _LOCK = Lock()
 
+
 def get_boto_client(
-    resource: str,
+    resource: Literal["s3"],
     aws_access_key_id: Optional[str] = None,
     aws_secret_access_key: Optional[str] = None,
     aws_session_token: Optional[str] = None,
     region_name: Optional[str] = None,
     profile_name: Optional[str] = None,
-    **kwargs
+    **kwargs: Any
 ):
     """
     Utility function for loading boto3 client objects from a given set of credentials.
@@ -56,72 +67,19 @@ def get_boto_client(
         if not kwargs and cache_key in _CLIENT_CACHE:
             return _CLIENT_CACHE[cache_key]
 
-        if profile_name or botocore_session:
-            session = boto3.session.Session(
-                profile_name=profile_name,
-                region_name=region_name,
-                botocore_session=botocore_session,
-            )
-        else:
-            session = boto3
-
-        client = session.client(
-            resource,
+        session_args = dict(
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
             aws_session_token=aws_session_token,
             region_name=region_name,
-            **kwargs,
+            botocore_session=botocore_session,
+            profile_name=profile_name,
         )
+
+        client = boto3.Session(**session_args).client(service_name=resource, **kwargs)
+
         # Cache the client if no extra kwargs
         if not kwargs:
             _CLIENT_CACHE[cache_key] = client
 
     return client
-
-
-def defaults_from_attrs(*attr_args: str) -> Callable:
-    """
-    Helper decorator for dealing with Task classes with attributes that serve
-    as defaults for `Task.run`.  Specifically, this decorator allows the author
-    of a Task to identify certain keyword arguments to the run method which
-    will fall back to `self.ATTR_NAME` if not explicitly provided to
-    `self.run`.  This pattern allows users to create a Task "template", whose
-    default settings can be created at initialization, but overridden in
-    individual instances when the Task is called.
-    Args:
-        - *attr_args (str): a splatted list of strings specifying which
-            kwargs should fallback to attributes, if not provided at runtime. Note that
-            the strings provided here must match keyword arguments in the `run` call signature,
-            as well as the names of attributes of this Task.
-    Returns:
-        - Callable: the decorated / altered `Task.run` method
-    Example:
-    ```python
-    from prefect.tasks import Task
-
-    class MyTask(Task):
-        def __init__(self, a=None, b=None):
-            self.a = a
-            self.b = b
-        @defaults_from_attrs('a', 'b')
-        def run(self, a=None, b=None):
-            return a, b
-
-    task = MyTask(a=1, b=2)
-    task.run() # (1, 2)
-    task.run(a=99) # (99, 2)
-    task.run(a=None, b=None) # (None, None)
-    ```
-    """
-
-    def wrapper(run_method: Callable) -> Callable:
-        @wraps(run_method)
-        def method(self: Any, *args: Any, **kwargs: Any) -> Any:
-            for attr in attr_args:
-                kwargs.setdefault(attr, getattr(self, attr))
-            return run_method(self, *args, **kwargs)
-
-        return method
-
-    return wrapper
