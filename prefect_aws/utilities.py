@@ -1,8 +1,21 @@
 from threading import Lock
-from typing import Any, Literal, MutableMapping, Optional, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    List,
+    Literal,
+    MutableMapping,
+    Optional,
+    Tuple,
+    Union,
+)
 from weakref import WeakValueDictionary
+from functools import partial, wraps
+import inspect
 
 import boto3
+
+from prefect_aws.exceptions import MissingRequiredArgument
 
 _CLIENT_CACHE: MutableMapping[
     Tuple[
@@ -83,3 +96,31 @@ def get_boto_client(
             _CLIENT_CACHE[cache_key] = client
 
     return client
+
+
+def verify_required_args_present(
+    __func: Optional[Callable] = None, *, arg_names: List[str]
+):
+    """
+    Decorator that verifies that arguments of the decorated function defined by `arg_names` are not `None`
+
+    Args:
+        arg_names: List of names of arguments that need to be verified
+
+    Raises:
+        MissingRequiredArgument if any of the required arguments are `None`
+    """
+    if __func is None:
+        return partial(verify_required_args_present, arg_names=arg_names)
+
+    @wraps(__func)
+    def wrapper(*args, **kwargs):
+        bound_signature = inspect.signature(__func).bind(*args, **kwargs)
+        bound_signature.apply_defaults()
+        passed_args = dict(bound_signature.arguments)
+        for required_arg_name in arg_names:
+            if passed_args.get(required_arg_name) is None:
+                raise MissingRequiredArgument(required_arg_name)
+        return __func(*args, **kwargs)
+
+    return wrapper

@@ -2,3 +2,6 @@ pytest
 black
 mypy
 moto[s3]
+mkdocs
+mkdocs-material
+mkdocstrings
