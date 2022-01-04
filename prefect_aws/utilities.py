@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from threading import Lock
 from typing import (
     Any,
@@ -7,15 +8,22 @@ from typing import (
     MutableMapping,
     Optional,
     Tuple,
+    Type,
+    TypeVar,
     Union,
+    cast,
 )
+from typing_extensions import ParamSpec
 from weakref import WeakValueDictionary
-from functools import partial, wraps
+from functools import partial, reduce, wraps
 import inspect
+from typing_extensions import Protocol
 
 import boto3
+from prefect.tasks import Task, task
 
 from prefect_aws.exceptions import MissingRequiredArgument
+from prefect_aws.schema import DefaultValues, TaskArgs
 
 _CLIENT_CACHE: MutableMapping[
     Tuple[
@@ -39,7 +47,7 @@ def get_boto_client(
     aws_session_token: Optional[str] = None,
     region_name: Optional[str] = None,
     profile_name: Optional[str] = None,
-    **kwargs: Any
+    **kwargs: Any,
 ):
     """
     Utility function for loading boto3 client objects from a given set of credentials.
@@ -98,29 +106,134 @@ def get_boto_client(
     return client
 
 
-def verify_required_args_present(
-    __func: Optional[Callable] = None, *, arg_names: List[str]
-):
+R = TypeVar("R")  # The return type of the user's function
+P = ParamSpec("P")  # The parameters of the task
+
+
+def verify_required_args_present(*arg_names: str):
     """
-    Decorator that verifies that arguments of the decorated function defined by `arg_names` are not `None`
+    Higher order function that verifies that the specified arguments are not `None`.
 
     Args:
-        arg_names: List of names of arguments that need to be verified
+        args_names: Names of required arguments which will be verified as present
+
+    Returns:
+        Wrapper function
 
     Raises:
-        MissingRequiredArgument if any of the required arguments are `None`
+        MissingRequiredArgument when a required argument is `None`
     """
-    if __func is None:
-        return partial(verify_required_args_present, arg_names=arg_names)
 
-    @wraps(__func)
-    def wrapper(*args, **kwargs):
-        bound_signature = inspect.signature(__func).bind(*args, **kwargs)
-        bound_signature.apply_defaults()
-        passed_args = dict(bound_signature.arguments)
-        for required_arg_name in arg_names:
-            if passed_args.get(required_arg_name) is None:
-                raise MissingRequiredArgument(required_arg_name)
-        return __func(*args, **kwargs)
+    def wrapper(__func: Callable[P, R]) -> Callable[P, R]:
+        @wraps(__func)
+        def method(*args, **kwargs) -> R:
+            bound_signature = inspect.signature(__func).bind(*args, **kwargs)
+            bound_signature.apply_defaults()
+            passed_args = dict(bound_signature.arguments)
+            for required_arg_name in arg_names:
+                if passed_args.get(required_arg_name) is None:
+                    raise MissingRequiredArgument(required_arg_name)
+            return __func(*args, **kwargs)
+
+        return method
+
+    return wrapper
+
+
+def supply_args_defaults(
+    default_values: DefaultValues,
+):
+    """
+    Higher order function that supplies default values to the wrapped function. If an argument is `None`, then the
+    value for the corresponding argument in `default_values` will be passed to the wrapped function.
+
+    Args:
+        default_values: Dataclass holding the default values that should be used for arguments that are `None`
+
+    Returns:
+        Wrapper function
+    """
+
+    def wrapper(__func: Callable[P, R]) -> Callable[P, R]:
+        @wraps(__func)
+        def method(*args, **kwargs) -> R:
+            args_with_defaults = tuple(
+                args[i] if args[i] is not None else getattr(default_values, str(param))
+                for i, param in enumerate(inspect.signature(__func).parameters)
+            )
+            return __func(*args_with_defaults, **kwargs)
+
+        return method
+
+    return wrapper
+
+
+def _chain(start: Any, *args: Callable):
+    """
+    Chain multiple functions together and invoke the functional chain with a starting value
+    """
+    res = start
+    for func in args:
+        res = func(res)
+    return res
+
+
+class TaskFactory(Protocol[P, R]):
+    """
+    Protocol class for task factory typing
+    """
+    def __call__(
+        self,
+        default_values: Optional[DefaultValues] = None,
+        task_args: Optional[TaskArgs] = None,
+    ) -> Task[P,R]:
+        ...
+
+
+def task_factory(default_values_cls: Type[DefaultValues], required_args: List[str]):
+    """
+    Decorator function that turns the decorated function into a task factory. Requires a corresponding dataclass
+    used to hold the default values for a constructed task. Tasks created from a task factory can have default values
+    assigned to their parameters that are then overrideable upon invocation. Tasks created from a task factory will
+    also validate that all necessary arguments are present at invocation.
+
+    Args:
+        default_values_cls: Class used to populate default values for created tasks.
+        required_args: List of arguments that are necessary for created tasks to be run.
+    Returns:
+        A task factory that accepts `default_values` and `task_args`.
+    """
+
+    def wrapper(
+        __func: Callable[P, R]
+    ) -> TaskFactory[P, R]:
+        @wraps(__func)
+        def factory_func(
+            default_values: Optional[DefaultValues] = None,
+            task_args: Optional[TaskArgs] = None,
+        ) -> Task[P, R]:
+            """
+            Function that wraps the user supplied function with functions that will populate the configured defaults
+            upon invocation, verify that the required arguments are present at invocation, and turn the function into
+            a task that can be invoked within a flow.
+
+            Args:
+                default_values: An instance of dataclass that holds the default values supplied to the created task.
+                task_args: Task configuration that is passed to the Prefect Task constructor.
+            Returns:
+                A task that can be invoked within a flow.
+            """
+            default_values = default_values or default_values_cls()
+            task_args = task_args or TaskArgs()
+
+            # chain higher order functions to construct and validate a task with default values
+            return _chain(
+                __func,
+                verify_required_args_present(*required_args),
+                supply_args_defaults(default_values),
+                task(**asdict(task_args)),
+            )
+
+        return factory_func
 
     return wrapper

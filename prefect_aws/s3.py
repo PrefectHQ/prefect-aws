@@ -1,137 +1,151 @@
 import io
 import uuid
-from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
-from prefect.tasks import task, Task
 from prefect.utilities.logging import get_logger
 
-from prefect_aws.schema import TaskArgs
-from prefect_aws.utilities import (
-    get_boto_client,
-    verify_required_args_present,
-)
+from prefect_aws.schema import DefaultValues
+from prefect_aws.utilities import get_boto_client, task_factory
 
 
 @dataclass
-class S3DownloadDefaultValues:
+class S3DownloadDefaultValues(DefaultValues):
     """Dataclass that defines default values that can be supplied when creating an S3 download task"""
 
     bucket: Optional[str] = None
     key: Optional[str] = None
-    boto_kwargs: Dict[str, Any] = field(default_factory=dict)
+    boto_kwargs: Optional[Dict[str, Any]] = field(default_factory=dict)
 
 
-def create_s3_download_task(
-    default_values: Optional[S3DownloadDefaultValues] = None,
-    task_args: Optional[TaskArgs] = None,
-) -> Task:
+@task_factory(
+    default_values_cls=S3DownloadDefaultValues, required_args=["bucket", "key"]
+)
+def s3_download(
+    bucket: str = None,
+    key: str = None,
+    boto_kwargs: Dict[str, Any] = None,
+) -> bytes:
     """
-    Creates an S3 download task with the supplied default values and task configuration
+    Downloads an object with a given key from a given S3 bucket. AWS authentication is handled via the `boto3`
+    module. Refer to the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
+    for more info about the possible credential configurations.
 
     Args:
-        default_values (Optional[S3DownloadDefaultValues]): Optional object to define default values
-            supplied to the task on invocation. 
-        task_args: Optional arguments to use in task creation. Refer to the [Prefect docs]
-            (https://orion-docs.prefect.io/api-ref/prefect/tasks/#prefect.tasks.task) for more information.
+        bucket: Name of bucket to download object from. Required if a default value was not supplied
+            when creating the task.
+        key: Key of object to download. Required if a default value was not supplied
+            when creating the task.
+        boto_kwargs: Keyword arguments that are forwarded to the boto client used by the task. Defaults to
+            an empty dictionary.
 
     Returns:
-        A callable `Task` object which, when called, will submit the task for execution 
-        to perform an S3 download
+        A `bytes` representation of the downloaded object.
 
-    Examples:
-        Create a task that by default will download from a given bucket with the supplied credentials
+    Example:
+        Download a file from an S3 bucket
+        >>> boto_kwargs = dict(
+        >>>     aws_access_key_id="acccess_key_id",
+        >>>     aws_secret_access_key="secret_access_key",
+        >>> )
+        >>>
+        >>> s3_download_task = s3_download(
+        >>>    default_values=S3DownloadDefaultValues(
+        >>>        bucket="data_bucket", boto_kwargs=boto_kwargs
+        >>>    ),
+        >>>    task_args=TaskArgs(retries=3, retry_delay_seconds=10)
+        >>> )
+        >>>
+        >>> @flow
+        >>> def example_s3_download_flow():
+        >>>     data = s3_download_task(key="data.csv")
 
-        ```python
-        s3_download_task = create_s3_download_task(
-            default_values=S3DownloadDefaultValues(
-                bucket="my_bucket",
-                boto_kwargs={
-                    aws_access_key_id="access_key",
-                    aws_secret_access_key="secret_access_key",
-                }
-            ),
-            task_args=TaskArgs(name="Download from bucket"),
-        )
-        ```
+
     """
-    default_values = default_values or S3DownloadDefaultValues()
-    task_args = task_args or TaskArgs()
+    print(bucket, key, boto_kwargs)
+    logger = get_logger()
+    logger.info("Downloading object from bucket %s with key %s", bucket, key)
 
-    @verify_required_args_present(arg_names=["bucket", "key"])
-    def s3_download(
-        bucket: Optional[str] = default_values.bucket,
-        key: Optional[str] = default_values.key,
-        boto_kwargs: Dict[str, Any] = default_values.boto_kwargs,
-    ):
-        """
-        Downloads an object with a given key from a given S3 bucket. AWS authentication is handled via the `boto3`
-        module. Refer to the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
-        for more info about the possible credential configurations.
+    s3_client = get_boto_client("s3", **boto_kwargs)
+    stream = io.BytesIO()
+    s3_client.download_fileobj(Bucket=bucket, Key=key, Fileobj=stream)
+    stream.seek(0)
+    output = stream.read()
 
-        Args:
-            bucket (str): Name of bucket to download object from. Required if a default value was not supplied
-                when creating the task.
-            key: Key of object to download. Required if a default value was not supplied
-                when creating the task.
-            boto_kwargs: Keyword arguments that are forwarded to the boto client used by the task. Defaults to
-                an empty dictionary.
-
-        Returns:
-            A `bytes` representation of the downloaded object.
-
-        """
-        logger = get_logger()
-        logger.info("Downloading object from bucket %s with key %s", bucket, key)
-
-        s3_client = get_boto_client("s3", **boto_kwargs)
-        stream = io.BytesIO()
-        s3_client.download_fileobj(Bucket=bucket, Key=key, Fileobj=stream)
-        stream.seek(0)
-        output = stream.read()
-
-        return output
-
-    return task(s3_download, **asdict(task_args))
+    return output
 
 
 @dataclass
-class S3UploadDefaultValues:
+class S3UploadDefaultValues(DefaultValues):
+    """Dataclass that defines default values that can be supplied when creating an S3 upload task"""
+
     bucket: Optional[str] = None
     key: str = field(default_factory=lambda: str(uuid.uuid4()))
     boto_kwargs: Dict[str, Any] = field(default_factory=dict)
 
 
-def create_s3_upload_task(
-    default_values: Optional[S3UploadDefaultValues] = None,
-    task_args: Optional[TaskArgs] = None,
-):
-    default_values = default_values or S3UploadDefaultValues()
-    task_args = task_args or TaskArgs()
+@task_factory(
+    default_values_cls=S3UploadDefaultValues, required_args=["bucket", "key", "data"]
+)
+def s3_upload(
+    data: bytes,
+    bucket: str = None,
+    key: str = None,
+    boto_kwargs: Optional[Dict[str, Any]] = None,
+) -> str:
+    """
+    Uploads data to an S3 bucket. AWS authentication is handled via the `boto3` module. Refer to the
+    [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
+    for more info about the possible credential configurations.
 
-    @verify_required_args_present(arg_names=["bucket", "key", "data"])
-    def s3_upload(
-        data: bytes,
-        bucket: Optional[str] = default_values.bucket,
-        key: str = default_values.key,
-        boto_kwargs: Dict[str, Any] = default_values.boto_kwargs,
-    ):
-        logger = get_logger()
-        logger.info("Uploading object to bucket %s with key %s", bucket, key)
+    Args:
+        data: Bytes representation of data to upload to S3.
+        bucket: Name of bucket to upload data to. Required if a default value was not supplied
+            when creating the task.
+        key: Key of object to download. Defaults to a UUID string.
+        boto_kwargs: Keyword arguments that are forwarded to the boto client used by the task. Defaults to
+            an empty dictionary.
 
-        s3_client = get_boto_client("s3", **boto_kwargs)
-        stream = io.BytesIO(data)
-        s3_client.upload_fileobj(stream, Bucket=bucket, Key=key)
+    Returns:
+        The key of the uploaded object
 
-        return key
+    Example:
+        Read and upload a file to an S3 bucket
+        >>> boto_kwargs = dict(
+        >>>     aws_access_key_id="acccess_key_id",
+        >>>     aws_secret_access_key="secret_access_key",
+        >>> )
+        >>>
+        >>> s3_upload_task = s3_upload(
+        >>>    default_values=S3UploadDefaultValues(
+        >>>        bucket="data_bucket", boto_kwargs=boto_kwargs
+        >>>    ),
+        >>>    task_args=TaskArgs(retries=3, retry_delay_seconds=10)
+        >>> )
+        >>>
+        >>> @flow
+        >>> def example_s3_upload_flow():
+        >>>     with open('data.csv', 'rb') as file:
+        >>>         key = s3_upload_task(key="data.csv", data=file.read())
 
-    return task(s3_upload, **asdict(task_args))
+
+    """
+    logger = get_logger()
+    logger.info("Uploading object to bucket %s with key %s", bucket, key)
+
+    s3_client = get_boto_client("s3", **boto_kwargs)
+    stream = io.BytesIO(data)
+    s3_client.upload_fileobj(stream, Bucket=bucket, Key=key)
+
+    return key
 
 
 @dataclass
-class S3ListObjectsDefaultValues:
+class S3ListObjectsDefaultValues(DefaultValues):
+    """Dataclass that defines default values that can be supplied when creating an S3 list objects task"""
+
     bucket: Optional[str] = None
-    prefix: str = ""
+    prefix: Optional[str] = ""
     boto_kwargs: Dict[str, Any] = field(default_factory=dict)
     delimiter: Optional[str] = ""
     page_size: Optional[int] = None
@@ -139,39 +153,72 @@ class S3ListObjectsDefaultValues:
     jmespath_query: Optional[str] = None
 
 
-def create_s3_list_objects_task(
-    default_values: Optional[S3ListObjectsDefaultValues] = None,
-    task_args: Optional[TaskArgs] = None,
-):
-    default_values = default_values or S3ListObjectsDefaultValues()
-    task_args = task_args or TaskArgs()
+@task_factory(
+    default_values_cls=S3ListObjectsDefaultValues,
+    required_args=["bucket"],
+)
+def s3_list_objects(
+    bucket: str = None,
+    prefix: Optional[str] = None,
+    boto_kwargs: Optional[Dict[str, Any]] = None,
+    delimiter: Optional[str] = None,
+    page_size: Optional[int] = None,
+    max_items: Optional[int] = None,
+    jmespath_query: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Lists details of objects in a given S3 bucket. AWS authentication is handled via the `boto3` module.
+    Refer to the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
+    for more info about the possible credential configurations.
 
-    @verify_required_args_present(arg_names=["bucket"])
-    def s3_list_objects(
-        bucket: Optional[str] = default_values.bucket,
-        prefix: str = default_values.prefix,
-        boto_kwargs: Dict[str, Any] = default_values.boto_kwargs,
-        delimiter: Optional[str] = default_values.delimiter,
-        page_size: Optional[int] = default_values.page_size,
-        max_items: Optional[int] = default_values.max_items,
-        jmespath_query: Optional[str] = default_values.jmespath_query,
-    ):
-        logger = get_logger()
-        logger.info("Listing objects in bucket %s with prefix %s", bucket, prefix)
+    Args:
+        bucket: Name of bucket to list items from. Required if a default value was not supplied
+            when creating the task.
+        prefix: Used to filter objects with keys starting with the specified prefix
+        boto_kwargs: Keyword arguments that are forwarded to the boto client used by the task. Defaults to
+            an empty dictionary.
+        delimiter: Character used to group keys of listed objects
+        page_size: Number of objects to return in each request to the AWS API
+        max_items: Maximum number of objects that to be returned by task
+        jmespath_query: Query used to filter objects based on object attributes refer to the
+            [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html#filtering-results-with-jmespath)
+            for more information on how to construct queries.
 
-        s3_client = get_boto_client("s3", **boto_kwargs)
-        paginator = s3_client.get_paginator("list_objects_v2")
-        page_iterator = paginator.paginate(
-            Bucket=bucket,
-            Prefix=prefix,
-            Delimiter=delimiter,
-            PaginationConfig={"PageSize": page_size, "MaxItems": max_items},
-        )
-        if jmespath_query:
-            page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
+    Returns:
+        A list of dictionaries containing information about the objects retrieved. Refer to the
+            boto3 docs for an example response.
 
-        return [
-            content for page in page_iterator for content in page.get("Contents", [])
-        ]
+    Example:
+        List all objects in a bucket
+        >>> boto_kwargs = dict(
+        >>>     aws_access_key_id="acccess_key_id",
+        >>>     aws_secret_access_key="secret_access_key",
+        >>> )
+        >>>
+        >>> s3_list_objects_task = s3_list_objects(
+        >>>    default_values=S3ListObjectsDefaultValues(
+        >>>        bucket="data_bucket", boto_kwargs=boto_kwargs
+        >>>    ),
+        >>>    task_args=TaskArgs(retries=3, retry_delay_seconds=10)
+        >>> )
+        >>>
+        >>> @flow
+        >>> def example_s3_list_objects_flow():
+        >>>     objects = s3_list_objects_task()
 
-    return s3_list_objects
+    """
+    logger = get_logger()
+    logger.info("Listing objects in bucket %s with prefix %s", bucket, prefix)
+
+    s3_client = get_boto_client("s3", **boto_kwargs)
+    paginator = s3_client.get_paginator("list_objects_v2")
+    page_iterator = paginator.paginate(
+        Bucket=bucket,
+        Prefix=prefix,
+        Delimiter=delimiter,
+        PaginationConfig={"PageSize": page_size, "MaxItems": max_items},
+    )
+    if jmespath_query:
+        page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
+
+    return [content for page in page_iterator for content in page.get("Contents", [])]

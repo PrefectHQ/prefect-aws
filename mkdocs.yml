@@ -4,7 +4,16 @@ theme:
   palette:
     primary: blue
     accent: blue
-
+markdown_extensions:
+    - admonition
+    - attr_list
+    - codehilite
+    - md_in_html
+    - meta
+    - pymdownx.highlight:
+        use_pygments: true
+    - pymdownx.superfences
+    - pymdownx.tabbed
 plugins:
   - search
   - mkdocstrings:
