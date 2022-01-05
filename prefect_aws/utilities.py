@@ -157,11 +157,32 @@ def supply_args_defaults(
     def wrapper(__func: Callable[P, R]) -> Callable[P, R]:
         @wraps(__func)
         def method(*args, **kwargs) -> R:
-            args_with_defaults = tuple(
-                args[i] if args[i] is not None else getattr(default_values, str(param))
-                for i, param in enumerate(inspect.signature(__func).parameters)
-            )
-            return __func(*args_with_defaults, **kwargs)
+            # Inspect and bind the signature of wrapped function
+            signature = inspect.signature(__func)
+            bound_signature = signature.bind(*args, **kwargs)
+            bound_signature.apply_defaults()
+            passed_args = dict(bound_signature.arguments)
+
+            new_positional_or_keyword_args = []
+            new_kwargs = {}
+            new_args = ()
+            # Inspect each parameter along with the passed value for that parameter to determine if a default value needs to be provided.
+            # Maintain kind of each parameter to avoid runtime errors.
+            for parameter in signature.parameters.values():
+                if parameter.kind == parameter.POSITIONAL_OR_KEYWORD or parameter.kind == parameter.POSITIONAL_ONLY:
+                    passed_value = passed_args.get(parameter.name)
+                    new_value = passed_value if passed_value is not None else getattr(default_values, str(parameter.name))
+                    new_positional_or_keyword_args.append(new_value)
+                if parameter.kind == parameter.KEYWORD_ONLY:
+                    passed_value = passed_args.get(parameter.name)
+                    new_kwargs[parameter.name] = passed_value if passed_value is not None else getattr(default_values, str(parameter.name))
+                elif parameter.kind == parameter.VAR_POSITIONAL:
+                    new_args = passed_args.get(parameter.name, ())
+                elif parameter.kind == parameter.VAR_KEYWORD:
+                    new_kwargs = {**new_kwargs, **passed_args.get(parameter.name, {})}
+            
+            # Call function with newly determined arguments
+            return __func(*new_positional_or_keyword_args, *new_args, **new_kwargs)
 
         return method
 
@@ -182,11 +203,12 @@ class TaskFactory(Protocol[P, R]):
     """
     Protocol class for task factory typing
     """
+
     def __call__(
         self,
         default_values: Optional[DefaultValues] = None,
         task_args: Optional[TaskArgs] = None,
-    ) -> Task[P,R]:
+    ) -> Task[P, R]:
         ...
 
 
@@ -204,9 +226,7 @@ def task_factory(default_values_cls: Type[DefaultValues], required_args: List[st
         A task factory that accepts `default_values` and `task_args`.
     """
 
-    def wrapper(
-        __func: Callable[P, R]
-    ) -> TaskFactory[P, R]:
+    def wrapper(__func: Callable[P, R]) -> TaskFactory[P, R]:
         @wraps(__func)
         def factory_func(
             default_values: Optional[DefaultValues] = None,
