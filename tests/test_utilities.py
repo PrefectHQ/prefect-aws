@@ -155,7 +155,7 @@ def test_supply_args_defaults_with_keyword_only():
         return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
 
     assert test_function("foo", "bar", "buzz", "other", fizz="fizz") == dict(
-        foo="foo", bar="bar", buzz="buzz", args=("other",), kwargs={"fizz": "fizz"}
+        foo="foo", bar="bar", buzz="buzz", args=("buzz", "other",), kwargs={"fizz": "fizz"}
     )
     assert test_function(bar="bar") == dict(
         foo="foo", bar="bar", buzz="buzz", args=(), kwargs={}
