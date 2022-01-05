@@ -60,9 +60,12 @@ def get_boto_client(
 
     Args:
         - resource (str): the name of the resource to retrieve a client for (e.g. s3)
-        - aws_access_key_id (str, optional): AWS access key ID for client authentication.
-        - aws_secret_access_key (str, optional): AWS secret access key for client authentication.
-        - aws_session_token (str, optional): AWS session token used for client authentication.
+        - aws_access_key_id (str, optional): AWS access key ID for client
+            authentication.
+        - aws_secret_access_key (str, optional): AWS secret access key for client
+            authentication.
+        - aws_session_token (str, optional): AWS session token used for client
+            authentication.
         - region_name (str, optional): The AWS region name to use, defaults to your
             global configured default.
         - profile_name (str, optional): The name of an AWS profile to use which is
@@ -143,11 +146,13 @@ def supply_args_defaults(
     default_values: DefaultValues,
 ):
     """
-    Higher order function that supplies default values to the wrapped function. If an argument is `None`, then the
-    value for the corresponding argument in `default_values` will be passed to the wrapped function.
+    Higher order function that supplies default values to the wrapped function. If an
+    argument is `None`, then the value for the corresponding argument in
+    `default_values` will be passed to the wrapped function.
 
     Args:
-        default_values: Dataclass holding the default values that should be used for arguments that are `None`
+        default_values: Dataclass holding the default values that should be used for
+            arguments that are `None`
 
     Returns:
         Wrapper function
@@ -165,7 +170,8 @@ def supply_args_defaults(
             new_positional_or_keyword_args = []
             new_kwargs = {}
             new_args = ()
-            # Inspect each parameter along with the passed value for that parameter to determine if a default value needs to be provided.
+            # Inspect each parameter along with the passed value for that parameter to
+            # determine if a default value needs to be provided.
             # Maintain kind of each parameter to avoid runtime errors.
             for parameter in signature.parameters.values():
                 if (
@@ -201,7 +207,8 @@ def supply_args_defaults(
 
 def _chain(start: Any, *args: Callable):
     """
-    Chain multiple functions together and invoke the functional chain with a starting value
+    Chain multiple functions together and invoke the functional chain with a starting
+    value
     """
     res = start
     for func in args:
@@ -224,10 +231,11 @@ class TaskFactory(Protocol[P, R]):
 
 def task_factory(default_values_cls: Type[DefaultValues], required_args: List[str]):
     """
-    Decorator function that turns the decorated function into a task factory. Requires a corresponding dataclass
-    used to hold the default values for a constructed task. Tasks created from a task factory can have default values
-    assigned to their parameters that are then overrideable upon invocation. Tasks created from a task factory will
-    also validate that all necessary arguments are present at invocation.
+    Decorator function that turns the decorated function into a task factory. Requires a
+    corresponding dataclass used to hold the default values for a constructed task.
+    Tasks created from a task factory can have default values assigned to their
+    parameters that are then overrideable upon invocation. Tasks created from a task
+    factory will also validate that all necessary arguments are present at invocation.
 
     Args:
         default_values_cls: Class used to populate default values for created tasks.
@@ -243,20 +251,24 @@ def task_factory(default_values_cls: Type[DefaultValues], required_args: List[st
             task_args: Optional[TaskArgs] = None,
         ) -> Task[P, R]:
             """
-            Function that wraps the user supplied function with functions that will populate the configured defaults
-            upon invocation, verify that the required arguments are present at invocation, and turn the function into
+            Function that wraps the user supplied function with functions that will
+            populate the configured defaults upon invocation, verify that the required
+            arguments are present at invocation, and turn the function into
             a task that can be invoked within a flow.
 
             Args:
-                default_values: An instance of dataclass that holds the default values supplied to the created task.
-                task_args: Task configuration that is passed to the Prefect Task constructor.
+                default_values: An instance of dataclass that holds the default values
+                    supplied to the created task.
+                task_args: Task configuration that is passed to the Prefect Task
+                    constructor.
             Returns:
                 A task that can be invoked within a flow.
             """
             default_values = default_values or default_values_cls()
             task_args = task_args or TaskArgs()
 
-            # chain higher order functions to construct and validate a task with default values
+            # chain higher order functions to construct and validate a task with
+            # default values
             return _chain(
                 __func,
                 verify_required_args_present(*required_args),

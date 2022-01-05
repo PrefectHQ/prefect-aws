@@ -11,7 +11,10 @@ from prefect_aws.utilities import get_boto_client, task_factory
 
 @dataclass
 class S3DownloadDefaultValues(DefaultValues):
-    """Dataclass that defines default values that can be supplied when creating an S3 download task"""
+    """
+    Dataclass that defines default values that can be supplied when creating an S3
+    download task
+    """
 
     bucket: Optional[str] = None
     key: Optional[str] = None
@@ -27,17 +30,18 @@ def s3_download(
     boto_kwargs: Dict[str, Any] = None,
 ) -> bytes:
     """
-    Downloads an object with a given key from a given S3 bucket. AWS authentication is handled via the `boto3`
-    module. Refer to the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
+    Downloads an object with a given key from a given S3 bucket. AWS authentication is
+    handled via the `boto3` module. Refer to the [boto3 docs]
+    (https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
     for more info about the possible credential configurations.
 
     Args:
-        bucket: Name of bucket to download object from. Required if a default value was not supplied
-            when creating the task.
+        bucket: Name of bucket to download object from. Required if a default value was
+            not supplied when creating the task.
         key: Key of object to download. Required if a default value was not supplied
             when creating the task.
-        boto_kwargs: Keyword arguments that are forwarded to the boto client used by the task. Defaults to
-            an empty dictionary.
+        boto_kwargs: Keyword arguments that are forwarded to the boto client used by the
+            task. Defaults to an empty dictionary.
 
     Returns:
         A `bytes` representation of the downloaded object.
@@ -77,7 +81,10 @@ def s3_download(
 
 @dataclass
 class S3UploadDefaultValues(DefaultValues):
-    """Dataclass that defines default values that can be supplied when creating an S3 upload task"""
+    """
+    Dataclass that defines default values that can be supplied when creating an S3
+    upload task
+    """
 
     bucket: Optional[str] = None
     key: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -94,17 +101,18 @@ def s3_upload(
     boto_kwargs: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
-    Uploads data to an S3 bucket. AWS authentication is handled via the `boto3` module. Refer to the
-    [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
+    Uploads data to an S3 bucket. AWS authentication is handled via the `boto3` module.
+    Refer to the [boto3 docs]
+    (https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
     for more info about the possible credential configurations.
 
     Args:
         data: Bytes representation of data to upload to S3.
-        bucket: Name of bucket to upload data to. Required if a default value was not supplied
-            when creating the task.
+        bucket: Name of bucket to upload data to. Required if a default value was not
+            supplied when creating the task.
         key: Key of object to download. Defaults to a UUID string.
-        boto_kwargs: Keyword arguments that are forwarded to the boto client used by the task. Defaults to
-            an empty dictionary.
+        boto_kwargs: Keyword arguments that are forwarded to the boto client used by the
+            task. Defaults to an empty dictionary.
 
     Returns:
         The key of the uploaded object
@@ -142,7 +150,10 @@ def s3_upload(
 
 @dataclass
 class S3ListObjectsDefaultValues(DefaultValues):
-    """Dataclass that defines default values that can be supplied when creating an S3 list objects task"""
+    """
+    Dataclass that defines default values that can be supplied when creating an S3 list
+    objects task
+    """
 
     bucket: Optional[str] = None
     prefix: Optional[str] = ""
@@ -167,26 +178,28 @@ def s3_list_objects(
     jmespath_query: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Lists details of objects in a given S3 bucket. AWS authentication is handled via the `boto3` module.
-    Refer to the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
+    Lists details of objects in a given S3 bucket. AWS authentication is handled via the
+    `boto3` module. Refer to the [boto3 docs]
+    (https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
     for more info about the possible credential configurations.
 
     Args:
-        bucket: Name of bucket to list items from. Required if a default value was not supplied
-            when creating the task.
+        bucket: Name of bucket to list items from. Required if a default value was not
+            supplied when creating the task.
         prefix: Used to filter objects with keys starting with the specified prefix
-        boto_kwargs: Keyword arguments that are forwarded to the boto client used by the task. Defaults to
-            an empty dictionary.
+        boto_kwargs: Keyword arguments that are forwarded to the boto client used by the
+            task. Defaults to an empty dictionary.
         delimiter: Character used to group keys of listed objects
         page_size: Number of objects to return in each request to the AWS API
         max_items: Maximum number of objects that to be returned by task
-        jmespath_query: Query used to filter objects based on object attributes refer to the
-            [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html#filtering-results-with-jmespath)
+        jmespath_query: Query used to filter objects based on object attributes refer to
+            the [boto3 docs]
+            (https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html#filtering-results-with-jmespath)
             for more information on how to construct queries.
 
     Returns:
-        A list of dictionaries containing information about the objects retrieved. Refer to the
-            boto3 docs for an example response.
+        A list of dictionaries containing information about the objects retrieved. Refer
+            to the boto3 docs for an example response.
 
     Example:
         List all objects in a bucket
