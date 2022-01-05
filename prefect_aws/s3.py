@@ -66,7 +66,6 @@ def s3_download(
 
 
     """
-    print(bucket, key, boto_kwargs)
     logger = get_logger()
     logger.info("Downloading object from bucket %s with key %s", bucket, key)
 

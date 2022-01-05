@@ -11,7 +11,7 @@ from prefect.tasks import Task
 from prefect_aws.exceptions import MissingRequiredArgument
 from prefect_aws.schema import DefaultValues, TaskArgs
 from prefect_aws.utilities import (
-    get_boto_client,
+    get_boto3_client,
     supply_args_defaults,
     task_factory,
     verify_required_args_present,
@@ -28,13 +28,13 @@ def aws_credentials():
 
 
 def test_client_cache_same_credentials():
-    client1 = get_boto_client(
+    client1 = get_boto3_client(
         resource="s3",
         aws_access_key_id="access_key",
         aws_secret_access_key="secret_key",
     )
 
-    client2 = get_boto_client(
+    client2 = get_boto3_client(
         resource="s3",
         aws_access_key_id="access_key",
         aws_secret_access_key="secret_key",
@@ -44,13 +44,13 @@ def test_client_cache_same_credentials():
 
 
 def test_client_cache_different_credentials():
-    client1 = get_boto_client(
+    client1 = get_boto3_client(
         resource="s3",
         aws_access_key_id="access_key_1",
         aws_secret_access_key="secret_key_1",
     )
 
-    client2 = get_boto_client(
+    client2 = get_boto3_client(
         resource="s3",
         aws_access_key_id="access_key_2",
         aws_secret_access_key="secret_key_3",
@@ -60,26 +60,26 @@ def test_client_cache_different_credentials():
 
 
 def test_client_cache_same_profile(aws_credentials):
-    client1 = get_boto_client(resource="s3", profile_name="TEST_PROFILE_1")
+    client1 = get_boto3_client(resource="s3", profile_name="TEST_PROFILE_1")
 
-    client2 = get_boto_client(resource="s3", profile_name="TEST_PROFILE_1")
+    client2 = get_boto3_client(resource="s3", profile_name="TEST_PROFILE_1")
 
     assert client1 is client2
 
 
 def test_client_cache_different_profile(aws_credentials):
-    client1 = get_boto_client(resource="s3", profile_name="TEST_PROFILE_1")
+    client1 = get_boto3_client(resource="s3", profile_name="TEST_PROFILE_1")
 
-    client2 = get_boto_client(resource="s3", profile_name="TEST_PROFILE_2")
+    client2 = get_boto3_client(resource="s3", profile_name="TEST_PROFILE_2")
 
     assert client1 is not client2
 
 
 @mock_s3
 def test_client_cache_with_kwargs(aws_credentials):
-    client1 = get_boto_client(resource="s3", use_ssl=False)
+    client1 = get_boto3_client(resource="s3", use_ssl=False)
 
-    client2 = get_boto_client(resource="s3", use_ssl=False)
+    client2 = get_boto3_client(resource="s3", use_ssl=False)
 
     assert client1 is not client2
 

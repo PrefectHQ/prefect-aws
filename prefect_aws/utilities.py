@@ -39,7 +39,7 @@ _CLIENT_CACHE: MutableMapping[
 _LOCK = Lock()
 
 
-def get_boto_client(
+def get_boto3_client(
     resource: Literal["s3"],
     aws_access_key_id: Optional[str] = None,
     aws_secret_access_key: Optional[str] = None,
