@@ -11,11 +11,10 @@ from typing import (
     Type,
     TypeVar,
     Union,
-    cast,
 )
 from typing_extensions import ParamSpec
 from weakref import WeakValueDictionary
-from functools import partial, reduce, wraps
+from functools import wraps
 import inspect
 from typing_extensions import Protocol
 
@@ -169,18 +168,29 @@ def supply_args_defaults(
             # Inspect each parameter along with the passed value for that parameter to determine if a default value needs to be provided.
             # Maintain kind of each parameter to avoid runtime errors.
             for parameter in signature.parameters.values():
-                if parameter.kind == parameter.POSITIONAL_OR_KEYWORD or parameter.kind == parameter.POSITIONAL_ONLY:
+                if (
+                    parameter.kind == parameter.POSITIONAL_OR_KEYWORD
+                    or parameter.kind == parameter.POSITIONAL_ONLY
+                ):
                     passed_value = passed_args.get(parameter.name)
-                    new_value = passed_value if passed_value is not None else getattr(default_values, str(parameter.name))
+                    new_value = (
+                        passed_value
+                        if passed_value is not None
+                        else getattr(default_values, str(parameter.name))
+                    )
                     new_positional_or_keyword_args.append(new_value)
                 if parameter.kind == parameter.KEYWORD_ONLY:
                     passed_value = passed_args.get(parameter.name)
-                    new_kwargs[parameter.name] = passed_value if passed_value is not None else getattr(default_values, str(parameter.name))
+                    new_kwargs[parameter.name] = (
+                        passed_value
+                        if passed_value is not None
+                        else getattr(default_values, str(parameter.name))
+                    )
                 elif parameter.kind == parameter.VAR_POSITIONAL:
                     new_args = passed_args.get(parameter.name, ())
                 elif parameter.kind == parameter.VAR_KEYWORD:
                     new_kwargs = {**new_kwargs, **passed_args.get(parameter.name, {})}
-            
+
             # Call function with newly determined arguments
             return __func(*new_positional_or_keyword_args, *new_args, **new_kwargs)
 

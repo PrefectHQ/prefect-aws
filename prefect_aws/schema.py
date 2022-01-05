@@ -5,8 +5,10 @@ from dataclasses import dataclass
 
 from prefect.context import TaskRunContext
 
+
 class DefaultValues(ABC):
     ...
+
 
 @dataclass
 class TaskArgs:
