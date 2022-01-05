@@ -98,14 +98,14 @@ def test_verify_required_args_are_present():
 
 
 @dataclass
-class TestDefaultValues(DefaultValues):
+class TestDefaultValuesForTests(DefaultValues):
     foo: str = None
     bar: str = None
     buzz: str = "buzz"
 
 
 def test_supply_args_defaults():
-    @supply_args_defaults(TestDefaultValues(foo="foo"))
+    @supply_args_defaults(TestDefaultValuesForTests(foo="foo"))
     def test_function(
         foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
     ):
@@ -123,7 +123,7 @@ def test_supply_args_defaults():
 
 
 def test_supply_args_defaults_with_positional_only():
-    @supply_args_defaults(TestDefaultValues(foo="foo"))
+    @supply_args_defaults(TestDefaultValuesForTests(foo="foo"))
     def test_function(
         foo: str = None, /, bar: str = None, buzz: str = None, *args, **kwargs
     ):
@@ -141,7 +141,7 @@ def test_supply_args_defaults_with_positional_only():
 
 
 def test_supply_args_defaults_with_keyword_only():
-    @supply_args_defaults(TestDefaultValues(foo="foo"))
+    @supply_args_defaults(TestDefaultValuesForTests(foo="foo"))
     def test_function(
         foo: str = None, bar: str = None, *args, buzz: str = None, **kwargs
     ):
@@ -166,13 +166,13 @@ def test_supply_args_defaults_with_keyword_only():
 
 
 def test_task_factory_populates_defaults():
-    @task_factory(default_values_cls=TestDefaultValues, required_args=["foo", "bar"])
+    @task_factory(default_values_cls=TestDefaultValuesForTests, required_args=["foo", "bar"])
     def test_function(
         foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
     ):
         return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
 
-    test_task = test_function(default_values=TestDefaultValues(foo="foo", bar="bar"))
+    test_task = test_function(default_values=TestDefaultValuesForTests(foo="foo", bar="bar"))
 
     @flow
     def test_flow():
@@ -186,13 +186,13 @@ def test_task_factory_populates_defaults():
 
 
 def test_task_factory_allows_override():
-    @task_factory(default_values_cls=TestDefaultValues, required_args=["foo", "bar"])
+    @task_factory(default_values_cls=TestDefaultValuesForTests, required_args=["foo", "bar"])
     def test_function(
         foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
     ):
         return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
 
-    test_task = test_function(default_values=TestDefaultValues(foo="foo", bar="bar"))
+    test_task = test_function(default_values=TestDefaultValuesForTests(foo="foo", bar="bar"))
 
     @flow
     def test_flow():
@@ -206,13 +206,13 @@ def test_task_factory_allows_override():
 
 
 def test_task_factory_raises_on_missing_arg():
-    @task_factory(default_values_cls=TestDefaultValues, required_args=["foo", "bar"])
+    @task_factory(default_values_cls=TestDefaultValuesForTests, required_args=["foo", "bar"])
     def test_function(
         foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
     ):
         return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
 
-    test_task = test_function(default_values=TestDefaultValues(foo="foo"))
+    test_task = test_function(default_values=TestDefaultValuesForTests(foo="foo"))
 
     @flow
     def test_flow():
@@ -228,7 +228,7 @@ def test_task_factory_raises_on_missing_arg():
 def test_task_factory_respects_task_args():
     call_count_tracker = MagicMock()
 
-    @task_factory(default_values_cls=TestDefaultValues, required_args=["foo", "bar"])
+    @task_factory(default_values_cls=TestDefaultValuesForTests, required_args=["foo", "bar"])
     def test_function(
         foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
     ):
