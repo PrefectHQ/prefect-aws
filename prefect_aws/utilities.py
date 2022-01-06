@@ -22,7 +22,7 @@ import boto3
 from prefect.tasks import Task, task
 
 from prefect_aws.exceptions import MissingRequiredArgument
-from prefect_aws.schema import DefaultValues, TaskArgs
+from prefect_aws.schema import BaseDefaultValues, TaskArgs
 
 _CLIENT_CACHE: MutableMapping[
     Tuple[
@@ -143,7 +143,7 @@ def verify_required_args_present(*arg_names: str):
 
 
 def supply_args_defaults(
-    default_values: DefaultValues,
+    default_values: BaseDefaultValues,
 ):
     """
     Higher order function that supplies default values to the wrapped function. If an
@@ -223,13 +223,13 @@ class TaskFactory(Protocol[P, R]):
 
     def __call__(
         self,
-        default_values: Optional[DefaultValues] = None,
+        default_values: Optional[BaseDefaultValues] = None,
         task_args: Optional[TaskArgs] = None,
     ) -> Task[P, R]:
         ...
 
 
-def task_factory(default_values_cls: Type[DefaultValues], required_args: List[str]):
+def task_factory(default_values_cls: Type[BaseDefaultValues], required_args: List[str]):
     """
     Decorator function that turns the decorated function into a task factory. Requires a
     corresponding dataclass used to hold the default values for a constructed task.
@@ -247,7 +247,7 @@ def task_factory(default_values_cls: Type[DefaultValues], required_args: List[st
     def wrapper(__func: Callable[P, R]) -> TaskFactory[P, R]:
         @wraps(__func)
         def factory_func(
-            default_values: Optional[DefaultValues] = None,
+            default_values: Optional[BaseDefaultValues] = None,
             task_args: Optional[TaskArgs] = None,
         ) -> Task[P, R]:
             """

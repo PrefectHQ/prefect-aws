@@ -9,7 +9,7 @@ from moto import mock_s3
 from prefect import flow
 from prefect.tasks import Task
 from prefect_aws.exceptions import MissingRequiredArgument
-from prefect_aws.schema import DefaultValues, TaskArgs
+from prefect_aws.schema import BaseDefaultValues, TaskArgs
 from prefect_aws.utilities import (
     get_boto3_client,
     supply_args_defaults,
@@ -98,7 +98,7 @@ def test_verify_required_args_are_present():
 
 
 @dataclass
-class DefaultValuesForTests(DefaultValues):
+class DefaultValuesForTests(BaseDefaultValues):
     foo: str = None
     bar: str = None
     buzz: str = "buzz"

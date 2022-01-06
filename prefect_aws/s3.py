@@ -5,12 +5,12 @@ from typing import Any, Dict, List, Optional
 
 from prefect.utilities.logging import get_logger
 
-from prefect_aws.schema import DefaultValues
-from prefect_aws.utilities import get_boto_client, task_factory
+from prefect_aws.schema import BaseDefaultValues
+from prefect_aws.utilities import get_boto3_client, task_factory
 
 
 @dataclass
-class S3DownloadDefaultValues(DefaultValues):
+class S3DownloadDefaultValues(BaseDefaultValues):
     """
     Dataclass that defines default values that can be supplied when creating an S3
     download task
@@ -69,7 +69,7 @@ def s3_download(
     logger = get_logger()
     logger.info("Downloading object from bucket %s with key %s", bucket, key)
 
-    s3_client = get_boto_client("s3", **boto_kwargs)
+    s3_client = get_boto3_client("s3", **boto_kwargs)
     stream = io.BytesIO()
     s3_client.download_fileobj(Bucket=bucket, Key=key, Fileobj=stream)
     stream.seek(0)
@@ -79,7 +79,7 @@ def s3_download(
 
 
 @dataclass
-class S3UploadDefaultValues(DefaultValues):
+class S3UploadDefaultValues(BaseDefaultValues):
     """
     Dataclass that defines default values that can be supplied when creating an S3
     upload task
@@ -140,7 +140,7 @@ def s3_upload(
     logger = get_logger()
     logger.info("Uploading object to bucket %s with key %s", bucket, key)
 
-    s3_client = get_boto_client("s3", **boto_kwargs)
+    s3_client = get_boto3_client("s3", **boto_kwargs)
     stream = io.BytesIO(data)
     s3_client.upload_fileobj(stream, Bucket=bucket, Key=key)
 
@@ -148,7 +148,7 @@ def s3_upload(
 
 
 @dataclass
-class S3ListObjectsDefaultValues(DefaultValues):
+class S3ListObjectsDefaultValues(BaseDefaultValues):
     """
     Dataclass that defines default values that can be supplied when creating an S3 list
     objects task
@@ -222,7 +222,7 @@ def s3_list_objects(
     logger = get_logger()
     logger.info("Listing objects in bucket %s with prefix %s", bucket, prefix)
 
-    s3_client = get_boto_client("s3", **boto_kwargs)
+    s3_client = get_boto3_client("s3", **boto_kwargs)
     paginator = s3_client.get_paginator("list_objects_v2")
     page_iterator = paginator.paginate(
         Bucket=bucket,
