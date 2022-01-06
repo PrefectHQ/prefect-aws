@@ -20,9 +20,10 @@ from typing_extensions import Protocol
 
 import boto3
 from prefect.tasks import Task, task
+from prefect.flows import Flow, flow
 
 from prefect_aws.exceptions import MissingRequiredArgument
-from prefect_aws.schema import BaseDefaultValues, TaskArgs
+from prefect_aws.schema import BaseDefaultValues, FlowArgs, TaskArgs
 
 _CLIENT_CACHE: MutableMapping[
     Tuple[
@@ -109,7 +110,8 @@ def get_boto3_client(
 
 
 R = TypeVar("R")  # The return type of the user's function
-P = ParamSpec("P")  # The parameters of the task
+P = ParamSpec("P")  # The parameters of the user's function
+D = TypeVar("D", bound=BaseDefaultValues, contravariant=True)  # The default values for a factory
 
 
 def verify_required_args_present(*arg_names: str):
@@ -216,20 +218,20 @@ def _chain(start: Any, *args: Callable):
     return res
 
 
-class TaskFactory(Protocol[P, R]):
+class TaskFactory(Protocol[P, R, D]):
     """
     Protocol class for task factory typing
     """
 
     def __call__(
         self,
-        default_values: Optional[BaseDefaultValues] = None,
+        default_values: Optional[D] = None,
         task_args: Optional[TaskArgs] = None,
     ) -> Task[P, R]:
         ...
 
 
-def task_factory(default_values_cls: Type[BaseDefaultValues], required_args: List[str]):
+def task_factory(default_values_cls: Type[D], required_args: List[str]):
     """
     Decorator function that turns the decorated function into a task factory. Requires a
     corresponding dataclass used to hold the default values for a constructed task.
@@ -244,10 +246,10 @@ def task_factory(default_values_cls: Type[BaseDefaultValues], required_args: Lis
         A task factory that accepts `default_values` and `task_args`.
     """
 
-    def wrapper(__func: Callable[P, R]) -> TaskFactory[P, R]:
+    def wrapper(__func: Callable[P, R]) -> TaskFactory[P, R, D]:
         @wraps(__func)
         def factory_func(
-            default_values: Optional[BaseDefaultValues] = None,
+            default_values: Optional[D] = None,
             task_args: Optional[TaskArgs] = None,
         ) -> Task[P, R]:
             """
@@ -274,6 +276,43 @@ def task_factory(default_values_cls: Type[BaseDefaultValues], required_args: Lis
                 verify_required_args_present(*required_args),
                 supply_args_defaults(default_values),
                 task(**asdict(task_args)),
+            )
+
+        return factory_func
+
+    return wrapper
+
+
+class FlowFactory(Protocol[P, R, D]):
+    """
+    Protocol class for flow factory typing
+    """
+
+    def __call__(
+        self,
+        default_values: Optional[D] = None,
+        flow_args: Optional[FlowArgs] = None,
+    ) -> Flow[P, R]:
+        ...
+
+
+def flow_factory(default_values_cls: Type[D], required_args: List[str]):
+    def wrapper(__func: Callable[P, R]) -> FlowFactory[P, R, D]:
+        @wraps(__func)
+        def factory_func(
+            default_values: Optional[BaseDefaultValues] = None,
+            flow_args: Optional[FlowArgs] = None,
+        ) -> Flow[P, R]:
+            default_values = default_values or default_values_cls()
+            flow_args = flow_args or FlowArgs()
+
+            # chain higher order functions to construct and validate a flow with
+            # default values
+            return _chain(
+                __func,
+                verify_required_args_present(*required_args),
+                supply_args_defaults(default_values),
+                flow(**asdict(flow_args)),
             )
 
         return factory_func
