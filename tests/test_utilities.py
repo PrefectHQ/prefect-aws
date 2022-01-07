@@ -1,16 +1,15 @@
-# type: ignore
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 from unittest.mock import MagicMock
-from prefect.flows import Flow
 
 import pytest
 from moto import mock_s3
 from prefect import flow
-from prefect.tasks import Task
+from prefect.flows import Flow
 from prefect_aws.exceptions import MissingRequiredArgument
-from prefect_aws.schema import BaseDefaultValues, FlowArgs, TaskArgs
+from prefect_aws.schema import FlowArgs, TaskArgs
 from prefect_aws.utilities import (
     flow_factory,
     get_boto3_client,
@@ -100,9 +99,9 @@ def test_verify_required_args_are_present():
 
 
 @dataclass
-class DefaultValuesForTests(BaseDefaultValues):
-    foo: str = None
-    bar: str = None
+class DefaultValuesForTests:
+    foo: Optional[str] = None
+    bar: Optional[str] = None
     buzz: str = "buzz"
 
 
