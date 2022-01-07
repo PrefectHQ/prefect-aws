@@ -1,4 +1,6 @@
+import inspect
 from dataclasses import asdict
+from functools import wraps
 from threading import Lock
 from typing import (
     Any,
@@ -12,15 +14,12 @@ from typing import (
     TypeVar,
     Union,
 )
-from typing_extensions import ParamSpec
 from weakref import WeakValueDictionary
-from functools import wraps
-import inspect
-from typing_extensions import Protocol
 
 import boto3
-from prefect.tasks import Task, task
 from prefect.flows import Flow, flow
+from prefect.tasks import Task, task
+from typing_extensions import ParamSpec, Protocol
 
 from prefect_aws.exceptions import MissingRequiredArgument
 from prefect_aws.schema import BaseDefaultValues, FlowArgs, TaskArgs
@@ -111,7 +110,9 @@ def get_boto3_client(
 
 R = TypeVar("R")  # The return type of the user's function
 P = ParamSpec("P")  # The parameters of the user's function
-D = TypeVar("D", bound=BaseDefaultValues, contravariant=True)  # The default values for a factory
+D = TypeVar(
+    "D", bound=BaseDefaultValues, contravariant=True
+)  # The default values for a factory
 
 
 def verify_required_args_present(*arg_names: str):
@@ -297,12 +298,41 @@ class FlowFactory(Protocol[P, R, D]):
 
 
 def flow_factory(default_values_cls: Type[D], required_args: List[str]):
+    """
+    Decorator function that turns the decorated function into a flow factory. Requires a
+    corresponding dataclass used to hold the default values for a constructed flow.
+    Flows created from a flow factory can have default values assigned to their
+    parameters that are then overrideable upon invocation. Flows created from a flow
+    factory will also validate that all necessary arguments are present at invocation.
+
+    Args:
+        default_values_cls: Class used to populate default values for created flows.
+        required_args: List of arguments that are necessary for created flows to be run.
+    Returns:
+        A flow factory that accepts `default_values` and `flow_args`.
+    """
+
     def wrapper(__func: Callable[P, R]) -> FlowFactory[P, R, D]:
         @wraps(__func)
         def factory_func(
             default_values: Optional[BaseDefaultValues] = None,
             flow_args: Optional[FlowArgs] = None,
         ) -> Flow[P, R]:
+            """
+            Function that wraps the user supplied function with functions that will
+            populate the configured defaults upon invocation, verify that the required
+            arguments are present at invocation, and turn the function into
+            a flow that can be invoked on its own or as subflow within another flow.
+
+            Args:
+                default_values: An instance of dataclass that holds the default values
+                    supplied to the created flow.
+                flow_args: Flow configuration that is passed to the Prefect Flow
+                    constructor.
+            Returns:
+                A flow that can be invoked on its own or as a subflow within another flow.
+            """
+
             default_values = default_values or default_values_cls()
             flow_args = flow_args or FlowArgs()
 

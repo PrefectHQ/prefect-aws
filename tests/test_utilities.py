@@ -3,14 +3,16 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import MagicMock
+from prefect.flows import Flow
 
 import pytest
 from moto import mock_s3
 from prefect import flow
 from prefect.tasks import Task
 from prefect_aws.exceptions import MissingRequiredArgument
-from prefect_aws.schema import BaseDefaultValues, TaskArgs
+from prefect_aws.schema import BaseDefaultValues, FlowArgs, TaskArgs
 from prefect_aws.utilities import (
+    flow_factory,
     get_boto3_client,
     supply_args_defaults,
     task_factory,
@@ -166,13 +168,17 @@ def test_supply_args_defaults_with_keyword_only():
 
 
 def test_task_factory_populates_defaults():
-    @task_factory(default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"])
+    @task_factory(
+        default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"]
+    )
     def test_function(
         foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
     ):
         return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
 
-    test_task = test_function(default_values=DefaultValuesForTests(foo="foo", bar="bar"))
+    test_task = test_function(
+        default_values=DefaultValuesForTests(foo="foo", bar="bar")
+    )
 
     @flow
     def test_flow():
@@ -186,13 +192,17 @@ def test_task_factory_populates_defaults():
 
 
 def test_task_factory_allows_override():
-    @task_factory(default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"])
+    @task_factory(
+        default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"]
+    )
     def test_function(
         foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
     ):
         return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
 
-    test_task = test_function(default_values=DefaultValuesForTests(foo="foo", bar="bar"))
+    test_task = test_function(
+        default_values=DefaultValuesForTests(foo="foo", bar="bar")
+    )
 
     @flow
     def test_flow():
@@ -206,7 +216,9 @@ def test_task_factory_allows_override():
 
 
 def test_task_factory_raises_on_missing_arg():
-    @task_factory(default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"])
+    @task_factory(
+        default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"]
+    )
     def test_function(
         foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
     ):
@@ -228,7 +240,9 @@ def test_task_factory_raises_on_missing_arg():
 def test_task_factory_respects_task_args():
     call_count_tracker = MagicMock()
 
-    @task_factory(default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"])
+    @task_factory(
+        default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"]
+    )
     def test_function(
         foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
     ):
@@ -239,7 +253,10 @@ def test_task_factory_respects_task_args():
 
     test_task = test_function(
         task_args=TaskArgs(
-            name="Test Task", description="This is a test task", tags=["test"], retries=1
+            name="Test Task",
+            description="This is a test task",
+            tags=["test"],
+            retries=1,
         )
     )
 
@@ -258,3 +275,87 @@ def test_task_factory_respects_task_args():
         foo="foo", bar="bar", buzz="buzz", args=(), kwargs={}
     )
     assert call_count_tracker.call_count == 2
+
+
+def test_flow_factory_populates_defaults():
+    @flow_factory(
+        default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"]
+    )
+    def test_function(
+        foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
+    ):
+        return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
+
+    test_flow = test_function(
+        default_values=DefaultValuesForTests(foo="foo", bar="bar")
+    )
+
+    assert isinstance(test_flow, Flow)
+
+    test_flow_state = test_flow()
+    assert test_flow_state.result() == dict(
+        foo="foo", bar="bar", buzz="buzz", args=(), kwargs={}
+    )
+
+
+def test_flow_factory_allows_override():
+    @flow_factory(
+        default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"]
+    )
+    def test_function(
+        foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
+    ):
+        return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
+
+    test_flow = test_function(
+        default_values=DefaultValuesForTests(foo="foo", bar="bar")
+    )
+
+    test_flow_state = test_flow(foo="new_foo")
+    assert test_flow_state.result() == dict(
+        foo="new_foo", bar="bar", buzz="buzz", args=(), kwargs={}
+    )
+
+
+def test_flow_factory_raises_on_missing_arg():
+    @flow_factory(
+        default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"]
+    )
+    def test_function(
+        foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
+    ):
+        return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
+
+    test_flow = test_function(default_values=DefaultValuesForTests(foo="foo"))
+
+    test_flow_state = test_flow()
+    with pytest.raises(
+        MissingRequiredArgument, match="Missing value for required argument bar."
+    ):
+        flow_state = test_flow_state.result()
+
+
+def test_flow_factory_respects_flow_args():
+    @flow_factory(
+        default_values_cls=DefaultValuesForTests, required_args=["foo", "bar"]
+    )
+    def test_function(
+        foo: str = None, bar: str = None, buzz: str = None, *args, **kwargs
+    ):
+        return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
+
+    test_flow = test_function(
+        flow_args=FlowArgs(
+            name="Test Flow",
+            description="This is a test flow",
+        )
+    )
+
+    assert test_flow.name == "Test Flow"
+    assert test_flow.description == "This is a test flow"
+
+    test_flow_state = test_flow(foo="foo", bar="bar")
+
+    assert test_flow_state.result() == dict(
+        foo="foo", bar="bar", buzz="buzz", args=(), kwargs={}
+    )
