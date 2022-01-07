@@ -124,24 +124,6 @@ def test_supply_args_defaults():
     )
 
 
-def test_supply_args_defaults_with_positional_only():
-    @supply_args_defaults(DefaultValuesForTests(foo="foo"))
-    def test_function(
-        foo: str = None, /, bar: str = None, buzz: str = None, *args, **kwargs
-    ):
-        return dict(foo=foo, bar=bar, buzz=buzz, args=args, kwargs=kwargs)
-
-    assert test_function("foo", "bar", "buzz", "other", fizz="fizz") == dict(
-        foo="foo", bar="bar", buzz="buzz", args=("other",), kwargs={"fizz": "fizz"}
-    )
-    assert test_function(bar="bar") == dict(
-        foo="foo", bar="bar", buzz="buzz", args=(), kwargs={}
-    )
-    assert test_function("f", bar="ba", buzz="bu") == dict(
-        foo="f", bar="ba", buzz="bu", args=(), kwargs={}
-    )
-
-
 def test_supply_args_defaults_with_keyword_only():
     @supply_args_defaults(DefaultValuesForTests(foo="foo"))
     def test_function(
