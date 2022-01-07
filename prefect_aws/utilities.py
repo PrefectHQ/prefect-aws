@@ -21,7 +21,7 @@ from prefect.tasks import Task, task
 from typing_extensions import ParamSpec, Protocol
 
 from prefect_aws.exceptions import MissingRequiredArgument
-from prefect_aws.schema import BaseDefaultValues, FlowArgs, TaskArgs
+from prefect_aws.schema import FlowArgs, TaskArgs
 
 _CLIENT_CACHE: MutableMapping[
     Tuple[
@@ -109,9 +109,7 @@ def get_boto3_client(
 
 R = TypeVar("R")  # The return type of the user's function
 P = ParamSpec("P")  # The parameters of the user's function
-D = TypeVar(
-    "D", bound=BaseDefaultValues, contravariant=True
-)  # The default values for a factory
+D = TypeVar("D", contravariant=True)  # The default values for a factory
 
 
 def verify_required_args_present(*arg_names: str):
@@ -145,7 +143,7 @@ def verify_required_args_present(*arg_names: str):
 
 
 def supply_args_defaults(
-    default_values: BaseDefaultValues,
+    default_values: object,
 ):
     """
     Higher order function that supplies default values to the wrapped function. If an
@@ -314,7 +312,7 @@ def flow_factory(default_values_cls: Type[D], required_args: List[str]):
     def wrapper(__func: Callable[P, R]) -> FlowFactory[P, R, D]:
         @wraps(__func)
         def factory_func(
-            default_values: Optional[BaseDefaultValues] = None,
+            default_values: Optional[D] = None,
             flow_args: Optional[FlowArgs] = None,
         ) -> Flow[P, R]:
             """

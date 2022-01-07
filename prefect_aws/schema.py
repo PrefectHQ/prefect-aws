@@ -1,14 +1,9 @@
-from abc import ABC
 import datetime
 from typing import Any, Callable, Dict, Iterable, Optional, Union
 from dataclasses import dataclass
 
 from prefect.context import TaskRunContext
 from prefect.task_runners import BaseTaskRunner, SequentialTaskRunner
-
-
-class BaseDefaultValues(ABC):
-    ...
 
 
 @dataclass
