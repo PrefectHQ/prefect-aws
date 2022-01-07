@@ -6,7 +6,6 @@ from typing import (
     Any,
     Callable,
     List,
-    Literal,
     MutableMapping,
     Optional,
     Tuple,
@@ -29,7 +28,7 @@ _CLIENT_CACHE: MutableMapping[
         Union[str, None],
         Union[str, None],
         int,
-        Literal["s3"],
+        str,
         Union[str, None],
         Union[str, None],
         Union[str, None],
@@ -40,7 +39,7 @@ _LOCK = Lock()
 
 
 def get_boto3_client(
-    resource: Literal["s3"],
+    resource: str,
     aws_access_key_id: Optional[str] = None,
     aws_secret_access_key: Optional[str] = None,
     aws_session_token: Optional[str] = None,
