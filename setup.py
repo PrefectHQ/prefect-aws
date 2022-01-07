@@ -9,7 +9,7 @@ setup(
     # Package metadata
     name="prefect_aws",
     description="Prefect tasks and subflows for interacting with AWS",
-    license="Prefect Community License",
+    license="Apache License 2.0",
     author="Prefect Technologies, Inc.",
     author_email="help@prefect.io",
     url="https://github.com/PrefectHQ/prefect-aws",
