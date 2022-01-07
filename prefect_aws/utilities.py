@@ -1,10 +1,11 @@
+import inspect
 from dataclasses import asdict
+from functools import wraps
 from threading import Lock
 from typing import (
     Any,
     Callable,
     List,
-    Literal,
     MutableMapping,
     Optional,
     Tuple,
@@ -12,24 +13,22 @@ from typing import (
     TypeVar,
     Union,
 )
-from typing_extensions import ParamSpec
 from weakref import WeakValueDictionary
-from functools import wraps
-import inspect
-from typing_extensions import Protocol
 
 import boto3
+from prefect.flows import Flow, flow
 from prefect.tasks import Task, task
+from typing_extensions import ParamSpec, Protocol
 
 from prefect_aws.exceptions import MissingRequiredArgument
-from prefect_aws.schema import BaseDefaultValues, TaskArgs
+from prefect_aws.schema import FlowArgs, TaskArgs
 
 _CLIENT_CACHE: MutableMapping[
     Tuple[
         Union[str, None],
         Union[str, None],
         int,
-        Literal["s3"],
+        str,
         Union[str, None],
         Union[str, None],
         Union[str, None],
@@ -40,7 +39,7 @@ _LOCK = Lock()
 
 
 def get_boto3_client(
-    resource: Literal["s3"],
+    resource: str,
     aws_access_key_id: Optional[str] = None,
     aws_secret_access_key: Optional[str] = None,
     aws_session_token: Optional[str] = None,
@@ -109,7 +108,8 @@ def get_boto3_client(
 
 
 R = TypeVar("R")  # The return type of the user's function
-P = ParamSpec("P")  # The parameters of the task
+P = ParamSpec("P")  # The parameters of the user's function
+D = TypeVar("D", contravariant=True)  # The default values for a factory
 
 
 def verify_required_args_present(*arg_names: str):
@@ -143,7 +143,7 @@ def verify_required_args_present(*arg_names: str):
 
 
 def supply_args_defaults(
-    default_values: BaseDefaultValues,
+    default_values: object,
 ):
     """
     Higher order function that supplies default values to the wrapped function. If an
@@ -216,20 +216,20 @@ def _chain(start: Any, *args: Callable):
     return res
 
 
-class TaskFactory(Protocol[P, R]):
+class TaskFactory(Protocol[P, R, D]):
     """
     Protocol class for task factory typing
     """
 
     def __call__(
         self,
-        default_values: Optional[BaseDefaultValues] = None,
+        default_values: Optional[D] = None,
         task_args: Optional[TaskArgs] = None,
     ) -> Task[P, R]:
         ...
 
 
-def task_factory(default_values_cls: Type[BaseDefaultValues], required_args: List[str]):
+def task_factory(default_values_cls: Type[D], required_args: List[str]):
     """
     Decorator function that turns the decorated function into a task factory. Requires a
     corresponding dataclass used to hold the default values for a constructed task.
@@ -244,10 +244,10 @@ def task_factory(default_values_cls: Type[BaseDefaultValues], required_args: Lis
         A task factory that accepts `default_values` and `task_args`.
     """
 
-    def wrapper(__func: Callable[P, R]) -> TaskFactory[P, R]:
+    def wrapper(__func: Callable[P, R]) -> TaskFactory[P, R, D]:
         @wraps(__func)
         def factory_func(
-            default_values: Optional[BaseDefaultValues] = None,
+            default_values: Optional[D] = None,
             task_args: Optional[TaskArgs] = None,
         ) -> Task[P, R]:
             """
@@ -274,6 +274,72 @@ def task_factory(default_values_cls: Type[BaseDefaultValues], required_args: Lis
                 verify_required_args_present(*required_args),
                 supply_args_defaults(default_values),
                 task(**asdict(task_args)),
+            )
+
+        return factory_func
+
+    return wrapper
+
+
+class FlowFactory(Protocol[P, R, D]):
+    """
+    Protocol class for flow factory typing
+    """
+
+    def __call__(
+        self,
+        default_values: Optional[D] = None,
+        flow_args: Optional[FlowArgs] = None,
+    ) -> Flow[P, R]:
+        ...
+
+
+def flow_factory(default_values_cls: Type[D], required_args: List[str]):
+    """
+    Decorator function that turns the decorated function into a flow factory. Requires a
+    corresponding dataclass used to hold the default values for a constructed flow.
+    Flows created from a flow factory can have default values assigned to their
+    parameters that are then overrideable upon invocation. Flows created from a flow
+    factory will also validate that all necessary arguments are present at invocation.
+
+    Args:
+        default_values_cls: Class used to populate default values for created flows.
+        required_args: List of arguments that are necessary for created flows to be run.
+    Returns:
+        A flow factory that accepts `default_values` and `flow_args`.
+    """
+
+    def wrapper(__func: Callable[P, R]) -> FlowFactory[P, R, D]:
+        @wraps(__func)
+        def factory_func(
+            default_values: Optional[D] = None,
+            flow_args: Optional[FlowArgs] = None,
+        ) -> Flow[P, R]:
+            """
+            Function that wraps the user supplied function with functions that will
+            populate the configured defaults upon invocation, verify that the required
+            arguments are present at invocation, and turn the function into
+            a flow that can be invoked on its own or as subflow within another flow.
+
+            Args:
+                default_values: An instance of dataclass that holds the default values
+                    supplied to the created flow.
+                flow_args: Flow configuration that is passed to the Prefect Flow
+                    constructor.
+            Returns:
+                A flow that can be invoked on its own or as a subflow within another flow.
+            """
+
+            default_values = default_values or default_values_cls()
+            flow_args = flow_args or FlowArgs()
+
+            # chain higher order functions to construct and validate a flow with
+            # default values
+            return _chain(
+                __func,
+                verify_required_args_present(*required_args),
+                supply_args_defaults(default_values),
+                flow(**asdict(flow_args)),
             )
 
         return factory_func

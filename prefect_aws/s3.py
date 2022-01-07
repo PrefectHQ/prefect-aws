@@ -5,12 +5,11 @@ from typing import Any, Dict, List, Optional
 
 from prefect.utilities.logging import get_logger
 
-from prefect_aws.schema import BaseDefaultValues
 from prefect_aws.utilities import get_boto3_client, task_factory
 
 
 @dataclass
-class S3DownloadDefaultValues(BaseDefaultValues):
+class S3DownloadDefaultValues:
     """
     Dataclass that defines default values that can be supplied when creating an S3
     download task
@@ -79,7 +78,7 @@ def s3_download(
 
 
 @dataclass
-class S3UploadDefaultValues(BaseDefaultValues):
+class S3UploadDefaultValues:
     """
     Dataclass that defines default values that can be supplied when creating an S3
     upload task
@@ -148,7 +147,7 @@ def s3_upload(
 
 
 @dataclass
-class S3ListObjectsDefaultValues(BaseDefaultValues):
+class S3ListObjectsDefaultValues:
     """
     Dataclass that defines default values that can be supplied when creating an S3 list
     objects task
