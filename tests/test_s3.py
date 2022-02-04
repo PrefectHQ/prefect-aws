@@ -130,7 +130,7 @@ def test_s3_list_objects_filter(object, object_in_folder, aws_credentials):
         return s3_list_objects(
             bucket="bucket",
             jmespath_query="Contents[?Size > `10`][]",
-            aws_credentials=aws_credentials
+            aws_credentials=aws_credentials,
         )
 
     flow_state = test_flow()

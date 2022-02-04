@@ -17,6 +17,7 @@ class AwsCredentials:
         profile_name: The profile to use when creating your session.
         region_name: The AWS Region where you want to create new connections.
     """
+
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
     aws_session_token: Optional[str] = None
@@ -33,7 +34,7 @@ class AwsCredentials:
 
             >>> aws_credentials = AwsCredentials(
             >>>     aws_access_key_id = "access_key_id",
-            >>>     aws_secret_access_key = "secret_access_key"   
+            >>>     aws_secret_access_key = "secret_access_key"
             >>> )
             >>> s3_client = aws_credentials.get_boto3_session().client("s3")
         """
