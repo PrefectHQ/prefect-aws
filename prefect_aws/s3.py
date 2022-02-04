@@ -109,8 +109,8 @@ def s3_upload(
 def s3_list_objects(
     bucket: str,
     aws_credentials: AwsCredentials,
-    prefix: Optional[str] = None,
-    delimiter: Optional[str] = None,
+    prefix: str = "",
+    delimiter: str = "",
     page_size: Optional[int] = None,
     max_items: Optional[int] = None,
     jmespath_query: Optional[str] = None,

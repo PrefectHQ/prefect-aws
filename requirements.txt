@@ -1,2 +1,2 @@
 boto3
-git+https://github.com/PrefectHQ/orion.git#egg=prefect
+prefect>=2.0a9
