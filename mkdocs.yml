@@ -1,4 +1,4 @@
-site_name: Prefect AWS Shared Tasks and Subflow Collection
+site_name: prefect-aws
 theme:
   name: material
   palette:
@@ -27,3 +27,8 @@ plugins:
             heading_level: 1
       watch:
         - prefect_aws/
+nav:
+    - Home: index.md
+    - Credentials: credentials.md
+    - S3: s3.md
+
