@@ -2,7 +2,9 @@ pytest
 black
 flake8
 mypy
-moto[s3]
 mkdocs
 mkdocs-material
 mkdocstrings
+isort
+pre-commit
+moto[s3]
