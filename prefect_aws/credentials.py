@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+
 import boto3
 
 
@@ -7,16 +8,18 @@ import boto3
 class AwsCredentials:
     """
     Dataclass used to manage authentication with AWS. AWS authentication is
-    handled via the `boto3` module. Refer to the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
+    handled via the `boto3` module. Refer to the
+    [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
     for more info about the possible credential configurations.
 
     Args:
         aws_access_key_id: A specific AWS access key ID.
         aws_secret_access_key: A specific AWS secret access key.
-        aws_session_token: The session key for your AWS account. This is only needed when you are using temporary credentials.
+        aws_session_token: The session key for your AWS account.
+            This is only needed when you are using temporary credentials.
         profile_name: The profile to use when creating your session.
         region_name: The AWS Region where you want to create new connections.
-    """
+    """  # noqa E501
 
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None

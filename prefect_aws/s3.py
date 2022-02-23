@@ -147,7 +147,7 @@ def s3_list_objects(
         >>>         bucket="data_bucket",
         >>>         aws_credentials=aws_credentials
         >>>     )
-    """
+    """  # noqa E501
     logger = get_logger()
     logger.info("Listing objects in bucket %s with prefix %s", bucket, prefix)
 

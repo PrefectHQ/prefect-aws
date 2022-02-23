@@ -1,0 +1,2 @@
+include versioneer.py
+include prefect_aws/_version.py

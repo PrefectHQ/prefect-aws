@@ -18,7 +18,7 @@ These tasks are designed to work with Prefect 2.0. For more information about ho
 Install Prefect and Prefect AWS
 
 ```bash
-pip install "prefect>=2.0a9" prefect-aws
+pip install "prefect>=2.0a12" prefect-aws
 ```
 
 ### Write and run a flow

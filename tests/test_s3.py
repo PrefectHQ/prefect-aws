@@ -5,12 +5,9 @@ import pytest
 from botocore.exceptions import ClientError
 from moto import mock_s3
 from prefect import flow
+
 from prefect_aws.credentials import AwsCredentials
-from prefect_aws.s3 import (
-    s3_download,
-    s3_list_objects,
-    s3_upload,
-)
+from prefect_aws.s3 import s3_download, s3_list_objects, s3_upload
 
 
 @pytest.fixture

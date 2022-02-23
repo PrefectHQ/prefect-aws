@@ -1,26 +1,41 @@
 from setuptools import find_packages, setup
 
+import versioneer
 
-install_requires = open("requirements.txt").read().strip().split("\n")
-dev_requires = open("requirements-dev.txt").read().strip().split("\n")
+with open("requirements.txt") as install_requires_file:
+    install_requires = install_requires_file.read().strip().split("\n")
 
+with open("requirements_dev.txt") as dev_requires_file:
+    dev_requires = dev_requires_file.read().strip().split("\n")
+
+with open("README.md") as readme_file:
+    readme = readme_file.read()
 
 setup(
-    # Package metadata
-    name="prefect_aws",
-    description="Prefect tasks and subflows for interacting with AWS",
+    name="prefect-aws",
+    description="Prefect collection of tasks and subflows to integrate with AWS",
     license="Apache License 2.0",
     author="Prefect Technologies, Inc.",
     author_email="help@prefect.io",
+    keywords="prefect",
     url="https://github.com/PrefectHQ/prefect-aws",
-    long_description=open("README.md").read(),
+    long_description=readme,
     long_description_content_type="text/markdown",
-    # Versioning
-    version="0.1.0",
-    # Package setup
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     packages=find_packages(exclude=("tests", "docs")),
-    # Requirements
     python_requires=">=3.7",
     install_requires=install_requires,
     extras_require={"dev": dev_requires},
+    classifiers=[
+        "Natural Language :: English",
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Software Development :: Libraries",
+    ],
 )
