@@ -1,8 +1,10 @@
 """Tasks for interacting with AWS S3"""
 import io
 import uuid
+from functools import partial
 from typing import Any, Dict, List, Optional
 
+from anyio import to_thread
 from prefect import task
 from prefect.logging import get_logger
 
@@ -10,7 +12,7 @@ from prefect_aws.credentials import AwsCredentials
 
 
 @task
-def s3_download(
+async def s3_download(
     bucket: str,
     key: str,
     aws_credentials: AwsCredentials,
@@ -37,12 +39,12 @@ def s3_download(
         from prefect_aws.s3 import s3_download
 
         @flow
-        def example_s3_download_flow():
+        async def example_s3_download_flow():
             aws_credentials = AwsCredentials(
                 aws_access_key_id="acccess_key_id",
                 aws_secret_access_key="secret_access_key"
             )
-            data = s3_download(
+            data = await s3_download(
                 bucket="bucket",
                 key="key",
                 aws_credentials=aws_credentials,
@@ -53,7 +55,10 @@ def s3_download(
 
     s3_client = aws_credentials.get_boto3_session().client("s3")
     stream = io.BytesIO()
-    s3_client.download_fileobj(Bucket=bucket, Key=key, Fileobj=stream)
+    download = partial(
+        s3_client.download_fileobj, Bucket=bucket, Key=key, Fileobj=stream
+    )
+    await to_thread.run_sync(download)
     stream.seek(0)
     output = stream.read()
 
@@ -61,7 +66,7 @@ def s3_download(
 
 
 @task
-def s3_upload(
+async def s3_upload(
     data: bytes,
     bucket: str,
     aws_credentials: AwsCredentials,
@@ -89,13 +94,13 @@ def s3_upload(
         from prefect_aws.s3 import s3_upload
 
         @flow
-        def example_s3_upload_flow():
+        async def example_s3_upload_flow():
             aws_credentials = AwsCredentials(
                 aws_access_key_id="acccess_key_id",
                 aws_secret_access_key="secret_access_key"
             )
             with open("data.csv", "rb") as file:
-                key = s3_upload(
+                key = await s3_upload(
                     bucket="bucket",
                     key="data.csv",
                     data=file.read(),
@@ -110,13 +115,14 @@ def s3_upload(
 
     s3_client = aws_credentials.get_boto3_session().client("s3")
     stream = io.BytesIO(data)
-    s3_client.upload_fileobj(stream, Bucket=bucket, Key=key)
+    upload = partial(s3_client.upload_fileobj, stream, Bucket=bucket, Key=key)
+    await to_thread.run_sync(upload)
 
     return key
 
 
 @task
-def s3_list_objects(
+async def s3_list_objects(
     bucket: str,
     aws_credentials: AwsCredentials,
     prefix: str = "",
@@ -153,12 +159,12 @@ def s3_list_objects(
         from prefect_aws.s3 import s3_list_objects
 
         @flow
-        def example_s3_list_objects_flow():
+        async def example_s3_list_objects_flow():
             aws_credentials = AwsCredentials(
                 aws_access_key_id="acccess_key_id",
                 aws_secret_access_key="secret_access_key"
             )
-            objects = s3_list_objects(
+            objects = await s3_list_objects(
                 bucket="data_bucket",
                 aws_credentials=aws_credentials
             )
@@ -178,4 +184,7 @@ def s3_list_objects(
     if jmespath_query:
         page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
 
-    return [content for page in page_iterator for content in page.get("Contents", [])]
+    # __iter__ is blocking and will return a list of dicts
+    pages = await to_thread.run_sync(page_iterator.__iter__)
+
+    return [content for page in pages for content in page.get("Contents", [])]
