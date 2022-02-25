@@ -48,6 +48,7 @@ async def s3_download(
                 bucket="bucket",
                 key="key",
                 aws_credentials=aws_credentials,
+            )
         ```
     """
     logger = get_logger()
@@ -105,6 +106,7 @@ async def s3_upload(
                     key="data.csv",
                     data=file.read(),
                     aws_credentials=aws_credentials,
+                )
         ```
     """
     logger = get_logger()
