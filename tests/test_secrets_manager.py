@@ -1,5 +1,3 @@
-from copy import copy
-
 import boto3
 import pytest
 from moto import mock_secretsmanager
@@ -35,11 +33,11 @@ def secret_under_test(secretsmanager_client, request):
     if should_version:
         if "SecretString" in request.param:
             request.param["SecretString"] = request.param["SecretString"] + "-versioned"
-        if "SecretBinary" in request.param:
+        elif "SecretBinary" in request.param:
             request.param["SecretBinary"] = (
                 request.param["SecretBinary"] + b"-versioned"
             )
-        update_secret_kwargs = copy(request.param)
+        update_secret_kwargs = request.param.copy()
         update_secret_kwargs["SecretId"] = update_secret_kwargs.pop("Name")
         update_result = secretsmanager_client.update_secret(**update_secret_kwargs)
 
@@ -52,13 +50,15 @@ def secret_under_test(secretsmanager_client, request):
     )
 
 
-@pytest.mark.asyncio
 async def test_read_secret(secret_under_test, aws_credentials):
     expected_value = secret_under_test.pop("expected_value")
     secret_under_test.pop("version_stage")
 
     @flow
     async def test_flow():
-        return await read_secret(**secret_under_test, aws_credentials=aws_credentials)
+        return await read_secret(
+            aws_credentials=aws_credentials,
+            **secret_under_test,
+        )
 
     assert (await test_flow()).result().result() == expected_value
