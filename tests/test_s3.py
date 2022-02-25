@@ -6,7 +6,6 @@ from botocore.exceptions import ClientError
 from moto import mock_s3
 from prefect import flow
 
-from prefect_aws.credentials import AwsCredentials
 from prefect_aws.s3 import s3_download, s3_list_objects, s3_upload
 
 
@@ -38,13 +37,6 @@ def object_in_folder(bucket, tmp_path):
     file.write_text("TEST OBJECT IN FOLDER")
     with open(file, "rb") as f:
         return bucket.upload_fileobj(f, "folder/object")
-
-
-@pytest.fixture
-def aws_credentials():
-    return AwsCredentials(
-        aws_access_key_id="access_key_id", aws_secret_access_key="secret_access_key"
-    )
 
 
 def test_s3_download(object, aws_credentials):

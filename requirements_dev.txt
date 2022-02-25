@@ -7,4 +7,5 @@ mkdocs-material
 mkdocstrings
 isort
 pre-commit
-moto[s3]
+moto[s3, secretsmanager]
+pytest-asyncio
