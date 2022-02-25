@@ -31,17 +31,22 @@ def s3_download(
     Example:
         Download a file from an S3 bucket
 
-        >>> @flow
-        >>> def example_s3_download_flow():
-        >>>     aws_credentials = AwsCredentials(
-        >>>         aws_access_key_id="acccess_key_id",
-        >>>         aws_secret_access_key="secret_access_key"
-        >>>     )
-        >>>     data = s3_download(
-        >>>         bucket="bucket",
-        >>>         key="key",
-        >>>         aws_credentials=aws_credentials,
-        >>>     )
+        ```python
+        from prefect import flow
+        from prefect_aws.credentials import AwsCredentials
+        from prefect_aws.s3 import s3_download
+
+        @flow
+        def example_s3_download_flow():
+            aws_credentials = AwsCredentials(
+                aws_access_key_id="acccess_key_id",
+                aws_secret_access_key="secret_access_key"
+            )
+            data = s3_download(
+                bucket="bucket",
+                key="key",
+                aws_credentials=aws_credentials,
+        ```
     """
     logger = get_logger()
     logger.info("Downloading object from bucket %s with key %s", bucket, key)
@@ -78,19 +83,24 @@ def s3_upload(
     Example:
         Read and upload a file to an S3 bucket
 
-        >>> @flow
-        >>> def example_s3_upload_flow():
-        >>>     aws_credentials = AwsCredentials(
-        >>>         aws_access_key_id="acccess_key_id",
-        >>>         aws_secret_access_key="secret_access_key"
-        >>>     )
-        >>>     with open("data.csv", "rb") as file:
-        >>>         key = s3_upload(
-        >>>             bucket="bucket",
-        >>>             key="data.csv",
-        >>>             data=file.read(),
-        >>>             aws_credentials=aws_credentials,
-        >>>         )
+        ```python
+        from prefect import flow
+        from prefect_aws.credentials import AwsCredentials
+        from prefect_aws.s3 import s3_upload
+
+        @flow
+        def example_s3_upload_flow():
+            aws_credentials = AwsCredentials(
+                aws_access_key_id="acccess_key_id",
+                aws_secret_access_key="secret_access_key"
+            )
+            with open("data.csv", "rb") as file:
+                key = s3_upload(
+                    bucket="bucket",
+                    key="data.csv",
+                    data=file.read(),
+                    aws_credentials=aws_credentials,
+        ```
     """
     logger = get_logger()
 
@@ -137,16 +147,22 @@ def s3_list_objects(
     Example:
         List all objects in a bucket
 
-        >>> @flow
-        >>> def example_s3_list_objects_flow():
-        >>>     aws_credentials = AwsCredentials(
-        >>>         aws_access_key_id="acccess_key_id",
-        >>>         aws_secret_access_key="secret_access_key"
-        >>>     )
-        >>>     objects = s3_list_objects(
-        >>>         bucket="data_bucket",
-        >>>         aws_credentials=aws_credentials
-        >>>     )
+        ```python
+        from prefect import flow
+        from prefect_aws.credentials import AwsCredentials
+        from prefect_aws.s3 import s3_list_objects
+
+        @flow
+        def example_s3_list_objects_flow():
+            aws_credentials = AwsCredentials(
+                aws_access_key_id="acccess_key_id",
+                aws_secret_access_key="secret_access_key"
+            )
+            objects = s3_list_objects(
+                bucket="data_bucket",
+                aws_credentials=aws_credentials
+            )
+        ```
     """  # noqa E501
     logger = get_logger()
     logger.info("Listing objects in bucket %s with prefix %s", bucket, prefix)
