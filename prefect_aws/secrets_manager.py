@@ -21,6 +21,7 @@ async def read_secret(
 
     Args:
         secret_name: Name of stored secret
+        aws_credentials: Credentials to use for authentication with AWS.
         version_id: Specifies version of secret to read. Defaults to the most recent
             version if not given.
         version_stage: Specifies the version stage of the secret to read. Defaults to
