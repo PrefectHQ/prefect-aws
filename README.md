@@ -8,8 +8,8 @@ Download a file from S3
 
 ```python
 from prefect import flow
+from prefect_aws import AwsCredentials
 from prefect_aws.s3 import s3_download
-from prefect_aws.credentials import AwsCredentials
 
 @flow
 def example_s3_download():

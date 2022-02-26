@@ -8,7 +8,7 @@ from anyio import to_thread
 from prefect import task
 from prefect.logging import get_logger
 
-from prefect_aws.credentials import AwsCredentials
+from prefect_aws import AwsCredentials
 
 
 @task
@@ -35,7 +35,7 @@ async def s3_download(
 
         ```python
         from prefect import flow
-        from prefect_aws.credentials import AwsCredentials
+        from prefect_aws import AwsCredentials
         from prefect_aws.s3 import s3_download
 
         @flow
@@ -91,7 +91,7 @@ async def s3_upload(
 
         ```python
         from prefect import flow
-        from prefect_aws.credentials import AwsCredentials
+        from prefect_aws import AwsCredentials
         from prefect_aws.s3 import s3_upload
 
         @flow
@@ -157,7 +157,7 @@ async def s3_list_objects(
 
         ```python
         from prefect import flow
-        from prefect_aws.credentials import AwsCredentials
+        from prefect_aws import AwsCredentials
         from prefect_aws.s3 import s3_list_objects
 
         @flow

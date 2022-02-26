@@ -6,7 +6,7 @@ from anyio import to_thread
 from botocore.exceptions import ClientError
 from prefect import get_run_logger, task
 
-from prefect_aws.credentials import AwsCredentials
+from prefect_aws import AwsCredentials
 
 
 @task
@@ -36,8 +36,8 @@ async def read_secret(
 
         ```python
         from prefect import flow
+        from prefect_aws import AwsCredentials
         from prefect_aws.secrets_manager import read_secret
-        from prefect_aws.credentials import AwsCredentials
 
         @flow
         def example_read_secret():
