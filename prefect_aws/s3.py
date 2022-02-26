@@ -3,8 +3,7 @@ import io
 import uuid
 from typing import Any, Dict, List, Optional
 
-from prefect import task
-from prefect.logging import get_logger
+from prefect import get_run_logger, task
 
 from prefect_aws.credentials import AwsCredentials
 
@@ -43,7 +42,7 @@ def s3_download(
         >>>         aws_credentials=aws_credentials,
         >>>     )
     """
-    logger = get_logger()
+    logger = get_run_logger()
     logger.info("Downloading object from bucket %s with key %s", bucket, key)
 
     s3_client = aws_credentials.get_boto3_session().client("s3")
@@ -92,7 +91,7 @@ def s3_upload(
         >>>             aws_credentials=aws_credentials,
         >>>         )
     """
-    logger = get_logger()
+    logger = get_run_logger()
 
     key = key or str(uuid.uuid4())
 
@@ -148,7 +147,7 @@ def s3_list_objects(
         >>>         aws_credentials=aws_credentials
         >>>     )
     """  # noqa E501
-    logger = get_logger()
+    logger = get_run_logger()
     logger.info("Listing objects in bucket %s with prefix %s", bucket, prefix)
 
     s3_client = aws_credentials.get_boto3_session().client("s3")
