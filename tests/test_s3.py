@@ -39,6 +39,17 @@ def object_in_folder(bucket, tmp_path):
         return bucket.upload_fileobj(f, "folder/object")
 
 
+@pytest.fixture
+def a_lot_of_objects(bucket, tmp_path):
+    objects = []
+    for i in range(0, 20):
+        file = tmp_path / f"object{i}.txt"
+        file.write_text("TEST")
+        with open(file, "rb") as f:
+            objects.append(bucket.upload_fileobj(f, f"object{i}"))
+    return objects
+
+
 async def test_s3_download(object, aws_credentials):
     @flow
     async def test_flow():
@@ -97,6 +108,22 @@ async def test_s3_list_objects(object, object_in_folder, aws_credentials):
     objects = task_state.result()
     assert len(objects) == 2
     assert [object["Key"] for object in objects] == ["folder/object", "object"]
+
+
+async def test_s3_list_objects_multiple_pages(a_lot_of_objects, aws_credentials):
+    @flow
+    async def test_flow():
+        return await s3_list_objects(
+            bucket="bucket", aws_credentials=aws_credentials, page_size=2
+        )
+
+    flow_state = await test_flow()
+    task_state = flow_state.result()
+    objects = task_state.result()
+    assert len(objects) == 20
+    assert sorted([object["Key"] for object in objects]) == sorted(
+        [f"object{i}" for i in range(0, 20)]
+    )
 
 
 async def test_s3_list_objects_prefix(object, object_in_folder, aws_credentials):
