@@ -1,6 +1,6 @@
 import pytest
 
-from prefect_aws.credentials import AwsCredentials
+from prefect_aws import AwsCredentials
 
 
 @pytest.fixture

@@ -39,44 +39,55 @@ def object_in_folder(bucket, tmp_path):
         return bucket.upload_fileobj(f, "folder/object")
 
 
-def test_s3_download(object, aws_credentials):
+@pytest.fixture
+def a_lot_of_objects(bucket, tmp_path):
+    objects = []
+    for i in range(0, 20):
+        file = tmp_path / f"object{i}.txt"
+        file.write_text("TEST")
+        with open(file, "rb") as f:
+            objects.append(bucket.upload_fileobj(f, f"object{i}"))
+    return objects
+
+
+async def test_s3_download(object, aws_credentials):
     @flow
-    def test_flow():
-        return s3_download(
+    async def test_flow():
+        return await s3_download(
             bucket="bucket", key="object", aws_credentials=aws_credentials
         )
 
-    flow_state = test_flow()
+    flow_state = await test_flow()
     task_state = flow_state.result()
     assert task_state.result() == b"TEST"
 
 
-def test_s3_download_object_not_found(object, aws_credentials):
+async def test_s3_download_object_not_found(object, aws_credentials):
     @flow
-    def test_flow():
-        return s3_download(
+    async def test_flow():
+        return await s3_download(
             key="unknown_object", bucket="bucket", aws_credentials=aws_credentials
         )
 
-    flow_state = test_flow()
+    flow_state = await test_flow()
     with pytest.raises(ClientError):
         flow_state.result()
 
 
-def test_s3_upload(bucket, tmp_path, aws_credentials):
+async def test_s3_upload(bucket, tmp_path, aws_credentials):
     @flow
-    def test_flow():
+    async def test_flow():
         test_file = tmp_path / "test.txt"
         test_file.write_text("NEW OBJECT")
         with open(test_file, "rb") as f:
-            return s3_upload(
+            return await s3_upload(
                 data=f.read(),
                 bucket="bucket",
                 key="new_object",
                 aws_credentials=aws_credentials,
             )
 
-    flow_state = test_flow()
+    flow_state = await test_flow()
     assert flow_state.is_completed
 
     stream = io.BytesIO()
@@ -87,42 +98,58 @@ def test_s3_upload(bucket, tmp_path, aws_credentials):
     assert output == b"NEW OBJECT"
 
 
-def test_s3_list_objects(object, object_in_folder, aws_credentials):
+async def test_s3_list_objects(object, object_in_folder, aws_credentials):
     @flow
-    def test_flow():
-        return s3_list_objects(bucket="bucket", aws_credentials=aws_credentials)
+    async def test_flow():
+        return await s3_list_objects(bucket="bucket", aws_credentials=aws_credentials)
 
-    flow_state = test_flow()
+    flow_state = await test_flow()
     task_state = flow_state.result()
     objects = task_state.result()
     assert len(objects) == 2
     assert [object["Key"] for object in objects] == ["folder/object", "object"]
 
 
-def test_s3_list_objects_prefix(object, object_in_folder, aws_credentials):
+async def test_s3_list_objects_multiple_pages(a_lot_of_objects, aws_credentials):
     @flow
-    def test_flow():
-        return s3_list_objects(
+    async def test_flow():
+        return await s3_list_objects(
+            bucket="bucket", aws_credentials=aws_credentials, page_size=2
+        )
+
+    flow_state = await test_flow()
+    task_state = flow_state.result()
+    objects = task_state.result()
+    assert len(objects) == 20
+    assert sorted([object["Key"] for object in objects]) == sorted(
+        [f"object{i}" for i in range(0, 20)]
+    )
+
+
+async def test_s3_list_objects_prefix(object, object_in_folder, aws_credentials):
+    @flow
+    async def test_flow():
+        return await s3_list_objects(
             bucket="bucket", prefix="folder", aws_credentials=aws_credentials
         )
 
-    flow_state = test_flow()
+    flow_state = await test_flow()
     task_state = flow_state.result()
     objects = task_state.result()
     assert len(objects) == 1
     assert [object["Key"] for object in objects] == ["folder/object"]
 
 
-def test_s3_list_objects_filter(object, object_in_folder, aws_credentials):
+async def test_s3_list_objects_filter(object, object_in_folder, aws_credentials):
     @flow
-    def test_flow():
-        return s3_list_objects(
+    async def test_flow():
+        return await s3_list_objects(
             bucket="bucket",
             jmespath_query="Contents[?Size > `10`][]",
             aws_credentials=aws_credentials,
         )
 
-    flow_state = test_flow()
+    flow_state = await test_flow()
     task_state = flow_state.result()
     objects = task_state.result()
     assert len(objects) == 1
