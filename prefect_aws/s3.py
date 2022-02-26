@@ -5,6 +5,7 @@ from functools import partial
 from typing import Any, Dict, List, Optional
 
 from anyio import to_thread
+from botocore.paginate import PageIterator
 from prefect import task
 from prefect.logging import get_logger
 
@@ -123,6 +124,10 @@ async def s3_upload(
     return key
 
 
+def _list_objects_sync(page_iterator: PageIterator):
+    return [content for page in page_iterator for content in page.get("Contents", [])]
+
+
 @task
 async def s3_list_objects(
     bucket: str,
@@ -186,7 +191,4 @@ async def s3_list_objects(
     if jmespath_query:
         page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
 
-    # __iter__ is blocking and will return a list of dicts
-    pages = await to_thread.run_sync(page_iterator.__iter__)
-
-    return [content for page in pages for content in page.get("Contents", [])]
+    return await to_thread.run_sync(_list_objects_sync, page_iterator)
