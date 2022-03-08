@@ -16,6 +16,9 @@ markdown_extensions:
     - pymdownx.tabbed
 plugins:
   - search
+  - gen-files:
+      scripts:
+        - docs/gen_ref_pages.py
   - mkdocstrings:
       handlers:
         python:
