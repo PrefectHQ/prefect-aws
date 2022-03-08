@@ -65,7 +65,7 @@ async def test_update_secret(secret_under_test, aws_credentials):
     current_secret_value = secret_under_test["expected_value"]
     new_secret_value = (
         current_secret_value + "2"
-        if type(current_secret_value) is str
+        if isinstance(current_secret_value, str)
         else current_secret_value + b"2"
     )
 

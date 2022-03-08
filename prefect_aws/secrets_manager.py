@@ -91,14 +91,15 @@ async def update_secret(
         description: Desired description of the secret.
 
     Returns:
-        Dict[str,str]: A dict containing the secret ARN, name, and current version ID.
-        ```json
-        {
-            "ARN": "string",
-            "Name": "string",
-            "VersionId": "string"
-        }
-        ```
+        Dict[str, str]: A dict containing the secret ARN (Amazon Resource Name),
+            name, and current version ID.
+            ```json
+            {
+                "ARN": "string",
+                "Name": "string",
+                "VersionId": "string"
+            }
+            ```
 
     Example:
         Update a secret value:
@@ -127,9 +128,9 @@ async def update_secret(
     update_secret_kwargs: Dict[str, Union[str, bytes]] = dict(SecretId=secret_name)
     if description is not None:
         update_secret_kwargs["Description"] = description
-    if type(secret_value) is bytes:
+    if isinstance(secret_value, bytes):
         update_secret_kwargs["SecretBinary"] = secret_value
-    elif type(secret_value) is str:
+    elif isinstance(secret_value, str):
         update_secret_kwargs["SecretString"] = secret_value
     else:
         raise ValueError("Please provide a bytes or str value for secret_value")
