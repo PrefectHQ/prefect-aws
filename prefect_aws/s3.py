@@ -31,12 +31,13 @@ async def s3_download(
         A `bytes` representation of the downloaded object.
 
     Example:
-        Download a file from an S3 bucket
+        Download a file from an S3 bucket:
 
         ```python
         from prefect import flow
         from prefect_aws import AwsCredentials
         from prefect_aws.s3 import s3_download
+
 
         @flow
         async def example_s3_download_flow():
@@ -49,6 +50,8 @@ async def s3_download(
                 key="key",
                 aws_credentials=aws_credentials,
             )
+
+        example_s3_download_flow()
         ```
     """
     logger = get_run_logger()
@@ -87,12 +90,13 @@ async def s3_upload(
         The key of the uploaded object
 
     Example:
-        Read and upload a file to an S3 bucket
+        Read and upload a file to an S3 bucket:
 
         ```python
         from prefect import flow
         from prefect_aws import AwsCredentials
         from prefect_aws.s3 import s3_upload
+
 
         @flow
         async def example_s3_upload_flow():
@@ -107,6 +111,8 @@ async def s3_upload(
                     data=file.read(),
                     aws_credentials=aws_credentials,
                 )
+
+        example_s3_upload_flow()
         ```
     """
     logger = get_run_logger()
@@ -157,12 +163,13 @@ async def s3_list_objects(
             to the boto3 docs for an example response.
 
     Example:
-        List all objects in a bucket
+        List all objects in a bucket:
 
         ```python
         from prefect import flow
         from prefect_aws import AwsCredentials
         from prefect_aws.s3 import s3_list_objects
+
 
         @flow
         async def example_s3_list_objects_flow():
@@ -174,6 +181,8 @@ async def s3_list_objects(
                 bucket="data_bucket",
                 aws_credentials=aws_credentials
             )
+
+        example_s3_list_objects_flow()
         ```
     """  # noqa E501
     logger = get_run_logger()
