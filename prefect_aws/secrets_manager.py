@@ -1,6 +1,6 @@
 """Tasks for interacting with AWS Secrets Manager"""
 from functools import partial
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from anyio import to_thread
 from botocore.exceptions import ClientError
@@ -93,11 +93,11 @@ async def update_secret(
     Returns:
         Dict[str, str]: A dict containing the secret ARN (Amazon Resource Name),
             name, and current version ID.
-            ```json
+            ```python
             {
-                "ARN": "string",
-                "Name": "string",
-                "VersionId": "string"
+                "ARN": str,
+                "Name": str,
+                "VersionId": str
             }
             ```
 
@@ -115,7 +115,7 @@ async def update_secret(
                 aws_access_key_id="acccess_key_id",
                 aws_secret_access_key="secret_access_key"
             )
-            secret_value = read_secret(
+            update_secret(
                 secret_name="life_the_universe_and_everything",
                 secret_value="42",
                 aws_credentials=aws_credentials
@@ -151,10 +151,199 @@ async def update_secret(
 
 
 @task
-def create_secret():
-    raise NotImplementedError()
+async def create_secret(
+    secret_name: str,
+    secret_value: Union[str, bytes],
+    aws_credentials: AwsCredentials,
+    description: Optional[str] = None,
+    tags: Optional[List[Dict[str, str]]] = None,
+) -> Dict[str, str]:
+    """
+    Creates a secret in AWS Secrets Manager.
+
+    Args:
+        secret_name: The name of the secret to create.
+        secret_value: The value to store in the created secret.
+        aws_credentials: Credentials to use for authentication with AWS.
+        description: A description for the created secret.
+        tags: A list of tags to attach to the secret. Each tag should be specified as a
+            dictionary in the following format:
+            ```python
+            {
+                "Key": str,
+                "Value": str
+            }
+            ```
+
+    Returns:
+        Dict[str, str]: A dict containing the secret ARN (Amazon Resource Name),
+            name, and current version ID.
+            ```python
+            {
+                "ARN": str,
+                "Name": str,
+                "VersionId": str
+            }
+            ```
+    Example:
+        Create a secret:
+
+        ```python
+        from prefect import flow
+        from prefect_aws import AwsCredentials
+        from prefect_aws.secrets_manager import create_secret
+
+        @flow
+        def example_create_secret():
+            aws_credentials = AwsCredentials(
+                aws_access_key_id="acccess_key_id",
+                aws_secret_access_key="secret_access_key"
+            )
+            create_secret(
+                secret_name="life_the_universe_and_everything",
+                secret_value="42",
+                aws_credentials=aws_credentials
+            )
+
+        example_create_secret()
+        ```
+
+
+    """
+    create_secret_kwargs: Dict[str, Union[str, bytes, List[Dict[str, str]]]] = dict(
+        Name=secret_name
+    )
+    if description is not None:
+        create_secret_kwargs["Description"] = description
+    if tags is not None:
+        create_secret_kwargs["Tags"] = tags
+    if isinstance(secret_value, bytes):
+        create_secret_kwargs["SecretBinary"] = secret_value
+    if isinstance(secret_value, str):
+        create_secret_kwargs["SecretString"] = secret_value
+    else:
+        raise ValueError("Please provide a bytes or str value for secret_value")
+
+    logger = get_run_logger()
+    logger.info("Creating secret named %s", secret_name)
+
+    client = aws_credentials.get_boto3_session().client("secretsmanager")
+
+    try:
+        create_secret = partial(client.create_secret, **create_secret_kwargs)
+        response = await to_thread.run_sync(create_secret)
+        response.pop("ResponseMetadata", None)
+        return response
+    except ClientError:
+        logger.exception("Unable to create secret %s", secret_name)
+        raise
 
 
 @task
-def delete_secret():
-    raise NotImplementedError()
+async def delete_secret(
+    secret_name: str,
+    aws_credentials: AwsCredentials,
+    recovery_window_in_days: int = 30,
+    force_delete_without_recovery: bool = False,
+):
+    """
+    Deletes a secret from AWS Secrets Manager.
+
+    Secrets can either be deleted immediately by setting `force_delete_without_recovery`
+    equal to `True`. Otherwise, secrets will be marked for deletion and available for
+    recovery for the number of days specified in `recovery_window_in_days`
+
+    Args:
+        secret_name: Name of the secret to be deleted.
+        aws_credentials: Credentials to use for authentication with AWS.
+        recovery_window_in_days: Number of days a secret should be recoverable for
+            before permenant deletion. Minium window is 7 days. If
+            `force_delete_without_recovery` is set to `True`, this value will be
+            ignored.
+        force_delete_without_recovery: If `True`, the secret will be immediately
+            deleted and will not be recoverable.
+
+    Returns:
+        Dict[str, str]: A dict containing the secret ARN (Amazon Resource Name),
+            name, and deletion date of the secret. DeletionDate is the date and
+            time of the delete request plus the number of days in
+            `recovery_window_in_days`.
+            ```python
+            {
+                "ARN": str,
+                "Name": str,
+                "DeletionDate": datetime.DateTime
+            }
+            ```
+
+    Examples:
+        Delete a secret immediately:
+
+        ```python
+        from prefect import flow
+        from prefect_aws import AwsCredentials
+        from prefect_aws.secrets_manager import delete_secret
+
+        @flow
+        def example_delete_secret_immediately():
+            aws_credentials = AwsCredentials(
+                aws_access_key_id="acccess_key_id",
+                aws_secret_access_key="secret_access_key"
+            )
+            delete_secret(
+                secret_name="life_the_universe_and_everything",
+                aws_credentials=aws_credentials,
+                force_delete_without_recovery: True
+            )
+
+        example_delete_secret_immediately()
+        ```
+
+        Delete a secret with a 90 day recovery window:
+
+        ```python
+        from prefect import flow
+        from prefect_aws import AwsCredentials
+        from prefect_aws.secrets_manager import delete_secret
+
+        @flow
+        def example_delete_secret_with_recovery_window():
+            aws_credentials = AwsCredentials(
+                aws_access_key_id="acccess_key_id",
+                aws_secret_access_key="secret_access_key"
+            )
+            delete_secret(
+                secret_name="life_the_universe_and_everything",
+                aws_credentials=aws_credentials,
+                recovery_window_in_days=90
+            )
+
+        example_delete_secret_with_recovery_window()
+        ```
+
+
+    """
+    if not force_delete_without_recovery and recovery_window_in_days < 7:
+        raise ValueError("Recovery window must be a minimum of 7 days.")
+
+    delete_secret_kwargs: Dict[str, Union[str, int, bool]] = dict(SecretId=secret_name)
+    if force_delete_without_recovery:
+        delete_secret_kwargs[
+            "ForceDeleteWithoutRecovery"
+        ] = force_delete_without_recovery
+    else:
+        delete_secret_kwargs["RecoveryWindowInDays"] = recovery_window_in_days
+
+    logger = get_run_logger()
+    logger.info("Deleting secret %s", secret_name)
+
+    client = aws_credentials.get_boto3_session().client("secretsmanager")
+
+    try:
+        delete_secret = partial(client.delete_secret, **delete_secret_kwargs)
+        response = await to_thread.run_sync(delete_secret)
+        response.pop("ResponseMetadata", None)
+        return response
+    except ClientError:
+        logger.exception("Unable to delete secret %s", secret_name)
+        raise
