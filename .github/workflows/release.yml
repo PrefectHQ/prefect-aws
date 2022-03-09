@@ -32,10 +32,10 @@ jobs:
           name: built-package
           path: "./dist"
 
-  publish-test-release:
-    name: Publish release to Test PyPI
+  publish-release:
+    name: Publish release to PyPI
     needs: [build-release]
-    environment: "test"
+    environment: "prod"
     runs-on: ubuntu-latest
 
     steps:
@@ -45,15 +45,15 @@ jobs:
           name: built-package
           path: './dist'
 
-      - name: Publish distribution to Test PyPI
+      - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          verbose: true
 
   build-and-publish-docs:
     name: Build and publish docs
-    needs: [build-release, publish-test-release]
+    needs: [build-release, publish-release]
     runs-on: ubuntu-latest
 
     steps:
@@ -71,20 +71,3 @@ jobs:
           branch: docs
           folder: site
 
-  publish-release:
-    name: Publish release to PyPI
-    needs: [build-release, publish-test-release, build-and-publish-docs]
-    environment: "prod"
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: built-package
-          path: './dist'
-
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
