@@ -2,7 +2,7 @@
 
 ## Welcome!
 
-`prefect-aws` is a collection of prebuilt Prefect tasks that can be used to quickly construct Prefect flows that interact with Amazon Web Services.
+`prefect-aws` is a collection of pre-built Prefect tasks that can be used to quickly construct Prefect flows that interact with Amazon Web Services.
 
 ## Getting Started
 
@@ -21,6 +21,10 @@ Install `prefect-aws`
 ```bash
 pip install prefect-aws
 ```
+
+### AWS Authentication
+
+You will need to obtain AWS credentials in order to use these tasks. Refer to the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for authentication methods available.
 
 ### Write and run a flow
 

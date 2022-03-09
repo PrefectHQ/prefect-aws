@@ -130,6 +130,15 @@ async def s3_upload(
 
 
 def _list_objects_sync(page_iterator: PageIterator):
+    """
+    Synchronous method to collect S3 objects into a list
+
+    Args:
+        page_iterator: AWS Paginator for S3 objects
+
+    Returns:
+        List[Dict]: List of object information
+    """
     return [content for page in page_iterator for content in page.get("Contents", [])]
 
 
