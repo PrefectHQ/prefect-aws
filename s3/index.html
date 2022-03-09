@@ -1,0 +1,965 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.5">
+    
+    
+      
+        <title>S3 - prefect-aws</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.2d9f7617.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#2094f3">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#prefect_aws.s3" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="prefect-aws" class="md-header__button md-logo" aria-label="prefect-aws" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            prefect-aws
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              S3
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="prefect-aws" class="md-nav__button md-logo" aria-label="prefect-aws" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    prefect-aws
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../credentials/" class="md-nav__link">
+        Credentials
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          S3
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        S3
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prefect_aws.s3.s3_download" class="md-nav__link">
+    s3_download()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prefect_aws.s3.s3_list_objects" class="md-nav__link">
+    s3_list_objects()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prefect_aws.s3.s3_upload" class="md-nav__link">
+    s3_upload()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secrets_manager/" class="md-nav__link">
+        Secrets Manager
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prefect_aws.s3.s3_download" class="md-nav__link">
+    s3_download()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prefect_aws.s3.s3_list_objects" class="md-nav__link">
+    s3_list_objects()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prefect_aws.s3.s3_upload" class="md-nav__link">
+    s3_upload()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h1 id="prefect_aws.s3" class="doc doc-heading">
+        <code>prefect_aws.s3</code>
+
+
+
+</h1>
+
+    <div class="doc doc-contents first">
+
+      <p>Tasks for interacting with AWS S3</p>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="prefect_aws.s3.s3_download" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">s3_download</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Downloads an object with a given key from a given S3 bucket.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>bucket</code></td>
+        <td><code>str</code></td>
+        <td><p>Name of bucket to download object from. Required if a default value was
+not supplied when creating the task.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>key</code></td>
+        <td><code>str</code></td>
+        <td><p>Key of object to download. Required if a default value was not supplied
+when creating the task.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>aws_credentials</code></td>
+        <td><code>AwsCredentials</code></td>
+        <td><p>Credentials to use for authentication with AWS.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bytes</code></td>
+      <td><p>A <code>bytes</code> representation of the downloaded object.</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Examples:</strong></p>
+    <p>Download a file from an S3 bucket:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">s3_download</span>
+
+
+<span class="nd">@flow</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">example_s3_download_flow</span><span class="p">():</span>
+    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="p">(</span>
+        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;acccess_key_id&quot;</span><span class="p">,</span>
+        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;secret_access_key&quot;</span>
+    <span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">s3_download</span><span class="p">(</span>
+        <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;bucket&quot;</span><span class="p">,</span>
+        <span class="n">key</span><span class="o">=</span><span class="s2">&quot;key&quot;</span><span class="p">,</span>
+        <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="n">example_s3_download_flow</span><span class="p">()</span>
+</code></pre></div>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/s3.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@task</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">s3_download</span><span class="p">(</span>
+    <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">aws_credentials</span><span class="p">:</span> <span class="n">AwsCredentials</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Downloads an object with a given key from a given S3 bucket.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        bucket: Name of bucket to download object from. Required if a default value was</span>
+<span class="sd">            not supplied when creating the task.</span>
+<span class="sd">        key: Key of object to download. Required if a default value was not supplied</span>
+<span class="sd">            when creating the task.</span>
+<span class="sd">        aws_credentials: Credentials to use for authentication with AWS.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A `bytes` representation of the downloaded object.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        Download a file from an S3 bucket:</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        from prefect import flow</span>
+<span class="sd">        from prefect_aws import AwsCredentials</span>
+<span class="sd">        from prefect_aws.s3 import s3_download</span>
+
+
+<span class="sd">        @flow</span>
+<span class="sd">        async def example_s3_download_flow():</span>
+<span class="sd">            aws_credentials = AwsCredentials(</span>
+<span class="sd">                aws_access_key_id=&quot;acccess_key_id&quot;,</span>
+<span class="sd">                aws_secret_access_key=&quot;secret_access_key&quot;</span>
+<span class="sd">            )</span>
+<span class="sd">            data = await s3_download(</span>
+<span class="sd">                bucket=&quot;bucket&quot;,</span>
+<span class="sd">                key=&quot;key&quot;,</span>
+<span class="sd">                aws_credentials=aws_credentials,</span>
+<span class="sd">            )</span>
+
+<span class="sd">        example_s3_download_flow()</span>
+<span class="sd">        ```</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading object from bucket </span><span class="si">%s</span><span class="s2"> with key </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="n">s3_client</span> <span class="o">=</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">)</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">download</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">s3_client</span><span class="o">.</span><span class="n">download_fileobj</span><span class="p">,</span> <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">Fileobj</span><span class="o">=</span><span class="n">stream</span>
+    <span class="p">)</span>
+    <span class="k">await</span> <span class="n">to_thread</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">download</span><span class="p">)</span>
+    <span class="n">stream</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">output</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="prefect_aws.s3.s3_list_objects" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">s3_list_objects</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Lists details of objects in a given S3 bucket.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>bucket</code></td>
+        <td><code>str</code></td>
+        <td><p>Name of bucket to list items from. Required if a default value was not
+supplied when creating the task.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>aws_credentials</code></td>
+        <td><code>AwsCredentials</code></td>
+        <td><p>Credentials to use for authentication with AWS.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>prefix</code></td>
+        <td><code>str</code></td>
+        <td><p>Used to filter objects with keys starting with the specified prefix.</p></td>
+        <td><code>&#39;&#39;</code></td>
+      </tr>
+      <tr>
+        <td><code>delimiter</code></td>
+        <td><code>str</code></td>
+        <td><p>Character used to group keys of listed objects.</p></td>
+        <td><code>&#39;&#39;</code></td>
+      </tr>
+      <tr>
+        <td><code>page_size</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Number of objects to return in each request to the AWS API.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>max_items</code></td>
+        <td><code>Optional[int]</code></td>
+        <td><p>Maximum number of objects that to be returned by task.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>jmespath_query</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>Query used to filter objects based on object attributes refer to
+the <a href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html#filtering-results-with-jmespath">boto3 docs</a>
+for more information on how to construct queries.</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>List[Dict[str, Any]]</code></td>
+      <td><p>A list of dictionaries containing information about the objects retrieved. Refer
+    to the boto3 docs for an example response.</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Examples:</strong></p>
+    <p>List all objects in a bucket:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">s3_list_objects</span>
+
+
+<span class="nd">@flow</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">example_s3_list_objects_flow</span><span class="p">():</span>
+    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="p">(</span>
+        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;acccess_key_id&quot;</span><span class="p">,</span>
+        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;secret_access_key&quot;</span>
+    <span class="p">)</span>
+    <span class="n">objects</span> <span class="o">=</span> <span class="k">await</span> <span class="n">s3_list_objects</span><span class="p">(</span>
+        <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;data_bucket&quot;</span><span class="p">,</span>
+        <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span>
+    <span class="p">)</span>
+
+<span class="n">example_s3_list_objects_flow</span><span class="p">()</span>
+</code></pre></div>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/s3.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@task</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">s3_list_objects</span><span class="p">(</span>
+    <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">aws_credentials</span><span class="p">:</span> <span class="n">AwsCredentials</span><span class="p">,</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_items</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">jmespath_query</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lists details of objects in a given S3 bucket.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        bucket: Name of bucket to list items from. Required if a default value was not</span>
+<span class="sd">            supplied when creating the task.</span>
+<span class="sd">        aws_credentials: Credentials to use for authentication with AWS.</span>
+<span class="sd">        prefix: Used to filter objects with keys starting with the specified prefix.</span>
+<span class="sd">        delimiter: Character used to group keys of listed objects.</span>
+<span class="sd">        page_size: Number of objects to return in each request to the AWS API.</span>
+<span class="sd">        max_items: Maximum number of objects that to be returned by task.</span>
+<span class="sd">        jmespath_query: Query used to filter objects based on object attributes refer to</span>
+<span class="sd">            the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html#filtering-results-with-jmespath)</span>
+<span class="sd">            for more information on how to construct queries.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A list of dictionaries containing information about the objects retrieved. Refer</span>
+<span class="sd">            to the boto3 docs for an example response.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        List all objects in a bucket:</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        from prefect import flow</span>
+<span class="sd">        from prefect_aws import AwsCredentials</span>
+<span class="sd">        from prefect_aws.s3 import s3_list_objects</span>
+
+
+<span class="sd">        @flow</span>
+<span class="sd">        async def example_s3_list_objects_flow():</span>
+<span class="sd">            aws_credentials = AwsCredentials(</span>
+<span class="sd">                aws_access_key_id=&quot;acccess_key_id&quot;,</span>
+<span class="sd">                aws_secret_access_key=&quot;secret_access_key&quot;</span>
+<span class="sd">            )</span>
+<span class="sd">            objects = await s3_list_objects(</span>
+<span class="sd">                bucket=&quot;data_bucket&quot;,</span>
+<span class="sd">                aws_credentials=aws_credentials</span>
+<span class="sd">            )</span>
+
+<span class="sd">        example_s3_list_objects_flow()</span>
+<span class="sd">        ```</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa E501</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Listing objects in bucket </span><span class="si">%s</span><span class="s2"> with prefix </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
+
+    <span class="n">s3_client</span> <span class="o">=</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">)</span>
+    <span class="n">paginator</span> <span class="o">=</span> <span class="n">s3_client</span><span class="o">.</span><span class="n">get_paginator</span><span class="p">(</span><span class="s2">&quot;list_objects_v2&quot;</span><span class="p">)</span>
+    <span class="n">page_iterator</span> <span class="o">=</span> <span class="n">paginator</span><span class="o">.</span><span class="n">paginate</span><span class="p">(</span>
+        <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+        <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+        <span class="n">Delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span>
+        <span class="n">PaginationConfig</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;PageSize&quot;</span><span class="p">:</span> <span class="n">page_size</span><span class="p">,</span> <span class="s2">&quot;MaxItems&quot;</span><span class="p">:</span> <span class="n">max_items</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">jmespath_query</span><span class="p">:</span>
+        <span class="n">page_iterator</span> <span class="o">=</span> <span class="n">page_iterator</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">jmespath_query</span><span class="si">}</span><span class="s2"> | </span><span class="se">{{</span><span class="s2">Contents: @</span><span class="se">}}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="k">await</span> <span class="n">to_thread</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">_list_objects_sync</span><span class="p">,</span> <span class="n">page_iterator</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="prefect_aws.s3.s3_upload" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">s3_upload</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Uploads data to an S3 bucket.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>data</code></td>
+        <td><code>bytes</code></td>
+        <td><p>Bytes representation of data to upload to S3.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>bucket</code></td>
+        <td><code>str</code></td>
+        <td><p>Name of bucket to upload data to. Required if a default value was not
+supplied when creating the task.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>aws_credentials</code></td>
+        <td><code>AwsCredentials</code></td>
+        <td><p>Credentials to use for authentication with AWS.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>key</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>Key of object to download. Defaults to a UUID string.</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>str</code></td>
+      <td><p>The key of the uploaded object</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Examples:</strong></p>
+    <p>Read and upload a file to an S3 bucket:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">s3_upload</span>
+
+
+<span class="nd">@flow</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">example_s3_upload_flow</span><span class="p">():</span>
+    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="p">(</span>
+        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;acccess_key_id&quot;</span><span class="p">,</span>
+        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;secret_access_key&quot;</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;data.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="k">await</span> <span class="n">s3_upload</span><span class="p">(</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;bucket&quot;</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="s2">&quot;data.csv&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span>
+            <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<span class="n">example_s3_upload_flow</span><span class="p">()</span>
+</code></pre></div>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/s3.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@task</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">s3_upload</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
+    <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">aws_credentials</span><span class="p">:</span> <span class="n">AwsCredentials</span><span class="p">,</span>
+    <span class="n">key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uploads data to an S3 bucket.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data: Bytes representation of data to upload to S3.</span>
+<span class="sd">        bucket: Name of bucket to upload data to. Required if a default value was not</span>
+<span class="sd">            supplied when creating the task.</span>
+<span class="sd">        aws_credentials: Credentials to use for authentication with AWS.</span>
+<span class="sd">        key: Key of object to download. Defaults to a UUID string.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The key of the uploaded object</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        Read and upload a file to an S3 bucket:</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        from prefect import flow</span>
+<span class="sd">        from prefect_aws import AwsCredentials</span>
+<span class="sd">        from prefect_aws.s3 import s3_upload</span>
+
+
+<span class="sd">        @flow</span>
+<span class="sd">        async def example_s3_upload_flow():</span>
+<span class="sd">            aws_credentials = AwsCredentials(</span>
+<span class="sd">                aws_access_key_id=&quot;acccess_key_id&quot;,</span>
+<span class="sd">                aws_secret_access_key=&quot;secret_access_key&quot;</span>
+<span class="sd">            )</span>
+<span class="sd">            with open(&quot;data.csv&quot;, &quot;rb&quot;) as file:</span>
+<span class="sd">                key = await s3_upload(</span>
+<span class="sd">                    bucket=&quot;bucket&quot;,</span>
+<span class="sd">                    key=&quot;data.csv&quot;,</span>
+<span class="sd">                    data=file.read(),</span>
+<span class="sd">                    aws_credentials=aws_credentials,</span>
+<span class="sd">                )</span>
+
+<span class="sd">        example_s3_upload_flow()</span>
+<span class="sd">        ```</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
+
+    <span class="n">key</span> <span class="o">=</span> <span class="n">key</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Uploading object to bucket </span><span class="si">%s</span><span class="s2"> with key </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="n">s3_client</span> <span class="o">=</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">)</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">upload</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">s3_client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">to_thread</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">upload</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">key</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../credentials/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Credentials" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Credentials
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../secrets_manager/" class="md-footer__link md-footer__link--next" aria-label="Next: Secrets Manager" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Secrets Manager
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.bd0b6b67.min.js"}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.467223ff.min.js"></script>
+      
+    
+  </body>
+</html>
