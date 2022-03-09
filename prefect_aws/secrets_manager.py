@@ -42,7 +42,7 @@ async def read_secret(
         @flow
         def example_read_secret():
             aws_credentials = AwsCredentials(
-                aws_access_key_id="acccess_key_id",
+                aws_access_key_id="access_key_id",
                 aws_secret_access_key="secret_access_key"
             )
             secret_value = read_secret(
@@ -112,7 +112,7 @@ async def update_secret(
         @flow
         def example_update_secret():
             aws_credentials = AwsCredentials(
-                aws_access_key_id="acccess_key_id",
+                aws_access_key_id="access_key_id",
                 aws_secret_access_key="secret_access_key"
             )
             update_secret(
@@ -196,7 +196,7 @@ async def create_secret(
         @flow
         def example_create_secret():
             aws_credentials = AwsCredentials(
-                aws_access_key_id="acccess_key_id",
+                aws_access_key_id="access_key_id",
                 aws_secret_access_key="secret_access_key"
             )
             create_secret(
@@ -232,7 +232,7 @@ async def create_secret(
     try:
         create_secret = partial(client.create_secret, **create_secret_kwargs)
         response = await to_thread.run_sync(create_secret)
-        response.pop("ResponseMetadata", None)
+        print(response.pop("ResponseMetadata", None))
         return response
     except ClientError:
         logger.exception("Unable to create secret %s", secret_name)
@@ -287,7 +287,7 @@ async def delete_secret(
         @flow
         def example_delete_secret_immediately():
             aws_credentials = AwsCredentials(
-                aws_access_key_id="acccess_key_id",
+                aws_access_key_id="access_key_id",
                 aws_secret_access_key="secret_access_key"
             )
             delete_secret(
@@ -309,7 +309,7 @@ async def delete_secret(
         @flow
         def example_delete_secret_with_recovery_window():
             aws_credentials = AwsCredentials(
-                aws_access_key_id="acccess_key_id",
+                aws_access_key_id="access_key_id",
                 aws_secret_access_key="secret_access_key"
             )
             delete_secret(
