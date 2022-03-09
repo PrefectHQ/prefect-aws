@@ -55,7 +55,7 @@ Refer to the API documentation in the side menu to explore all the capabilities 
 
 ## Resources
 
-If you encounter and bugs while using `prefect-aws`, feel free to open an issue in the [prefect-slack](https://github.com/PrefectHQ/prefect-aws) repository.
+If you encounter and bugs while using `prefect-aws`, feel free to open an issue in the [prefect-aws](https://github.com/PrefectHQ/prefect-aws) repository.
 
 If you have any questions or issues while using `prefect-aws`, you can find help in either the [Prefect Discourse forum](https://discourse.prefect.io/) or the [Prefect Slack community](https://prefect.io/slack)
 
