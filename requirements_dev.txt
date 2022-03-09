@@ -10,3 +10,5 @@ pre-commit
 moto[s3, secretsmanager]
 pytest-asyncio
 mkdocs-gen-files
+interrogate
+coverage
