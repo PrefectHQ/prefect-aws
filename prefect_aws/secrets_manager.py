@@ -219,7 +219,7 @@ async def create_secret(
         create_secret_kwargs["Tags"] = tags
     if isinstance(secret_value, bytes):
         create_secret_kwargs["SecretBinary"] = secret_value
-    if isinstance(secret_value, str):
+    elif isinstance(secret_value, str):
         create_secret_kwargs["SecretString"] = secret_value
     else:
         raise ValueError("Please provide a bytes or str value for secret_value")
@@ -257,9 +257,9 @@ async def delete_secret(
         secret_name: Name of the secret to be deleted.
         aws_credentials: Credentials to use for authentication with AWS.
         recovery_window_in_days: Number of days a secret should be recoverable for
-            before permenant deletion. Minium window is 7 days. If
-            `force_delete_without_recovery` is set to `True`, this value will be
-            ignored.
+            before permenant deletion. Minium window is 7 days and maximum window
+            is 30 days. If `force_delete_without_recovery` is set to `True`, this
+            value will be ignored.
         force_delete_without_recovery: If `True`, the secret will be immediately
             deleted and will not be recoverable.
 
@@ -272,7 +272,7 @@ async def delete_secret(
             {
                 "ARN": str,
                 "Name": str,
-                "DeletionDate": datetime.DateTime
+                "DeletionDate": datetime.datetime
             }
             ```
 
@@ -323,8 +323,8 @@ async def delete_secret(
 
 
     """
-    if not force_delete_without_recovery and recovery_window_in_days < 7:
-        raise ValueError("Recovery window must be a minimum of 7 days.")
+    if not force_delete_without_recovery and not (7 <= recovery_window_in_days <= 30):
+        raise ValueError("Recovery window must be between 7 and 30 days.")
 
     delete_secret_kwargs: Dict[str, Union[str, int, bool]] = dict(SecretId=secret_name)
     if force_delete_without_recovery:
