@@ -1,3 +1,5 @@
+"""Module handling AWS credentials"""
+
 from dataclasses import dataclass
 from typing import Optional
 

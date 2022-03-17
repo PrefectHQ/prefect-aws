@@ -5,7 +5,7 @@ import versioneer
 with open("requirements.txt") as install_requires_file:
     install_requires = install_requires_file.read().strip().split("\n")
 
-with open("requirements_dev.txt") as dev_requires_file:
+with open("requirements-dev.txt") as dev_requires_file:
     dev_requires = dev_requires_file.read().strip().split("\n")
 
 with open("README.md") as readme_file:
@@ -36,6 +36,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries",
     ],
 )
