@@ -31,19 +31,9 @@ plugins:
             heading_level: 1
       watch:
         - prefect_aws/
-<<<<<<< HEAD
-        - README.md
-
-nav:
-    - Home: index.md
-    - Tasks: tasks.md
-    - Flows: flows.md
-
-=======
 
 nav:
     - Home: index.md
     - Credentials: credentials.md
     - S3: s3.md
     - Secrets Manager: secrets_manager.md
->>>>>>> ebab90c4ebd9eb4eec21b7ad08c318a8465b5cea
