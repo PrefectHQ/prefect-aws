@@ -29,7 +29,7 @@ class AwsCredentials:
     profile_name: Optional[str] = None
     region_name: Optional[str] = None
 
-    def get_boto3_session(self):
+    def get_boto3_session(self) -> boto3.Session:
         """
         Returns an authenticated boto3 session that can be used to create clients
         for AWS services
