@@ -1,5 +1,5 @@
 import pytest
-import os
+
 from prefect_aws import AwsCredentials
 
 
