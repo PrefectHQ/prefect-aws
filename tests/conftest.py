@@ -1,5 +1,5 @@
 import pytest
-
+import os
 from prefect_aws import AwsCredentials
 
 
@@ -10,3 +10,19 @@ def aws_credentials():
         aws_secret_access_key="secret_access_key",
         region_name="us-east-1",
     )
+
+
+@pytest.fixture(scope="session")
+def temp_db_path(tmpdir_factory):
+    tmp_db_path = tmpdir_factory.mktemp("db")
+    db_file_path = tmp_db_path.join("orion.db")
+    yield str(db_file_path)
+    tmp_db_path.
+
+
+@pytest.fixture(autouse=True)
+def init_prefect_db(monkeypatch, temp_db_path):
+    monkeypatch.setenv("PREFECT_ORION_DATABASE_CONNECTION_URL",f"sqlite+aiosqlite://{temp_db_path}")
+    yield
+
+
