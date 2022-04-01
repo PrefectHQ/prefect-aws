@@ -17,7 +17,6 @@ def temp_db_path(tmpdir_factory):
     tmp_db_path = tmpdir_factory.mktemp("db")
     db_file_path = tmp_db_path.join("orion.db")
     yield str(db_file_path)
-    tmp_db_path.
 
 
 @pytest.fixture(autouse=True)
