@@ -24,3 +24,4 @@ def init_prefect_db(monkeypatch, temp_db_path):
     monkeypatch.setenv(
         "PREFECT_ORION_DATABASE_CONNECTION_URL", f"sqlite+aiosqlite://{temp_db_path}"
     )
+    monkeypatch.setenv("PREFECT_API_URL", "")
