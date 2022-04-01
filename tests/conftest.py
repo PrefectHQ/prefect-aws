@@ -16,12 +16,11 @@ def aws_credentials():
 def temp_db_path(tmpdir_factory):
     tmp_db_path = tmpdir_factory.mktemp("db")
     db_file_path = tmp_db_path.join("orion.db")
-    yield str(db_file_path)
+    return str(db_file_path)
 
 
 @pytest.fixture(autouse=True)
 def init_prefect_db(monkeypatch, temp_db_path):
-    monkeypatch.setenv("PREFECT_ORION_DATABASE_CONNECTION_URL",f"sqlite+aiosqlite://{temp_db_path}")
-    yield
-
-
+    monkeypatch.setenv(
+        "PREFECT_ORION_DATABASE_CONNECTION_URL", f"sqlite+aiosqlite://{temp_db_path}"
+    )
