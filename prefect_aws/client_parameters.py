@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, Union
 @dataclass(frozen=True)
 class AwsClientParameters:
     """
-    Dataclass used to manage extra parameters that you can pass when you initialize the Client.If you
+    Dataclass used to manage extra parameters that you can pass when you initialize the Client. If you
     want find more information
     [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html)
     for more info about the possible client configurations.
