@@ -52,6 +52,6 @@ class AwsClientParameters:
 
     def get_params_override(self) -> Dict[str, Any]:
         """
-        Return the dictionary of the parameters to override. The parameters to override are the one which are not None
+        Return the dictionary of the parameters to override. The parameters to override are the one which are not None.
         """  # noqa E501
         return {k: v for k, v in dataclasses.asdict(self).items() if v is not None}
