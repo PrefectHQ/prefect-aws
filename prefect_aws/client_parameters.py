@@ -14,7 +14,7 @@ class AwsClientParameters:
     for more info about the possible client configurations.
 
     Args:
-        api_version: The API version to use.  By default, botocore will
+        api_version: The API version to use. By default, botocore will
             use the latest API version when creating a client.  You only need
             to specify this parameter if you want to use a previous API version
             of the client.
