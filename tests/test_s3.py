@@ -11,20 +11,13 @@ from prefect_aws.client_parameters import AwsClientParameters
 from prefect_aws.s3 import s3_download, s3_list_objects, s3_upload
 
 aws_clients = [
-    (
-        lazy_fixture("aws_client_parameters_custom_endpoint"),
-        lazy_fixture("aws_client_parameters_custom_endpoint"),
-    ),
-    (
-        lazy_fixture("aws_client_parameters_empty"),
-        lazy_fixture("aws_client_parameters_empty"),
-    ),
+    (lazy_fixture("aws_client_parameters_custom_endpoint")),
+    (lazy_fixture("aws_client_parameters_empty")),
 ]
 
 
 @pytest.fixture
-def s3_mock(monkeypatch, request):
-    client_parameters = request.param
+def s3_mock(monkeypatch, client_parameters):
     if client_parameters.endpoint_url:
         monkeypatch.setenv("MOTO_S3_CUSTOM_ENDPOINTS", client_parameters.endpoint_url)
     with mock_s3():
@@ -73,12 +66,16 @@ def a_lot_of_objects(bucket, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "s3_mock", [lazy_fixture("aws_client_parameters_custom_endpoint")], indirect=True
+    "client_parameters",
+    [lazy_fixture("aws_client_parameters_custom_endpoint")],
+    indirect=True,
 )
 async def test_s3_download_failed_with_wrong_endpoint_setup(
-    object, s3_mock, aws_credentials
+    object, client_parameters, aws_credentials
 ):
-    client_parameters = AwsClientParameters(endpoint_url="http://something")
+    client_parameters_wrong_endpoint = AwsClientParameters(
+        endpoint_url="http://something"
+    )
 
     @flow
     async def test_flow():
@@ -86,7 +83,7 @@ async def test_s3_download_failed_with_wrong_endpoint_setup(
             bucket="bucket",
             key="object",
             aws_credentials=aws_credentials,
-            aws_client_parameters=client_parameters,
+            aws_client_parameters=client_parameters_wrong_endpoint,
         )
 
     flow_state = await test_flow()
@@ -94,8 +91,8 @@ async def test_s3_download_failed_with_wrong_endpoint_setup(
     assert "http://something" in str(flow_state.result(False).result(False))
 
 
-@pytest.mark.parametrize("s3_mock, client_parameters", aws_clients, indirect=True)
-async def test_s3_download(object, s3_mock, client_parameters, aws_credentials):
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
+async def test_s3_download(object, client_parameters, aws_credentials):
     @flow
     async def test_flow():
         return await s3_download(
@@ -110,10 +107,8 @@ async def test_s3_download(object, s3_mock, client_parameters, aws_credentials):
     assert task_state.result() == b"TEST"
 
 
-@pytest.mark.parametrize("s3_mock, client_parameters", aws_clients, indirect=True)
-async def test_s3_download_object_not_found(
-    object, s3_mock, client_parameters, aws_credentials
-):
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
+async def test_s3_download_object_not_found(object, client_parameters, aws_credentials):
     @flow
     async def test_flow():
         return await s3_download(
@@ -128,8 +123,8 @@ async def test_s3_download_object_not_found(
         flow_state.result()
 
 
-@pytest.mark.parametrize("s3_mock, client_parameters", aws_clients, indirect=True)
-async def test_s3_upload(bucket, s3_mock, client_parameters, tmp_path, aws_credentials):
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
+async def test_s3_upload(bucket, client_parameters, tmp_path, aws_credentials):
     @flow
     async def test_flow():
         test_file = tmp_path / "test.txt"
@@ -154,9 +149,9 @@ async def test_s3_upload(bucket, s3_mock, client_parameters, tmp_path, aws_crede
     assert output == b"NEW OBJECT"
 
 
-@pytest.mark.parametrize("s3_mock, client_parameters", aws_clients, indirect=True)
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
 async def test_s3_list_objects(
-    object, s3_mock, client_parameters, object_in_folder, aws_credentials
+    object, client_parameters, object_in_folder, aws_credentials
 ):
     @flow
     async def test_flow():
@@ -173,9 +168,9 @@ async def test_s3_list_objects(
     assert [object["Key"] for object in objects] == ["folder/object", "object"]
 
 
-@pytest.mark.parametrize("s3_mock, client_parameters", aws_clients, indirect=True)
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
 async def test_s3_list_objects_multiple_pages(
-    a_lot_of_objects, s3_mock, client_parameters, aws_credentials
+    a_lot_of_objects, client_parameters, aws_credentials
 ):
     @flow
     async def test_flow():
@@ -195,9 +190,9 @@ async def test_s3_list_objects_multiple_pages(
     )
 
 
-@pytest.mark.parametrize("s3_mock, client_parameters", aws_clients, indirect=True)
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
 async def test_s3_list_objects_prefix(
-    object, s3_mock, client_parameters, object_in_folder, aws_credentials
+    object, client_parameters, object_in_folder, aws_credentials
 ):
     @flow
     async def test_flow():
@@ -215,9 +210,9 @@ async def test_s3_list_objects_prefix(
     assert [object["Key"] for object in objects] == ["folder/object"]
 
 
-@pytest.mark.parametrize("s3_mock, client_parameters", aws_clients, indirect=True)
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
 async def test_s3_list_objects_filter(
-    object, s3_mock, client_parameters, object_in_folder, aws_credentials
+    object, client_parameters, object_in_folder, aws_credentials
 ):
     @flow
     async def test_flow():
