@@ -36,7 +36,7 @@ class AwsClientParameters:
             client. Normally, botocore will automatically construct the
             appropriate URL to use when communicating with a service.  You
             can specify a complete URL (including the "http/https" scheme)
-            to override this behavior.  If this value is provided,
+            to override this behavior. If this value is provided,
             then ``use_ssl`` is ignored.
     """  # noqa E501
 
