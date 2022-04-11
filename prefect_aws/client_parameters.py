@@ -14,20 +14,16 @@ class AwsClientParameters:
     for more info about the possible client configurations.
 
     Args:
-        :type api_version: Optional[string]
-        :param api_version: The API version to use.  By default, botocore will
+        api_version: The API version to use.  By default, botocore will
             use the latest API version when creating a client.  You only need
             to specify this parameter if you want to use a previous API version
             of the client.
 
-        :type use_ssl: Optional[boolean]
-        :param use_ssl: Whether or not to use SSL.  By default, SSL is used.
+        use_ssl: Whether or not to use SSL.  By default, SSL is used.
             Note that not all services support non-ssl connections.
 
-        :type verify: Optional[boolean|string]
-        :param verify: Whether or not to verify SSL certificates.  By default
-            SSL certificates are verified.  You can provide the following
-            values:
+        verify: Whether or not to verify SSL certificates.  By default
+            SSL certificates are verified. You can provide the following values:
 
             * False - do not validate SSL certificates.  SSL will still be
               used (unless use_ssl is False), but SSL certificates
@@ -36,8 +32,7 @@ class AwsClientParameters:
               uses.  You can specify this argument if you want to use a
               different CA cert bundle than the one used by botocore.
 
-        :type endpoint_url: Optional[string]
-        :param endpoint_url: The complete URL to use for the constructed
+        endpoint_url: The complete URL to use for the constructed
             client. Normally, botocore will automatically construct the
             appropriate URL to use when communicating with a service.  You
             can specify a complete URL (including the "http/https" scheme)
