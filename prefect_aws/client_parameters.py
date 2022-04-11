@@ -19,7 +19,7 @@ class AwsClientParameters:
             to specify this parameter if you want to use a previous API version
             of the client.
 
-        use_ssl: Whether or not to use SSL.  By default, SSL is used.
+        use_ssl: Whether or not to use SSL. By default, SSL is used.
             Note that not all services support non-ssl connections.
 
         verify: Whether or not to verify SSL certificates.  By default
