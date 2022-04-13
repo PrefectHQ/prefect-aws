@@ -34,7 +34,7 @@ class AwsClientParameters:
 
         endpoint_url: The complete URL to use for the constructed
             client. Normally, botocore will automatically construct the
-            appropriate URL to use when communicating with a service.  You
+            appropriate URL to use when communicating with a service. You
             can specify a complete URL (including the "http/https" scheme)
             to override this behavior. If this value is provided,
             then ``use_ssl`` is ignored.
