@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 import boto3
 import pytest
@@ -156,9 +156,10 @@ async def test_delete_secret(
         result = flow_state.result().result()
         assert result.get("Name") == secret_under_test["secret_name"]
         deletion_date = result.get("DeletionDate")
+
         if not force_delete_without_recovery:
             assert deletion_date.date() == (
-                date.today() + timedelta(days=recovery_window_in_days)
+                datetime.utcnow().date() + timedelta(days=recovery_window_in_days)
             )
         else:
-            assert deletion_date.date() == date.today()
+            assert deletion_date.date() == datetime.utcnow().date()
