@@ -1,4 +1,4 @@
-asyncmock; python_version < '3.8'
+mock; python_version < '3.8'
 pytest
 black
 flake8
