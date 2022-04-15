@@ -2,6 +2,7 @@ import pytest
 from prefect.utilities.testing import prefect_test_harness
 
 from prefect_aws import AwsCredentials
+from prefect_aws.client_parameters import AwsClientParameters
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -17,3 +18,13 @@ def aws_credentials():
         aws_secret_access_key="secret_access_key",
         region_name="us-east-1",
     )
+
+
+@pytest.fixture
+def aws_client_parameters_custom_endpoint():
+    return AwsClientParameters(endpoint_url="http://custom.internal.endpoint.org")
+
+
+@pytest.fixture
+def aws_client_parameters_empty():
+    return AwsClientParameters()
