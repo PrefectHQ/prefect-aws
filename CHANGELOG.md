@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Added
 
+Released on April 18th, 2022
+
 - `AwsClientParameters` for added configuration of the `boto3` S3 client = [#29](https://github.com/PrefectHQ/prefect-aws/pull/29)
   - Contributed by [davzucky](https://github.com/davzucky)
 
