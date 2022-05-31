@@ -1,6 +1,6 @@
 site_name: prefect-aws
-site_url: https://prefecthq.github.io/prefect_aws
-repo_url: https://github.com/prefecthq/prefect_aws
+site_url: https://prefecthq.github.io/prefect-aws
+repo_url: https://github.com/prefecthq/prefect-aws
 edit_uri: /edit/main/docs/
 theme:
   name: material
