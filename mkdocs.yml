@@ -10,8 +10,7 @@ theme:
     accent: blue
   icon:
     repo: fontawesome/brands/github
-  logo:
-    img/prefect-logo-white.png
+  logo: img/prefect-logo-white.png
   font:
     text: Inter
     code: Source Code Pro
