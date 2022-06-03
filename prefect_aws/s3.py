@@ -9,6 +9,7 @@ from botocore.paginate import PageIterator
 from prefect import get_run_logger, task
 
 from prefect_aws import AwsCredentials
+from prefect_aws.client_parameters import AwsClientParameters
 
 
 @task
@@ -16,6 +17,7 @@ async def s3_download(
     bucket: str,
     key: str,
     aws_credentials: AwsCredentials,
+    aws_client_parameters: AwsClientParameters = AwsClientParameters(),
 ) -> bytes:
     """
     Downloads an object with a given key from a given S3 bucket.
@@ -26,6 +28,8 @@ async def s3_download(
         key: Key of object to download. Required if a default value was not supplied
             when creating the task.
         aws_credentials: Credentials to use for authentication with AWS.
+        aws_client_parameters: Custom parameter for the boto3 client initialization..
+
 
     Returns:
         A `bytes` representation of the downloaded object.
@@ -57,7 +61,9 @@ async def s3_download(
     logger = get_run_logger()
     logger.info("Downloading object from bucket %s with key %s", bucket, key)
 
-    s3_client = aws_credentials.get_boto3_session().client("s3")
+    s3_client = aws_credentials.get_boto3_session().client(
+        "s3", **aws_client_parameters.get_params_override()
+    )
     stream = io.BytesIO()
     download = partial(
         s3_client.download_fileobj, Bucket=bucket, Key=key, Fileobj=stream
@@ -74,6 +80,7 @@ async def s3_upload(
     data: bytes,
     bucket: str,
     aws_credentials: AwsCredentials,
+    aws_client_parameters: AwsClientParameters = AwsClientParameters(),
     key: Optional[str] = None,
 ) -> str:
     """
@@ -84,6 +91,7 @@ async def s3_upload(
         bucket: Name of bucket to upload data to. Required if a default value was not
             supplied when creating the task.
         aws_credentials: Credentials to use for authentication with AWS.
+        aws_client_parameters: Custom parameter for the boto3 client initialization..
         key: Key of object to download. Defaults to a UUID string.
 
     Returns:
@@ -121,7 +129,9 @@ async def s3_upload(
 
     logger.info("Uploading object to bucket %s with key %s", bucket, key)
 
-    s3_client = aws_credentials.get_boto3_session().client("s3")
+    s3_client = aws_credentials.get_boto3_session().client(
+        "s3", **aws_client_parameters.get_params_override()
+    )
     stream = io.BytesIO(data)
     upload = partial(s3_client.upload_fileobj, stream, Bucket=bucket, Key=key)
     await to_thread.run_sync(upload)
@@ -146,6 +156,7 @@ def _list_objects_sync(page_iterator: PageIterator):
 async def s3_list_objects(
     bucket: str,
     aws_credentials: AwsCredentials,
+    aws_client_parameters: AwsClientParameters = AwsClientParameters(),
     prefix: str = "",
     delimiter: str = "",
     page_size: Optional[int] = None,
@@ -159,6 +170,7 @@ async def s3_list_objects(
         bucket: Name of bucket to list items from. Required if a default value was not
             supplied when creating the task.
         aws_credentials: Credentials to use for authentication with AWS.
+        aws_client_parameters: Custom parameter for the boto3 client initialization..
         prefix: Used to filter objects with keys starting with the specified prefix.
         delimiter: Character used to group keys of listed objects.
         page_size: Number of objects to return in each request to the AWS API.
@@ -197,7 +209,9 @@ async def s3_list_objects(
     logger = get_run_logger()
     logger.info("Listing objects in bucket %s with prefix %s", bucket, prefix)
 
-    s3_client = aws_credentials.get_boto3_session().client("s3")
+    s3_client = aws_credentials.get_boto3_session().client(
+        "s3", **aws_client_parameters.get_params_override()
+    )
     paginator = s3_client.get_paginator("list_objects_v2")
     page_iterator = paginator.paginate(
         Bucket=bucket,
