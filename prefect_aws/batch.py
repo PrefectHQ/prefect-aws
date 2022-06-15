@@ -1,8 +1,10 @@
-from typing import Any, Dict, Optional
+"""Tasks for interacting with AWS Batch"""
+
 from functools import partial
+from typing import Any, Dict, Optional
 
 from anyio import to_thread
-from prefect import task, get_run_logger
+from prefect import get_run_logger, task
 
 from prefect_aws.credentials import AwsCredentials
 
@@ -27,10 +29,10 @@ async def batch_submit(
             `submit_job` function. See the documentation for
             [submit_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/batch.html#Batch.Client.submit_job)
             for more details.
-    
+
     Returns:
         The id corresponding to the job.
-    
+
     Example:
         Submits a job to batch.
 
