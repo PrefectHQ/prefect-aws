@@ -2,7 +2,7 @@
 
 ## Special thanks for all the people who had helped this project so far:
 
-* [name](https://link)
+* [davzucky](https://github.com/davzucky)
 
 ## I would like to join this list. How can I help the project?
 

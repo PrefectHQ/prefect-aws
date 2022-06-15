@@ -1,3 +1,4 @@
+mock; python_version < '3.8'
 pytest
 black
 flake8
@@ -9,6 +10,9 @@ isort
 pre-commit
 moto[s3, secretsmanager]
 pytest-asyncio
+pytest-lazy-fixture
 mkdocs-gen-files
 interrogate
 coverage
+types-boto3
+boto3-stubs[s3,secretsmanager]
