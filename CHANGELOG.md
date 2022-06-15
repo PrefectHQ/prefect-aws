@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `batch_submit` task - [#41](https://github.com/PrefectHQ/prefect-aws/issues/41)
+
 ### Changed
 
 ### Deprecated
