@@ -2,7 +2,7 @@ from uuid import UUID
 
 import boto3
 import pytest
-from moto import mock_batch, mock_iam, mock_s3
+from moto import mock_batch, mock_iam
 from prefect import flow
 
 from prefect_aws.batch import batch_submit
