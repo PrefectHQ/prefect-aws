@@ -1,7 +1,14 @@
 import pytest
+from prefect.testing.utilities import prefect_test_harness
 
 from prefect_aws import AwsCredentials
 from prefect_aws.client_parameters import AwsClientParameters
+
+
+@pytest.fixture(scope="session", autouse=True)
+def prefect_db():
+    with prefect_test_harness():
+        yield
 
 
 @pytest.fixture
