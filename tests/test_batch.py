@@ -2,16 +2,10 @@ from uuid import UUID
 
 import boto3
 import pytest
-from moto import mock_batch, mock_iam, mock_s3
+from moto import mock_batch, mock_iam
 from prefect import flow
 
 from prefect_aws.batch import batch_submit
-
-
-@pytest.fixture(scope="function")
-def s3_client(aws_credentials):
-    with mock_s3():
-        yield boto3.client("s3", region_name="us-east-1")
 
 
 @pytest.fixture(scope="function")
