@@ -63,7 +63,6 @@ async def batch_submit(
     logger = get_run_logger()
     logger.info("Preparing to submit %s job to %s job queue", job_name, job_queue)
 
-    batch_kwargs = batch_kwargs or {}
     batch_client = aws_credentials.get_boto3_session().client("batch")
 
     submit_job = partial(
