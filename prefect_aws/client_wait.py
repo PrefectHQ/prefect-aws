@@ -1,25 +1,18 @@
 """Task for waiting on a long-running AWS job"""
 
+import importlib.resources as pkg_resources
 import json
-
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
-
-import boto3
-from botocore.exceptions import WaiterError
-from botocore.waiter import WaiterModel, create_waiter_with_client
-
-
 from functools import partial
 from typing import Any, Dict, Optional
 
+import boto3
 from anyio import to_thread
+from botocore.exceptions import WaiterError
+from botocore.waiter import WaiterModel, create_waiter_with_client
+from prefect import get_run_logger, task
 
-from prefect_aws.credentials import AwsCredentials
 from prefect_aws import waiters
-from prefect import task, get_run_logger 
+from prefect_aws.credentials import AwsCredentials
 
 
 @task
@@ -53,12 +46,12 @@ async def client_waiter(
             will fall back on standard AWS rules for authentication.
         waiter_kwargs: Arguments to pass to the `waiter.wait(...)` method. Will
             depend upon the specific waiter being called.
-    
+
     Examples:
         TODO:
     """
     logger = get_run_logger()
-    logger.info("Waiting on %s job", client)        
+    logger.info("Waiting on %s job", client)
 
     waiter_kwargs = waiter_kwargs or {}
 
@@ -79,9 +72,7 @@ async def client_waiter(
     await to_thread.run_sync(partial_wait)
 
 
-def _load_prefect_waiter(
-    boto_client: boto3.client, client_str: str, waiter_name: str
-):
+def _load_prefect_waiter(boto_client: boto3.client, client_str: str, waiter_name: str):
     """
     Load a custom waiter from the ./waiters directory.
     """
