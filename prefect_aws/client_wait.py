@@ -1,5 +1,6 @@
 """Task for waiting on a long-running AWS job"""
 
+import importlib.resources as pkg_resources
 import json
 
 try:

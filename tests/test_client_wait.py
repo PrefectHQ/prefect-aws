@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 import boto3
 import pytest
 from moto import mock_batch, mock_iam
+pytest.importorskip("boto3")
 from prefect import flow, task
 
 from botocore.waiter import WaiterModel
@@ -52,7 +53,7 @@ def test_load_prefect_waiter(monkeypatch):
     mock_boto_client = MagicMock()
     result = _load_prefect_waiter(mock_boto_client, "batch", "JobExists")
     assert result == "waiter"
-
+    
 def test_client_waiter(monkeypatch, aws_credentials):
     monkeypatch.setattr(
         'boto3.waiter.EC2.Waiter.InstanceExists.wait',
