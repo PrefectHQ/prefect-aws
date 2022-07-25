@@ -2,11 +2,11 @@ import io
 
 import boto3
 import pytest
-from botocore.exceptions import ClientError
-from botocore.exceptions import EndpointConnectionError
+from botocore.exceptions import ClientError, EndpointConnectionError
 from moto import mock_s3
 from prefect import flow
 from pytest_lazyfixture import lazy_fixture
+
 from prefect_aws.client_parameters import AwsClientParameters
 from prefect_aws.s3 import s3_download, s3_list_objects, s3_upload
 
@@ -118,7 +118,7 @@ async def test_s3_download_object_not_found(object, client_parameters, aws_crede
         )
 
     with pytest.raises(ClientError):
-        flow_state = await test_flow()
+        await test_flow()
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
@@ -136,7 +136,7 @@ async def test_s3_upload(bucket, client_parameters, tmp_path, aws_credentials):
                 aws_client_parameters=client_parameters,
             )
 
-    result = await test_flow()
+    await test_flow()
 
     stream = io.BytesIO()
     bucket.download_fileobj("new_object", stream)
