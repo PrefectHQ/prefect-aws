@@ -1,9 +1,8 @@
-import os
 import pytest
-from moto import mock_s3
-from pathlib import Path
-from prefect_aws.credentials import AwsCredentials
 from botocore.client import ClientError
+from moto import mock_s3
+
+from prefect_aws.credentials import AwsCredentials
 
 BUCKET_NAME = "MY_BUCKET"
 
@@ -14,7 +13,8 @@ BUCKET_NAME = "MY_BUCKET"
 def test_get_s3_client(aws_credentials, profile_nm: str):
 
     """
-    Given an AWS profile name, will create an AwsCredentials block and return an S3 Client."""
+    Given an AWS profile name, will create an AwsCredentials block and return
+    an S3 Client."""
 
     with mock_s3():
         aws_credentials_block = AwsCredentials(profile_name=profile_nm)
