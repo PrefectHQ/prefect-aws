@@ -1,15 +1,13 @@
 """Module handling AWS credentials"""
-
-from dataclasses import dataclass
+import boto3
+from prefect.blocks.core import Block
+from pydantic import SecretStr
 from typing import Optional
 
-import boto3
 
-
-@dataclass
-class AwsCredentials:
+class AwsCredentials(Block):
     """
-    Dataclass used to manage authentication with AWS. AWS authentication is
+    Block used to manage authentication with AWS. AWS authentication is
     handled via the `boto3` module. Refer to the
     [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
     for more info about the possible credential configurations.
@@ -21,10 +19,20 @@ class AwsCredentials:
             This is only needed when you are using temporary credentials.
         profile_name: The profile to use when creating your session.
         region_name: The AWS Region where you want to create new connections.
+
+    Example:
+        Load stored AWS credentials:
+        ```python
+        from prefect_aws import AwsCredentials
+
+        aws_credentials_block = AwsCredentials.load("MY_BLOCK_NAME")
     """  # noqa E501
 
+    _block_type_name = "AWS Credentials"
+
+
     aws_access_key_id: Optional[str] = None
-    aws_secret_access_key: Optional[str] = None
+    aws_secret_access_key: Optional[SecretStr] = None
     aws_session_token: Optional[str] = None
     profile_name: Optional[str] = None
     region_name: Optional[str] = None
@@ -50,3 +58,4 @@ class AwsCredentials:
             profile_name=self.profile_name,
             region_name=self.region_name,
         )
+
