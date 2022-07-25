@@ -30,7 +30,7 @@ You will need to obtain AWS credentials in order to use these tasks. Refer to th
 
 ```python
 from prefect import flow
-from prefect_aws import s3_upload
+from prefect_aws.s3 import s3_upload
 
 @flow
 def example_s3_upload_flow():
