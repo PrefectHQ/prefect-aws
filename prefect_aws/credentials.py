@@ -1,8 +1,10 @@
 """Module handling AWS credentials"""
+
+from typing import Optional
+
 import boto3
 from prefect.blocks.core import Block
 from pydantic import SecretStr
-from typing import Optional
 
 
 class AwsCredentials(Block):
@@ -32,7 +34,6 @@ class AwsCredentials(Block):
     _logo_url = "https://raw.githubusercontent.com/PrefectHQ/orion/main/docs/img/collections/aws.png?token=GHSAT0AAAAAABWXXRRUZVWANGYL57DBGQNWYW7EMMA"
     _block_type_name = "AWS Credentials"
 
-
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[SecretStr] = None
     aws_session_token: Optional[str] = None
@@ -60,5 +61,3 @@ class AwsCredentials(Block):
             profile_name=self.profile_name,
             region_name=self.region_name,
         )
-
-
