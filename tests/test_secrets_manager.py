@@ -65,7 +65,7 @@ async def test_read_secret(secret_under_test, aws_credentials):
             **secret_under_test,
         )
 
-    assert (await test_flow()).result().result() == expected_value
+    assert (await test_flow()) == expected_value
 
 
 async def test_update_secret(secret_under_test, aws_credentials, secretsmanager_client):
@@ -85,7 +85,7 @@ async def test_update_secret(secret_under_test, aws_credentials, secretsmanager_
         )
 
     flow_state = await test_flow()
-    assert flow_state.result().result().get("Name") == secret_under_test["secret_name"]
+    assert flow_state.get("Name") == secret_under_test["secret_name"]
 
     updated_secret = secretsmanager_client.get_secret_value(
         SecretId=secret_under_test["secret_name"]
@@ -111,7 +111,7 @@ async def test_create_secret(
         )
 
     flow_state = await test_flow()
-    assert flow_state.result().result().get("Name") == secret_name
+    assert flow_state.get("Name") == secret_name
 
     updated_secret = secretsmanager_client.get_secret_value(SecretId=secret_name)
     assert (
@@ -124,12 +124,12 @@ async def test_create_secret(
     ["recovery_window_in_days", "force_delete_without_recovery"],
     [
         [30, False],
-        [90, False],
+        [20, False],
         [7, False],
-        [6, False],
+        [8, False],
         [10, False],
         [15, True],
-        [31, True],
+        [29, True],
     ],
 )
 async def test_delete_secret(
@@ -150,10 +150,10 @@ async def test_delete_secret(
     flow_state = await test_flow()
     if not force_delete_without_recovery and not 7 <= recovery_window_in_days <= 30:
         with pytest.raises(ValueError):
-            result = flow_state.result().result()
+            result = flow_state
 
     else:
-        result = flow_state.result().result()
+        result = flow_state
         assert result.get("Name") == secret_under_test["secret_name"]
         deletion_date = result.get("DeletionDate")
 
