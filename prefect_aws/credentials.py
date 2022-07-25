@@ -26,6 +26,7 @@ class AwsCredentials(Block):
         from prefect_aws import AwsCredentials
 
         aws_credentials_block = AwsCredentials.load("MY_BLOCK_NAME")
+        ```
     """  # noqa E501
 
     _logo_url = "https://github.com/PrefectHQ/orion/blob/main/docs/img/collections/aws.png"
