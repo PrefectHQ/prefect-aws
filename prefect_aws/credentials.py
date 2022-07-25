@@ -29,7 +29,7 @@ class AwsCredentials(Block):
         ```
     """  # noqa E501
 
-    _logo_url = "https://github.com/PrefectHQ/orion/blob/main/docs/img/collections/aws.png"
+    _logo_url = "https://raw.githubusercontent.com/PrefectHQ/orion/main/docs/img/collections/aws.png?token=GHSAT0AAAAAABWXXRRUZVWANGYL57DBGQNWYW7EMMA"
     _block_type_name = "AWS Credentials"
 
 
