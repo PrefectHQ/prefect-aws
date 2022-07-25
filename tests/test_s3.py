@@ -3,10 +3,10 @@ import io
 import boto3
 import pytest
 from botocore.exceptions import ClientError
+from botocore.exceptions import EndpointConnectionError
 from moto import mock_s3
 from prefect import flow
 from pytest_lazyfixture import lazy_fixture
-
 from prefect_aws.client_parameters import AwsClientParameters
 from prefect_aws.s3 import s3_download, s3_list_objects, s3_upload
 
@@ -86,9 +86,8 @@ async def test_s3_download_failed_with_wrong_endpoint_setup(
             aws_client_parameters=client_parameters_wrong_endpoint,
         )
 
-    flow_state = await test_flow()
-    assert flow_state.is_failed
-    assert "http://something" in str(flow_state.result(False).result(False))
+    with pytest.raises(EndpointConnectionError):
+        await test_flow()
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
@@ -103,8 +102,8 @@ async def test_s3_download(object, client_parameters, aws_credentials):
         )
 
     flow_state = await test_flow()
-    task_state = flow_state.result()
-    assert task_state.result() == b"TEST"
+    task_state = flow_state
+    assert task_state == b"TEST"
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
@@ -118,9 +117,8 @@ async def test_s3_download_object_not_found(object, client_parameters, aws_crede
             aws_client_parameters=client_parameters,
         )
 
-    flow_state = await test_flow()
     with pytest.raises(ClientError):
-        flow_state.result()
+        flow_state = await test_flow()
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
@@ -138,8 +136,7 @@ async def test_s3_upload(bucket, client_parameters, tmp_path, aws_credentials):
                 aws_client_parameters=client_parameters,
             )
 
-    flow_state = await test_flow()
-    assert flow_state.is_completed
+    result = await test_flow()
 
     stream = io.BytesIO()
     bucket.download_fileobj("new_object", stream)
@@ -162,8 +159,8 @@ async def test_s3_list_objects(
         )
 
     flow_state = await test_flow()
-    task_state = flow_state.result()
-    objects = task_state.result()
+    task_state = flow_state
+    objects = task_state
     assert len(objects) == 2
     assert [object["Key"] for object in objects] == ["folder/object", "object"]
 
@@ -182,8 +179,8 @@ async def test_s3_list_objects_multiple_pages(
         )
 
     flow_state = await test_flow()
-    task_state = flow_state.result()
-    objects = task_state.result()
+    task_state = flow_state
+    objects = task_state
     assert len(objects) == 20
     assert sorted([object["Key"] for object in objects]) == sorted(
         [f"object{i}" for i in range(0, 20)]
@@ -204,8 +201,8 @@ async def test_s3_list_objects_prefix(
         )
 
     flow_state = await test_flow()
-    task_state = flow_state.result()
-    objects = task_state.result()
+    task_state = flow_state
+    objects = task_state
     assert len(objects) == 1
     assert [object["Key"] for object in objects] == ["folder/object"]
 
@@ -224,7 +221,7 @@ async def test_s3_list_objects_filter(
         )
 
     flow_state = await test_flow()
-    task_state = flow_state.result()
-    objects = task_state.result()
+    task_state = flow_state
+    objects = task_state
     assert len(objects) == 1
     assert [object["Key"] for object in objects] == ["folder/object"]
