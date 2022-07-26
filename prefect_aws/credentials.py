@@ -60,10 +60,10 @@ class AwsCredentials(Block):
         else:
             aws_secret_access_key = None
 
-            return boto3.Session(
-                aws_access_key_id=self.aws_access_key_id,
-                aws_secret_access_key=aws_secret_access_key,
-                aws_session_token=self.aws_session_token,
-                profile_name=self.profile_name,
-                region_name=self.region_name,
-            )
+        return boto3.Session(
+            aws_access_key_id=self.aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            aws_session_token=self.aws_session_token,
+            profile_name=self.profile_name,
+            region_name=self.region_name,
+        )
