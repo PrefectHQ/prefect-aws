@@ -102,8 +102,7 @@ async def test_s3_download(object, client_parameters, aws_credentials):
         )
 
     flow_state = await test_flow()
-    task_state = flow_state
-    assert task_state == b"TEST"
+    assert result == b"TEST"
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
