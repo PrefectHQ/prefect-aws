@@ -1,6 +1,5 @@
-from moto import mock_s3
 from boto3.session import Session
-
+from moto import mock_s3
 from prefect_aws.credentials import AwsCredentials
 
 
