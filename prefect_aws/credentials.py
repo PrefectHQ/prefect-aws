@@ -31,10 +31,7 @@ class AwsCredentials(Block):
         ```
     """  # noqa E501
 
-    _logo_url = (
-        "https://raw.githubusercontent.com/PrefectHQ/orion/main/docs/"
-        "img/collections/aws.png?token=GHSAT0AAAAAABWXXRRUZVWANGYL57DBGQNWYW7EMMA"
-    )
+    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _block_type_name = "AWS Credentials"
 
     aws_access_key_id: Optional[str] = None
