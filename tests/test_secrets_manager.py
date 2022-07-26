@@ -147,7 +147,7 @@ async def test_delete_secret(
             force_delete_without_recovery=force_delete_without_recovery,
         )
 
-    flow_state = await test_flow()
+    result = await test_flow()
     if not force_delete_without_recovery and not 7 <= recovery_window_in_days <= 30:
         with pytest.raises(ValueError):
             result = flow_state
