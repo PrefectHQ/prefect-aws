@@ -220,7 +220,5 @@ async def test_s3_list_objects_filter(
         )
 
     flow_state = await test_flow()
-    task_state = flow_state
-    objects = task_state
     assert len(objects) == 1
     assert [object["Key"] for object in objects] == ["folder/object"]
