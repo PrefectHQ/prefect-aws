@@ -219,6 +219,6 @@ async def test_s3_list_objects_filter(
             aws_client_parameters=client_parameters,
         )
 
-    flow_state = await test_flow()
+    objects = await test_flow()
     assert len(objects) == 1
     assert [object["Key"] for object in objects] == ["folder/object"]
