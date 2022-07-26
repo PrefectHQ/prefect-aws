@@ -7,25 +7,22 @@ from prefect_aws.credentials import AwsCredentials
 BUCKET_NAME = "MY_BUCKET"
 
 
-@pytest.mark.parametrize(
-    argnames="profile_nm", argvalues=[("TEST_PROFILE_1"), ("TEST_PROFILE_2")]
-)
-def test_get_s3_client(aws_credentials, profile_nm: str):
+def test_get_s3_client(aws_credentials):
 
     """
     Given an AWS profile name, will create an AwsCredentials block and return
     an S3 Client."""
 
     with mock_s3():
-        aws_credentials_block = AwsCredentials(profile_name=profile_nm)
+        aws_credentials_block = AwsCredentials()
         s3_client = aws_credentials_block.get_boto3_session().client("s3")
         return s3_client
 
 
-@pytest.mark.parametrize(
-    argnames="profile_nm", argvalues=[("TEST_PROFILE_1"), ("TEST_PROFILE_2")]
-)
-def test_create_bucket_and_return_location(aws_credentials, profile_nm: str) -> dict:
+# @pytest.mark.parametrize(
+#     argnames="profile_nm", argvalues=[("TEST_PROFILE_1"), ("TEST_PROFILE_2")]
+# )
+def test_create_bucket_and_return_location(aws_credentials) -> dict:
 
     """
     Given an S3 client generated from the AwsCredentials block, creates bucket
@@ -36,7 +33,7 @@ def test_create_bucket_and_return_location(aws_credentials, profile_nm: str) -> 
     """
 
     with mock_s3():
-        aws_credentials_block = AwsCredentials(profile_name=profile_nm)
+        aws_credentials_block = AwsCredentials()
         s3_client = aws_credentials_block.get_boto3_session().client("s3")
         s3_client.create_bucket(Bucket=BUCKET_NAME)
 
