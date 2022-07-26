@@ -74,7 +74,6 @@ def test_batch_submit(job_queue_arn, job_definition_arn, aws_credentials):
 
     job_id = test_flow()
 
-    job_id = flow_state
     try:
         UUID(str(job_id))
         assert True, f"{job_id} is a valid UUID"
