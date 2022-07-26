@@ -19,9 +19,6 @@ def test_get_s3_client(aws_credentials):
         return s3_client
 
 
-# @pytest.mark.parametrize(
-#     argnames="profile_nm", argvalues=[("TEST_PROFILE_1"), ("TEST_PROFILE_2")]
-# )
 def test_create_bucket_and_return_location(aws_credentials) -> dict:
 
     """
