@@ -101,7 +101,7 @@ async def test_s3_download(object, client_parameters, aws_credentials):
             aws_client_parameters=client_parameters,
         )
 
-    flow_state = await test_flow()
+    result = await test_flow()
     assert result == b"TEST"
 
 
