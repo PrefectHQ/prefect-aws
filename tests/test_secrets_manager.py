@@ -153,7 +153,6 @@ async def test_delete_secret(
             result = flow_state
 
     else:
-        result = flow_state
         assert result.get("Name") == secret_under_test["secret_name"]
         deletion_date = result.get("DeletionDate")
 
