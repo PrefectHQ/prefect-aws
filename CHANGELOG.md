@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed `.result()` and `is_complete` on flow calls.
+
 ### Fixed
 
 ### Security
