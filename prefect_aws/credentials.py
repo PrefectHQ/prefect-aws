@@ -89,8 +89,7 @@ class MinIOCredentials(Block):
         ```
     """  # noqa E501
 
-    # placeholder logo
-    _logo_url = "https://www.outsystems.com/Forge_CW/_image.aspx/Q8LvY--6WakOw9afDCuuGRJMfoXxz3o9m-m-TCt8U4M=/minio-client-2022-06-15%2011-46-17"  # noqa
+    _logo_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZf4PHUUjJZhjtGOKKcmHc7ESv4hIXMJgQ5M2TTkfk9_vdPi3GWJwHL07_pQ6xnnLEqlM&usqp=CAU"  # noqa
     _block_type_name = "MinIO Credentials"
     _description = (
         "Block used to manage authentication with MinIO. Refer to the MinIO"
