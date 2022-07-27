@@ -104,14 +104,16 @@ class MinIOCredentials(Block):
         Example:
             Create an S3 client from an authorized boto3 session
 
-            >>> minio_credentials = MinIOCredentials(
-            >>>     minio_root_user = "minio_root_user",
-            >>>     minio_root_password = "minio_root_password"
-            >>> )
-            >>> s3_client = minio_credentials.get_boto3_session().client(
-                    service="s3",
-                    endpoint_url="http://localhost:9000"
-                    )
+            ```python
+            minio_credentials = MinIOCredentials(
+                minio_root_user = "minio_root_user",
+                minio_root_password = "minio_root_password"
+            )
+            s3_client = minio_credentials.get_boto3_session().client(
+                service="s3",
+                endpoint_url="http://localhost:9000"
+            )
+            ```
         """
 
         minio_root_password = (
