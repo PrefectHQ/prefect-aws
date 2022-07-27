@@ -16,16 +16,16 @@ def test_aws_credentials_get_boto3_session():
         boto3_session = aws_credentials_block.get_boto3_session()
         assert isinstance(boto3_session, Session)
 
+
 def test_minio_credentials_get_boto3_session():
 
     """
     Asserts that instantiated MinIOCredentials block creates
     an authenticated boto3 session.
     """
-    
+
     minio_credentials_block = MinIOCredentials(
-            minio_root_user="root_user",
-            minio_root_password="root_password"
-        )
+        minio_root_user="root_user", minio_root_password="root_password"
+    )
     boto3_session = minio_credentials_block.get_boto3_session()
     assert isinstance(boto3_session, Session)
