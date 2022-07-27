@@ -78,7 +78,7 @@ class MinIOCredentials(Block):
     Args:
         minio_root_user: Admin or root user.
         minio_root_password: Admin or root password.
-        region_name: Location of server, e.g. "us-east-1"
+        region_name: Location of server, e.g. "us-east-1".
 
     Example:
         Load stored MinIO credentials:
