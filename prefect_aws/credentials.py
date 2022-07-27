@@ -76,7 +76,7 @@ class MinIOCredentials(Block):
     for more info about the possible credential configurations.
 
     Args:
-        minio_root_user: Admin or root user
+        minio_root_user: Admin or root user.
         minio_root_password: Admin or root password.
 
     Example:
