@@ -175,9 +175,7 @@ async def test_s3_list_objects_multiple_pages(
             page_size=2,
         )
 
-    flow_state = await test_flow()
-    task_state = flow_state
-    objects = task_state
+    objects = await test_flow()
     assert len(objects) == 20
     assert sorted([object["Key"] for object in objects]) == sorted(
         [f"object{i}" for i in range(0, 20)]
@@ -197,9 +195,7 @@ async def test_s3_list_objects_prefix(
             aws_client_parameters=client_parameters,
         )
 
-    flow_state = await test_flow()
-    task_state = flow_state
-    objects = task_state
+    objects = await test_flow()
     assert len(objects) == 1
     assert [object["Key"] for object in objects] == ["folder/object"]
 
