@@ -175,7 +175,7 @@ async def test_s3_list_objects_multiple_pages(
             page_size=2,
         )
 
-    flow_state = await test_flow()
+    objects = await test_flow()
     task_state = flow_state
     objects = task_state
     assert len(objects) == 20
