@@ -4,7 +4,7 @@ from moto import mock_s3
 from prefect_aws.credentials import AwsCredentials
 
 
-def test_aws_credentials_get_boto3_session(aws_credentials):
+def test_aws_credentials_get_boto3_session():
 
     """
     Asserts that instantiated AwsCredentials block creates an
