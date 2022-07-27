@@ -78,6 +78,7 @@ class MinIOCredentials(Block):
     Args:
         minio_root_user: Admin or root user.
         minio_root_password: Admin or root password.
+        region_name: Location of server, e.g. "us-east-1"
 
     Example:
         Load stored MinIO credentials:
@@ -91,6 +92,11 @@ class MinIOCredentials(Block):
     # placeholder logo
     _logo_url = "https://www.outsystems.com/Forge_CW/_image.aspx/Q8LvY--6WakOw9afDCuuGRJMfoXxz3o9m-m-TCt8U4M=/minio-client-2022-06-15%2011-46-17"  # noqa
     _block_type_name = "MinIO Credentials"
+    _description = (
+        "Block used to manage authentication with MinIO. Refer to the MinIO"
+        "docs: https://docs.min.io/docs/minio-server-configuration-guide.html)"
+        "for more info about the possible credential configurations."
+    )
 
     minio_root_user: str
     minio_root_password: SecretStr
