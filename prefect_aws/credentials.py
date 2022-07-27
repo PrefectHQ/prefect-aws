@@ -1,15 +1,15 @@
 """Module handling AWS credentials"""
 
-from dataclasses import dataclass
 from typing import Optional
 
 import boto3
+from prefect.blocks.core import Block
+from pydantic import SecretStr
 
 
-@dataclass
-class AwsCredentials:
+class AwsCredentials(Block):
     """
-    Dataclass used to manage authentication with AWS. AWS authentication is
+    Block used to manage authentication with AWS. AWS authentication is
     handled via the `boto3` module. Refer to the
     [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
     for more info about the possible credential configurations.
@@ -21,10 +21,21 @@ class AwsCredentials:
             This is only needed when you are using temporary credentials.
         profile_name: The profile to use when creating your session.
         region_name: The AWS Region where you want to create new connections.
+
+    Example:
+        Load stored AWS credentials:
+        ```python
+        from prefect_aws import AwsCredentials
+
+        aws_credentials_block = AwsCredentials.load("BLOCK_NAME")
+        ```
     """  # noqa E501
 
+    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
+    _block_type_name = "AWS Credentials"
+
     aws_access_key_id: Optional[str] = None
-    aws_secret_access_key: Optional[str] = None
+    aws_secret_access_key: Optional[SecretStr] = None
     aws_session_token: Optional[str] = None
     profile_name: Optional[str] = None
     region_name: Optional[str] = None
@@ -43,9 +54,15 @@ class AwsCredentials:
             >>> )
             >>> s3_client = aws_credentials.get_boto3_session().client("s3")
         """
+
+        if self.aws_secret_access_key:
+            aws_secret_access_key = self.aws_secret_access_key.get_secret_value()
+        else:
+            aws_secret_access_key = None
+
         return boto3.Session(
             aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key,
+            aws_secret_access_key=aws_secret_access_key,
             aws_session_token=self.aws_session_token,
             profile_name=self.profile_name,
             region_name=self.region_name,
