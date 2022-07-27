@@ -92,8 +92,8 @@ class MinIOCredentials(Block):
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/22vXcxsOrVeFrUwHfSoaeT/7607b876eb589a9028c8126e78f4c7b4/imageedit_7_2837870043.png?h=250"  # noqa
     _block_type_name = "MinIO Credentials"
     _description = (
-        "Block used to manage authentication with MinIO. Refer to the MinIO"
-        "docs: https://docs.min.io/docs/minio-server-configuration-guide.html"
+        "Block used to manage authentication with MinIO. Refer to the MinIO "
+        "docs: https://docs.min.io/docs/minio-server-configuration-guide.html "
         "for more info about the possible credential configurations."
     )
 
