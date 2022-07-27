@@ -77,7 +77,7 @@ class MinIOCredentials(Block):
 
     Args:
         minio_root_user: Admin or root user
-        minio_root_password: Admin or root password
+        minio_root_password: Admin or root password.
 
     Example:
         Load stored MinIO credentials:
