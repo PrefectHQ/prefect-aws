@@ -28,7 +28,7 @@ class AwsCredentials(Block):
         ```python
         from prefect_aws import AwsCredentials
 
-        aws_credentials_block = AwsCredentials.load("MY_BLOCK_NAME")
+        aws_credentials_block = AwsCredentials.load("BLOCK_NAME")
         ```
     """  # noqa E501
 
