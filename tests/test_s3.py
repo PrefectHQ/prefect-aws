@@ -176,8 +176,6 @@ async def test_s3_list_objects_multiple_pages(
         )
 
     objects = await test_flow()
-    task_state = flow_state
-    objects = task_state
     assert len(objects) == 20
     assert sorted([object["Key"] for object in objects]) == sorted(
         [f"object{i}" for i in range(0, 20)]
