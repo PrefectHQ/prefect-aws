@@ -197,7 +197,7 @@ async def test_s3_list_objects_prefix(
             aws_client_parameters=client_parameters,
         )
 
-    flow_state = await test_flow()
+    objects = await test_flow()
     task_state = flow_state
     objects = task_state
     assert len(objects) == 1
