@@ -67,3 +67,61 @@ class AwsCredentials(Block):
             profile_name=self.profile_name,
             region_name=self.region_name,
         )
+
+
+class MinIOCredentials(Block):
+    """
+    Block used to manage authentication with MinIO. Refer to the
+    [MinIO docs](https://docs.min.io/docs/minio-server-configuration-guide.html)
+    for more info about the possible credential configurations.
+
+    Args:
+        minio_root_user: Admin or root user
+        minio_root_password: Admin or root password
+
+    Example:
+        Load stored MinIO credentials:
+        ```python
+        from prefect_aws import MinIOCredentials
+
+        minio_credentials_block = MinIOCredentials.load("BLOCK_NAME")
+        ```
+    """  # noqa E501
+
+    # placeholder logo
+    _logo_url = "https://www.outsystems.com/Forge_CW/_image.aspx/Q8LvY--6WakOw9afDCuuGRJMfoXxz3o9m-m-TCt8U4M=/minio-client-2022-06-15%2011-46-17"  # noqa
+    _block_type_name = "MinIO Credentials"
+
+    minio_root_user: str
+    minio_root_password: SecretStr
+    region_name: Optional[str] = None
+
+    def get_boto3_session(self) -> boto3.Session:
+        """
+        Returns an authenticated boto3 session that can be used to create clients
+        and perform object operations on MinIO server.
+
+        Example:
+            Create an S3 client from an authorized boto3 session
+
+            >>> minio_credentials = MinIOCredentials(
+            >>>     minio_root_user = "minio_root_user",
+            >>>     minio_root_password = "minio_root_password"
+            >>> )
+            >>> s3_client = minio_credentials.get_boto3_session().client(
+                    service="s3",
+                    endpoint_url="http://localhost:9000"
+                    )
+        """
+
+        minio_root_password = (
+            self.minio_root_password.get_secret_value()
+            if self.minio_root_password
+            else None
+        )
+
+        return boto3.Session(
+            aws_access_key_id=self.minio_root_user,
+            aws_secret_access_key=minio_root_password,
+            region_name=self.region_name,
+        )
