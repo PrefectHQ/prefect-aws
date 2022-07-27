@@ -89,7 +89,7 @@ class MinIOCredentials(Block):
         ```
     """  # noqa E501
 
-    _logo_url = "https://www.socallinuxexpo.org/sites/default/files/logos/C2qJE7_XEAEn2MQ.png"  # noqa
+    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/22vXcxsOrVeFrUwHfSoaeT/ee909d5309db9347858819cdbf5870b8/MINIO_Bird.png?h=250"  # noqa
     _block_type_name = "MinIO Credentials"
     _description = (
         "Block used to manage authentication with MinIO. Refer to the MinIO"
