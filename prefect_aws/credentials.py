@@ -5,7 +5,6 @@ from typing import Optional
 import boto3
 from prefect.blocks.core import Block
 from pydantic import SecretStr
-from typer import Option
 
 
 class AwsCredentials(Block):
@@ -69,14 +68,15 @@ class AwsCredentials(Block):
             region_name=self.region_name,
         )
 
+
 class MinIOCredentials(Block):
     """
-    Block used to manage authentication with MinIO. Refer to the 
+    Block used to manage authentication with MinIO. Refer to the
     [MinIO docs](https://docs.min.io/docs/minio-server-configuration-guide.html)
     for more info about the possible credential configurations.
 
     Args:
-        minio_root_user: Admin or root user 
+        minio_root_user: Admin or root user
         minio_root_password: Admin or root password
 
     Example:
@@ -88,15 +88,13 @@ class MinIOCredentials(Block):
         ```
     """  # noqa E501
 
-    #placeholder logo
+    # placeholder logo
     _logo_url = "https://www.outsystems.com/Forge_CW/_image.aspx/Q8LvY--6WakOw9afDCuuGRJMfoXxz3o9m-m-TCt8U4M=/minio-client-2022-06-15%2011-46-17"  # noqa
     _block_type_name = "MinIO Credentials"
 
     minio_root_user: str
     minio_root_password: SecretStr
     region_name: Optional[str] = None
-
-
 
     def get_boto3_session(self) -> boto3.Session:
         """
@@ -111,20 +109,24 @@ class MinIOCredentials(Block):
             >>>     minio_root_password = "minio_root_password"
             >>> )
             >>> s3_client = minio_credentials.get_boto3_session().client(
-                    service="s3", 
+                    service="s3",
                     endpoint_url="http://localhost:9000"
                     )
         """
 
-
         minio_root_password = (
-            self.minio_root_password.get_secret_value() if self.minio_root_password else None
+            self.minio_root_password.get_secret_value()
+            if self.minio_root_password
+            else None
         )
 
         return boto3.Session(
             aws_access_key_id=self.minio_root_user,
-            aws_secret_access_key=self.minio_root_password,
+            aws_secret_access_key=minio_root_password,
             region_name=self.region_name,
         )
 
-minio_block = MinIOCredentials(minio_root_password="minioadmin", minio_root_user="minioadm")
+
+minio_block = MinIOCredentials(
+    minio_root_password="minioadmin", minio_root_user="minioadm"
+)
