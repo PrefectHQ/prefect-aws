@@ -84,7 +84,7 @@ class MinIOCredentials(Block):
         ```python
         from prefect_aws import MinIOCredentials
 
-        minio_credentials_block = MinIOCredentials.load("MY_BLOCK_NAME")
+        minio_credentials_block = MinIOCredentials.load("BLOCK_NAME")
         ```
     """  # noqa E501
 
@@ -125,8 +125,3 @@ class MinIOCredentials(Block):
             aws_secret_access_key=minio_root_password,
             region_name=self.region_name,
         )
-
-
-minio_block = MinIOCredentials(
-    minio_root_password="minioadmin", minio_root_user="minioadm"
-)
