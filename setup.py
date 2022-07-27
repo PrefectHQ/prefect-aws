@@ -29,7 +29,7 @@ setup(
     entry_points={
         "prefect.collections": [
             "AwsCredentials = prefect_aws.credentials",
-            "MinIOCredentials = prefect_aws.credentials"
+            "MinIOCredentials = prefect_aws.credentials",
         ]
     },
     extras_require={"dev": dev_requires},
