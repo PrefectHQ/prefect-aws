@@ -26,28 +26,62 @@ pip install prefect-aws
 
 You will need to obtain AWS credentials in order to use these tasks. Refer to the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for authentication methods available.
 
-### Write and run a flow
+### Write and run a flow with AwsCredentials and S3Bucket
 
 ```python
 from prefect import flow
 from prefect_aws.s3 import s3_upload
 
+BUCKET_NAME = "dev_bucket"
+
 @flow
 def example_s3_upload_flow():
-    aws_credentials = AwsCredentials(
+    aws_creds = AwsCredentials(
         aws_access_key_id="acccess_key_id",
         aws_secret_access_key="secret_access_key"
     )
-    with open("data.csv", "rb") as file:
-        key = s3_upload(
-            bucket="bucket",
-            key="data.csv",
-            data=file.read(),
-            aws_credentials=aws_credentials,
-        )
+
+    s3_bucket = S3Bucket(
+        bucket=BUCKET_NAME,
+        credentials=aws_creds,
+        basepath="bucket-subfolder" # optional
+    )
+
+    key = s3_bucket.write_path("bucket-subfolder/data.csv", content=b"hello")
+
+    contents = s3_bucket.read_path(key)
 
 example_s3_upload_flow()
 ```
+
+### Write and run a flow with MinIOCredentials and S3Bucket
+
+```python
+from prefect import flow
+from prefect_aws.s3 import s3_upload
+
+BUCKET_NAME = "dev_bucket"
+
+@flow
+def example_s3_upload_flow():
+    minio_creds = MinIOCredentials(
+        minio_root_user="acccess_key_id",
+        minio_root_password="secret_access_key"
+    )
+
+    s3_bucket = S3Bucket(
+        bucket=BUCKET_NAME,
+        credentials=miniocreds,
+        endpoint="http://localhost:9000"
+    )
+
+    key = s3_bucket.write_path("data.csv", content=b"hello")
+
+    contents = s3_bucket.read_path(key)
+
+example_s3_upload_flow_to_minio_server()
+```
+
 
 ## Next steps
 
