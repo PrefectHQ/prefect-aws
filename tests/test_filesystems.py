@@ -44,10 +44,7 @@ async def test_read_write_roundtrip(s3, creds):
 
     s3.create_bucket(Bucket=bucket_name)
     print("Bucket created")
-    fs = S3Bucket(
-        bucket_name=bucket_name,
-        credentials=creds,
-    )
+    fs = S3Bucket(bucket_name=bucket_name, credentials=creds)
     key = await fs.write_path("test.txt", content=b"hello")
     print("Wrote to path:", key)
     assert await fs.read_path(key) == b"hello"
@@ -63,10 +60,7 @@ async def test_write_with_missing_directory_succeeds(s3, creds):
     """
 
     s3.create_bucket(Bucket=bucket_name)
-    fs = S3Bucket(
-        bucket_name=bucket_name,
-        credentials=creds,
-    )
+    fs = S3Bucket(bucket_name=bucket_name,credentials=creds)
     key = await fs.write_path("folder/test.txt", content=b"hello")
     assert await fs.read_path(key) == b"hello"
 
@@ -80,10 +74,7 @@ async def test_read_fails_does_not_exist(s3, creds):
     """
 
     s3.create_bucket(Bucket=bucket_name)
-    fs = S3Bucket(
-        bucket_name=bucket_name,
-        credentials=creds,
-    )
+    fs = S3Bucket(bucket_name=bucket_name, credentials=creds)
     with pytest.raises(ClientError):
         await fs.read_path("test_bucket/foo/bar")
 
@@ -96,12 +87,6 @@ async def test_basepath(s3, creds):
     bucket.
     """
 
-    s3.create_bucket(Bucket=bucket_name)
-
-    fs = S3Bucket(
-        bucket_name=bucket_name,
-        credentials=creds,
-        basepath="subfolder"
-    )
+    fs = S3Bucket(bucket_name=bucket_name, credentials=creds, basepath="subfolder")
     key = await fs.write_path("test.txt", content=b"hello")
     assert await fs.read_path(key) == b"hello"
