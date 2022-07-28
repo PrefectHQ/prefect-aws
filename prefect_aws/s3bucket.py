@@ -1,12 +1,12 @@
+import boto3
 import io
-from uuid import uuid4
 from anyio import to_thread
+from uuid import uuid4
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
-from typing import Optional
 from prefect_aws import AwsCredentials
 from typing import Optional, Union
 
-import boto3
+
 from prefect_aws import MinIOCredentials
 
 
