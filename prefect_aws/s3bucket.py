@@ -1,6 +1,7 @@
 import io
 from typing import Optional, Union
 from uuid import uuid4
+
 import boto3
 from anyio import to_thread
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
@@ -15,9 +16,11 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     Args:
         bucket_name: Name of your bucket.
-        credentials: A block containing your credentials (AwsCredentials or MinIOCredentials).
+        credentials: A block containing your credentials (AwsCredentials or
+        MinIOCredentials).
         basepath: Used when you don't want to read/write at base level.
-        endpoint_url: Used for non-AWS configuration. When unspecified, defaults to AWS.
+        endpoint_url: Used for non-AWS configuration. When unspecified,
+        defaults to AWS.
 
     Example:
         Load stored S3Bucket configuration:
