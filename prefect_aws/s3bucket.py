@@ -45,7 +45,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
                 service_name="s3",
                 aws_access_key_id=self.credentials.minio_root_user,
                 aws_secret_access_key=self.credentials.minio_root_password.get_secret_value(),  # noqa
-                endpoint_url=self.endpoint_url
+                endpoint_url=self.endpoint_url,
             )
 
         # AWS
