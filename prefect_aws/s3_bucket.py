@@ -1,3 +1,4 @@
+"""Module for reading and writing from S3."""
 import io
 from typing import Optional, Union
 from uuid import uuid4
