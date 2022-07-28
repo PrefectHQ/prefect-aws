@@ -47,12 +47,14 @@ class AwsCredentials(Block):
 
         Example:
             Create an S3 client from an authorized boto3 session
-
-            >>> aws_credentials = AwsCredentials(
-            >>>     aws_access_key_id = "access_key_id",
-            >>>     aws_secret_access_key = "secret_access_key"
-            >>> )
-            >>> s3_client = aws_credentials.get_boto3_session().client("s3")
+            
+            ```python
+            aws_credentials = AwsCredentials(
+                aws_access_key_id = "access_key_id",
+                aws_secret_access_key = "secret_access_key"
+                )
+            s3_client = aws_credentials.get_boto3_session().client("s3")
+            ```
         """
 
         if self.aws_secret_access_key:
