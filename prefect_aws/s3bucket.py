@@ -38,6 +38,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     def _get_s3_client(self) -> boto3.client:
 
+        # MinIO
         if self.endpoint_url:
             s3_client = boto3.client(
                 service_name='s3',
@@ -45,6 +46,8 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
                 aws_secret_access_key=self.credentials.minio_root_password.get_secret_value(), #noqa
                 endpoint_url=self.endpoint_url
             )
+        
+        # AWS
         else:
             s3_client = boto3.client(service_name='s3')
 
