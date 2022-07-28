@@ -18,7 +18,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         bucket_name: Name of your bucket.
         credentials: A block containing your credentials (AwsCredentials or
         MinIOCredentials).
-        basepath: Used when you don't want to read/write at base level.
+        base_path: Used when you don't want to read/write at base level.
         endpoint_url: Used for non-AWS configuration. When unspecified,
         defaults to AWS.
 
@@ -38,7 +38,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     bucket_name: str
     minio_credentials: Optional[MinIOCredentials]
     aws_credentials: Optional[AwsCredentials]
-    basepath: Optional[str]
+    base_path: Optional[str]
     endpoint_url: Optional[str]
 
     def _get_s3_client(self) -> boto3.client:
@@ -71,7 +71,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     async def write_path(self, path: str, content: bytes) -> str:
         path = str(uuid4())
-        path = self.basepath.rstrip("/") + "/" + path if self.basepath else path
+        path = self.base_path.rstrip("/") + "/" + path if self.base_path else path
         await to_thread.run_sync(self._write_sync, path, content)
         return path
 
