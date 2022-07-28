@@ -1,6 +1,6 @@
 import io
 from uuid import uuid4
-from anyio import run_sync_in_worker_thread
+from anyio import to_thread
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
 from typing import Optional
 from prefect_aws import AwsCredentials
@@ -40,6 +40,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     endpoint_url: Optional[str] = None
 
     def _get_s3_client(self) -> boto3.client:
+
         if self.endpoint_url:
             s3_client = boto3.client(
                 service_name='s3',
@@ -53,7 +54,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         return s3_client
 
     async def read_path(self, path: str) -> bytes:
-        return await run_sync_in_worker_thread(self._read_sync, path)
+        return await to_thread.run_sync(self._read_sync, path)
 
     def _read_sync(self, key: str) -> bytes:
         s3_client = self._get_s3_client()
@@ -70,7 +71,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     async def write_path(self, path: str, content: bytes) -> str:
         path = str(uuid4())
         path = (self.basepath.rstrip("/") + "/" + path if self.basepath else path)
-        await run_sync_in_worker_thread(self._write_sync, path, content)
+        await to_thread.run_sync(self._write_sync, path, content)
         return path
 
     def _write_sync(self, key: str, data: bytes) -> None:
