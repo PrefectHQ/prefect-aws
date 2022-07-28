@@ -76,7 +76,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             return output
 
     async def write_path(self, path: str, content: bytes) -> str:
-        path = str(uuid4())
+        path = path or str(uuid4())
         path = str(Path(self.basepath) / path) if self.basepath else path
         await to_thread.run_sync(self._write_sync, path, content)
         return path
