@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import boto3
 from anyio import to_thread
+from pathlib import Path
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
 
 from prefect_aws import AwsCredentials, MinIOCredentials
@@ -38,7 +39,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     bucket_name: str
     minio_credentials: Optional[MinIOCredentials]
     aws_credentials: Optional[AwsCredentials]
-    basepath: Optional[str]
+    basepath: Optional[Path]
     endpoint_url: Optional[str]
 
     def _get_s3_client(self) -> boto3.client:
