@@ -87,6 +87,7 @@ async def test_basepath(s3, creds):
     bucket.
     """
 
+    s3.create_bucket(Bucket=bucket_name)
     fs = S3Bucket(bucket_name=bucket_name, credentials=creds, basepath="subfolder")
     key = await fs.write_path("test.txt", content=b"hello")
     assert await fs.read_path(key) == b"hello"
