@@ -44,18 +44,23 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     def _get_s3_client(self) -> boto3.client:
 
+        s3_client_kwargs = {}
+
+        s3_client = boto3.client(service_name="s3", **s3_client_kwargs)
+
         # MinIO
         if self.minio_credentials:
-            s3_client = boto3.client(
-                service_name="s3",
-                aws_access_key_id=self.minio_credentials.minio_root_user,
-                aws_secret_access_key=self.minio_credentials.minio_root_password.get_secret_value(),  # noqa
-                endpoint_url=self.endpoint_url,
+
+            aws_secret_access_key = self.minio_credentials.minio_root_password
+            s3_client_kwargs.update(
+                    aws_access_key_id=self.minio_credentials.minio_root_user,
+                    aws_secret_access_key=aws_secret_access_key.get_secret_value(),
+                    endpoint_url=self.endpoint_url,
             )
 
         # AWS
         else:
-            s3_client = boto3.client(service_name="s3")
+            s3_client = boto3.client(service_name="s3", **s3_client_kwargs)
 
         return s3_client
 
