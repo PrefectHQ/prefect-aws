@@ -51,57 +51,59 @@ example_s3_upload_flow()
 ### Write and run a flow with AwsCredentials and S3Bucket
 
 ```python
+import asyncio
 from prefect import flow
-from prefect_aws import AwsCredential, S3Bucket
+from prefect_aws import AwsCredentials, S3Bucket
 
-BUCKET_NAME = "dev_bucket"
+BUCKET_NAME = "test_bucket"
 
 @flow
-def aws_s3_bucket_roundtrip():
-    aws_creds = AwsCredentials(
-        aws_access_key_id="acccess_key_id",
-        aws_secret_access_key="secret_access_key"
-    )
+async def aws_s3_bucket_roundtrip(creds):
 
     s3_bucket = S3Bucket(
-        bucket=BUCKET_NAME,
-        credentials=aws_creds,
-        basepath="bucket-subfolder" # optional
+        bucket_name=BUCKET_NAME,
+        credentials=creds,
+        basepath="subfolder",
     )
 
-    key = s3_bucket.write_path("data.csv", content=b"hello")
+    key = await s3_bucket.write_path("data.csv", content=b"hello")
 
-    contents = s3_bucket.read_path(key)
+    return await s3_bucket.read_path(key)
 
-aws_s3_bucket_roundtrip()
+aws_creds = AwsCredentials(
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+
+asyncio.run(aws_s3_bucket_roundtrip(aws_creds))
 ```
 
 ### Write and run a flow with MinIOCredentials and S3Bucket
 
 ```python
+import asyncio
 from prefect import flow
 from prefect_aws import MinIOCredentials, S3Bucket
 
-BUCKET_NAME = "dev_bucket"
+BUCKET_NAME = "test_bucket"
 
 @flow
-def minio_s3_bucket_roundtrip():
-    minio_creds = MinIOCredentials(
-        minio_root_user="acccess_key_id",
-        minio_root_password="secret_access_key"
-    )
+async def minio_s3_bucket_roundtrip(creds):
 
     s3_bucket = S3Bucket(
-        bucket=BUCKET_NAME,
-        credentials=miniocreds,
-        endpoint="http://localhost:9000"
+        bucket_name=BUCKET_NAME,
+        credentials=creds,
+        endpoint_url="http://localhost:9000"
     )
 
-    key = s3_bucket.write_path("data.csv", content=b"hello")
+    key = await s3_bucket.write_path("/data.csv", content=b"hello")
+    return await s3_bucket.read_path(key)
 
-    contents = s3_bucket.read_path(key)
+minio_creds = MinIOCredentials(
+    minio_root_user=MINIO_ROOT_USER, 
+    minio_root_password=MINIO_ROOT_PASSWORD
+    )
 
-minio_s3_bucket_roundtrip()
+asyncio.run(minio_s3_bucket_roundtrip(minio_creds))
 ```
 
 
