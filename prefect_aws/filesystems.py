@@ -61,28 +61,39 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         # AWS
         else:
+
             s3_client = boto3.client(service_name="s3", **s3_client_kwargs)
 
         return s3_client
 
     async def read_path(self, path: str) -> bytes:
+
         return await to_thread.run_sync(self._read_sync, path)
 
     def _read_sync(self, key: str) -> bytes:
+
         s3_client = self._get_s3_client()
+
         with io.BytesIO() as stream:
+
             s3_client.download_fileobj(Bucket=self.bucket_name, Key=key, Fileobj=stream)
             stream.seek(0)
             output = stream.read()
             return output
 
     async def write_path(self, path: str, content: bytes) -> str:
+
         path = path or str(uuid4())
         path = str(Path(self.basepath) / path) if self.basepath else path
+
         await to_thread.run_sync(self._write_sync, path, content)
+
         return path
 
     def _write_sync(self, key: str, data: bytes) -> None:
+
         s3_client = self._get_s3_client()
+
         with io.BytesIO(data) as stream:
+
             s3_client.upload_fileobj(Fileobj=stream, Bucket=self.bucket_name, Key=key)
