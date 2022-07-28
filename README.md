@@ -26,16 +26,38 @@ pip install prefect-aws
 
 You will need to obtain AWS credentials in order to use these tasks. Refer to the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for authentication methods available.
 
-### Write and run a flow with AwsCredentials and S3Bucket
-
+### Write and run a flow with prefect-aws tasks
 ```python
 from prefect import flow
 from prefect_aws.s3 import s3_upload
 
+@flow
+def example_s3_upload_flow():
+    aws_credentials = AwsCredentials(
+        aws_access_key_id="acccess_key_id",
+        aws_secret_access_key="secret_access_key"
+    )
+    with open("data.csv", "rb") as file:
+        key = s3_upload(
+            bucket="bucket",
+            key="data.csv",
+            data=file.read(),
+            aws_credentials=aws_credentials,
+        )
+
+example_s3_upload_flow()
+```
+
+### Write and run a flow with AwsCredentials and S3Bucket
+
+```python
+from prefect import flow
+from prefect_aws import AwsCredential, S3Bucket
+
 BUCKET_NAME = "dev_bucket"
 
 @flow
-def example_s3_upload_flow():
+def aws_s3_bucket_roundtrip():
     aws_creds = AwsCredentials(
         aws_access_key_id="acccess_key_id",
         aws_secret_access_key="secret_access_key"
@@ -47,23 +69,23 @@ def example_s3_upload_flow():
         basepath="bucket-subfolder" # optional
     )
 
-    key = s3_bucket.write_path("bucket-subfolder/data.csv", content=b"hello")
+    key = s3_bucket.write_path("data.csv", content=b"hello")
 
     contents = s3_bucket.read_path(key)
 
-example_s3_upload_flow()
+aws_s3_bucket_roundtrip()
 ```
 
 ### Write and run a flow with MinIOCredentials and S3Bucket
 
 ```python
 from prefect import flow
-from prefect_aws.s3 import s3_upload
+from prefect_aws import MinIOCredentials, S3Bucket
 
 BUCKET_NAME = "dev_bucket"
 
 @flow
-def example_s3_upload_flow():
+def minio_s3_bucket_roundtrip():
     minio_creds = MinIOCredentials(
         minio_root_user="acccess_key_id",
         minio_root_password="secret_access_key"
@@ -79,7 +101,7 @@ def example_s3_upload_flow():
 
     contents = s3_bucket.read_path(key)
 
-example_s3_upload_flow_to_minio_server()
+minio_s3_bucket_roundtrip()
 ```
 
 
