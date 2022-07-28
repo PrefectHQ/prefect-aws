@@ -1,10 +1,11 @@
-import boto3
 import io
-from anyio import to_thread
-from uuid import uuid4
-from prefect.filesystems import ReadableFileSystem, WritableFileSystem
-from prefect_aws import AwsCredentials, MinIOCredentials
 from typing import Optional, Union
+from uuid import uuid4
+import boto3
+from anyio import to_thread
+from prefect.filesystems import ReadableFileSystem, WritableFileSystem
+
+from prefect_aws import AwsCredentials, MinIOCredentials
 
 
 class S3Bucket(ReadableFileSystem, WritableFileSystem):
@@ -41,15 +42,15 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         # MinIO
         if self.endpoint_url:
             s3_client = boto3.client(
-                service_name='s3',
+                service_name="s3",
                 aws_access_key_id=self.credentials.minio_root_user,
-                aws_secret_access_key=self.credentials.minio_root_password.get_secret_value(), #noqa
+                aws_secret_access_key=self.credentials.minio_root_password.get_secret_value(),  # noqa
                 endpoint_url=self.endpoint_url
             )
-        
+
         # AWS
         else:
-            s3_client = boto3.client(service_name='s3')
+            s3_client = boto3.client(service_name="s3")
 
         return s3_client
 
@@ -59,26 +60,18 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     def _read_sync(self, key: str) -> bytes:
         s3_client = self._get_s3_client()
         with io.BytesIO() as stream:
-            s3_client.download_fileobj(
-                Bucket=self.bucket_name,
-                Key=key,
-                Fileobj=stream
-                )
+            s3_client.download_fileobj(Bucket=self.bucket_name, Key=key, Fileobj=stream)
             stream.seek(0)
             output = stream.read()
             return output
 
     async def write_path(self, path: str, content: bytes) -> str:
         path = str(uuid4())
-        path = (self.basepath.rstrip("/") + "/" + path if self.basepath else path)
+        path = self.basepath.rstrip("/") + "/" + path if self.basepath else path
         await to_thread.run_sync(self._write_sync, path, content)
         return path
 
     def _write_sync(self, key: str, data: bytes) -> None:
         s3_client = self._get_s3_client()
         with io.BytesIO(data) as stream:
-            s3_client.upload_fileobj(
-                Fileobj=stream,
-                Bucket=self.bucket_name,
-                Key=key
-                )
+            s3_client.upload_fileobj(Fileobj=stream, Bucket=self.bucket_name, Key=key)
