@@ -3,11 +3,8 @@ import io
 from anyio import to_thread
 from uuid import uuid4
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
-from prefect_aws import AwsCredentials
+from prefect_aws import AwsCredentials, MinIOCredentials
 from typing import Optional, Union
-
-
-from prefect_aws import MinIOCredentials
 
 
 class S3Bucket(ReadableFileSystem, WritableFileSystem):
