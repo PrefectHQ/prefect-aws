@@ -1,11 +1,11 @@
 """Module for reading and writing from S3."""
 import io
-from typing import Optional, Union
+from pathlib import Path
+from typing import Optional
 from uuid import uuid4
 
 import boto3
 from anyio import to_thread
-from pathlib import Path
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
 
 from prefect_aws import AwsCredentials, MinIOCredentials
@@ -54,9 +54,9 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
             aws_secret_access_key = self.minio_credentials.minio_root_password
             s3_client_kwargs.update(
-                    aws_access_key_id=self.minio_credentials.minio_root_user,
-                    aws_secret_access_key=aws_secret_access_key.get_secret_value(),
-                    endpoint_url=self.endpoint_url,
+                aws_access_key_id=self.minio_credentials.minio_root_user,
+                aws_secret_access_key=aws_secret_access_key.get_secret_value(),
+                endpoint_url=self.endpoint_url,
             )
 
         # AWS
