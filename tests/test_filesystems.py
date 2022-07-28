@@ -60,7 +60,7 @@ async def test_write_with_missing_directory_succeeds(s3, creds):
     """
 
     s3.create_bucket(Bucket=bucket_name)
-    fs = S3Bucket(bucket_name=bucket_name,credentials=creds)
+    fs = S3Bucket(bucket_name=bucket_name, credentials=creds)
     key = await fs.write_path("folder/test.txt", content=b"hello")
     assert await fs.read_path(key) == b"hello"
 
