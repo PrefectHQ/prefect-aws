@@ -46,8 +46,7 @@ class AwsCredentials(Block):
         for AWS services
 
         Example:
-            Create an S3 client from an authorized boto3 session
-            
+            Create an S3 client from an authorized boto3 session:
             ```python
             aws_credentials = AwsCredentials(
                 aws_access_key_id = "access_key_id",
