@@ -8,11 +8,12 @@ mkdocs-material
 mkdocstrings[python]
 isort
 pre-commit
-moto[s3, secretsmanager]
+moto >= 3.1.16
 pytest-asyncio
 pytest-lazy-fixture
 mkdocs-gen-files
 interrogate
 coverage
-types-boto3
-boto3-stubs[s3,secretsmanager]
+types-boto3 >= 1.0.2
+boto3-stubs >= 1.24.39
+aiobotocore >= 2.3.4
