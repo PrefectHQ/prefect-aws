@@ -55,13 +55,11 @@ import asyncio
 from prefect import flow
 from prefect_aws import AwsCredentials, S3Bucket
 
-BUCKET_NAME = "test_bucket"
-
 @flow
 async def aws_s3_bucket_roundtrip(creds):
 
     s3_bucket = S3Bucket(
-        bucket_name=BUCKET_NAME,
+        bucket_name="bucket",  # must exist
         credentials=creds,
         basepath="subfolder",
     )
@@ -70,6 +68,7 @@ async def aws_s3_bucket_roundtrip(creds):
 
     return await s3_bucket.read_path(key)
 
+# create an AwsCredentials block here or through UI
 aws_creds = AwsCredentials(
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
@@ -84,13 +83,11 @@ import asyncio
 from prefect import flow
 from prefect_aws import MinIOCredentials, S3Bucket
 
-BUCKET_NAME = "test_bucket"
-
 @flow
 async def minio_s3_bucket_roundtrip(creds):
 
     s3_bucket = S3Bucket(
-        bucket_name=BUCKET_NAME,
+        bucket_name="bucket",  # must exist
         credentials=creds,
         endpoint_url="http://localhost:9000"
     )
@@ -98,6 +95,7 @@ async def minio_s3_bucket_roundtrip(creds):
     key = await s3_bucket.write_path("/data.csv", content=b"hello")
     return await s3_bucket.read_path(key)
 
+# create a MinIOCredentials block here or through UI
 minio_creds = MinIOCredentials(
     minio_root_user=MINIO_ROOT_USER, 
     minio_root_password=MINIO_ROOT_PASSWORD
