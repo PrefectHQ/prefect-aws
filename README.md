@@ -60,7 +60,7 @@ async def aws_s3_bucket_roundtrip(creds):
 
     s3_bucket = S3Bucket(
         bucket_name="bucket",  # must exist
-        credentials=creds,
+        aws_credentials=creds,
         basepath="subfolder",
     )
 
@@ -89,7 +89,7 @@ async def minio_s3_bucket_roundtrip(creds):
 
     s3_bucket = S3Bucket(
         bucket_name="bucket",  # must exist
-        credentials=creds,
+        minio_credentials=creds,
         endpoint_url="http://localhost:9000"
     )
 
