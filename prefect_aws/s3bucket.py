@@ -36,18 +36,19 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     _block_type_name = "S3 Bucket"
 
     bucket_name: str
-    credentials: Union[MinIOCredentials, AwsCredentials]
-    basepath: Optional[str] = None
-    endpoint_url: Optional[str] = None
+    minio_credentials: Optional[MinIOCredentials]
+    aws_credentials: Optional[AwsCredentials]
+    basepath: Optional[str]
+    endpoint_url: Optional[str]
 
     def _get_s3_client(self) -> boto3.client:
 
         # MinIO
-        if self.endpoint_url:
+        if self.minio_credentials:
             s3_client = boto3.client(
                 service_name="s3",
-                aws_access_key_id=self.credentials.minio_root_user,
-                aws_secret_access_key=self.credentials.minio_root_password.get_secret_value(),  # noqa
+                aws_access_key_id=self.minio_credentials.minio_root_user,
+                aws_secret_access_key=self.minio_credentials.minio_root_password.get_secret_value(),  # noqa
                 endpoint_url=self.endpoint_url,
             )
 
