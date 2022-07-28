@@ -1,9 +1,7 @@
-
 import boto3
 import pytest
 from botocore.exceptions import ClientError
 from moto import mock_s3
-
 
 from prefect_aws import AwsCredentials, MinIOCredentials, S3Bucket
 
@@ -16,6 +14,7 @@ minio_creds_block = MinIOCredentials(
 )
 
 bucket_name = "test_bucket"
+
 
 @pytest.fixture
 def s3():
@@ -45,7 +44,7 @@ async def test_read_write_roundtrip(s3, creds):
     fs = S3Bucket(
         bucket_name=bucket_name,
         credentials=creds,
-        )
+    )
     key = await fs.write_path("test.txt", content=b"hello")
     print("Wrote to path:", key)
     assert await fs.read_path(key) == b"hello"
@@ -64,7 +63,7 @@ async def test_write_with_missing_directory_succeeds(s3, creds):
     fs = S3Bucket(
         bucket_name=bucket_name,
         credentials=creds,
-        )
+    )
     key = await fs.write_path("folder/test.txt", content=b"hello")
     assert await fs.read_path(key) == b"hello"
 
@@ -81,6 +80,6 @@ async def test_read_fails_does_not_exist(s3, creds):
     fs = S3Bucket(
         bucket_name=bucket_name,
         credentials=creds,
-        )
+    )
     with pytest.raises(ClientError):
         await fs.read_path("test_bucket/foo/bar")
