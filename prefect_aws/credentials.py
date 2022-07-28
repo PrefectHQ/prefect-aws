@@ -47,12 +47,14 @@ class AwsCredentials(Block):
 
         Example:
             Create an S3 client from an authorized boto3 session
-
-            >>> aws_credentials = AwsCredentials(
-            >>>     aws_access_key_id = "access_key_id",
-            >>>     aws_secret_access_key = "secret_access_key"
-            >>> )
-            >>> s3_client = aws_credentials.get_boto3_session().client("s3")
+            
+            ```python
+            aws_credentials = AwsCredentials(
+                aws_access_key_id = "access_key_id",
+                aws_secret_access_key = "secret_access_key"
+                )
+            s3_client = aws_credentials.get_boto3_session().client("s3")
+            ```
         """
 
         if self.aws_secret_access_key:
@@ -76,8 +78,9 @@ class MinIOCredentials(Block):
     for more info about the possible credential configurations.
 
     Args:
-        minio_root_user: Admin or root user
-        minio_root_password: Admin or root password
+        minio_root_user: Admin or root user.
+        minio_root_password: Admin or root password.
+        region_name: Location of server, e.g. "us-east-1".
 
     Example:
         Load stored MinIO credentials:
@@ -88,9 +91,13 @@ class MinIOCredentials(Block):
         ```
     """  # noqa E501
 
-    # placeholder logo
-    _logo_url = "https://www.outsystems.com/Forge_CW/_image.aspx/Q8LvY--6WakOw9afDCuuGRJMfoXxz3o9m-m-TCt8U4M=/minio-client-2022-06-15%2011-46-17"  # noqa
+    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/22vXcxsOrVeFrUwHfSoaeT/7607b876eb589a9028c8126e78f4c7b4/imageedit_7_2837870043.png?h=250"  # noqa
     _block_type_name = "MinIO Credentials"
+    _description = (
+        "Block used to manage authentication with MinIO. Refer to the MinIO "
+        "docs: https://docs.min.io/docs/minio-server-configuration-guide.html "
+        "for more info about the possible credential configurations."
+    )
 
     minio_root_user: str
     minio_root_password: SecretStr
@@ -104,14 +111,16 @@ class MinIOCredentials(Block):
         Example:
             Create an S3 client from an authorized boto3 session
 
-            >>> minio_credentials = MinIOCredentials(
-            >>>     minio_root_user = "minio_root_user",
-            >>>     minio_root_password = "minio_root_password"
-            >>> )
-            >>> s3_client = minio_credentials.get_boto3_session().client(
-                    service="s3",
-                    endpoint_url="http://localhost:9000"
-                    )
+            ```python
+            minio_credentials = MinIOCredentials(
+                minio_root_user = "minio_root_user",
+                minio_root_password = "minio_root_password"
+            )
+            s3_client = minio_credentials.get_boto3_session().client(
+                service="s3",
+                endpoint_url="http://localhost:9000"
+            )
+            ```
         """
 
         minio_root_password = (
