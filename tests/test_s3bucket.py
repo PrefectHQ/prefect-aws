@@ -3,18 +3,17 @@ import boto3
 import pytest
 from botocore.exceptions import ClientError
 from moto import mock_s3
+
+
 from prefect_aws import AwsCredentials, MinIOCredentials, S3Bucket
 
-
 aws_creds_block = AwsCredentials(
-    aws_access_key_id="testing",
-    aws_secret_access_key="testing"
-    )
+    aws_access_key_id="testing", aws_secret_access_key="testing"
+)
 
 minio_creds_block = MinIOCredentials(
-    minio_root_user="testing",
-    minio_root_password="testing"
-    )
+    minio_root_user="testing", minio_root_password="testing"
+)
 
 bucket_name = "test_bucket"
 
@@ -25,12 +24,12 @@ def s3():
 
     with mock_s3():
         yield boto3.client(
-            service_name='s3',
+            service_name="s3",
             region_name="us-east-1",
             aws_access_key_id="testing",
             aws_secret_access_key="testing",
             aws_session_token="testing",
-            )
+        )
 
 
 @pytest.mark.parametrize("creds", [aws_creds_block, minio_creds_block])
