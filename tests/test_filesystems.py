@@ -43,12 +43,9 @@ async def test_read_write_roundtrip(s3, creds):
     """
 
     s3.create_bucket(Bucket=bucket_name)
-    print("Bucket created")
     fs = S3Bucket(bucket_name=bucket_name, credentials=creds)
     key = await fs.write_path("test.txt", content=b"hello")
-    print("Wrote to path:", key)
     assert await fs.read_path(key) == b"hello"
-    print("Read pathx")
 
 
 @pytest.mark.parametrize("creds", [aws_creds_block, minio_creds_block])
