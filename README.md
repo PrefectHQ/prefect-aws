@@ -71,7 +71,8 @@ async def aws_s3_bucket_roundtrip(creds):
 # create an AwsCredentials block here or through UI
 aws_creds = AwsCredentials(
     aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
 
 asyncio.run(aws_s3_bucket_roundtrip(aws_creds))
 ```
@@ -99,7 +100,7 @@ async def minio_s3_bucket_roundtrip(creds):
 minio_creds = MinIOCredentials(
     minio_root_user=MINIO_ROOT_USER, 
     minio_root_password=MINIO_ROOT_PASSWORD
-    )
+)
 
 asyncio.run(minio_s3_bucket_roundtrip(minio_creds))
 ```
