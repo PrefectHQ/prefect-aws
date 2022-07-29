@@ -62,7 +62,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     def _resolve_path(self, path: str) -> Path:
 
         """
-        A helper function used in write_path to resolve the basepath and key.
+        A helper function used in write_path to join `self.basepath` and `path`.
 
         Args:
 
