@@ -77,7 +77,7 @@ aws_creds = AwsCredentials(
 asyncio.run(aws_s3_bucket_roundtrip(aws_creds))
 ```
 
-### Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket.
+### Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket
 
 ```python
 import asyncio
