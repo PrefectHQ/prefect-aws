@@ -96,5 +96,6 @@ async def test_aws_basepath(s3_bucket, aws_creds_block):
         basepath="subfolder",
     )
 
-    key = await s3_bucket_block.write_path("data.csv", content=b"hello")
+    key = await s3_bucket_block.write_path("test.txt", content=b"hello")
     assert await s3_bucket_block.read_path(key) == b"hello"
+    assert key == "subfolder/test.txt"
