@@ -78,8 +78,6 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     async def read_path(self, path: str) -> bytes:
 
-        path = self._resolve_path(path)
-
         return await to_thread.run_sync(self._read_sync, path)
 
     def _read_sync(self, key: str) -> bytes:
