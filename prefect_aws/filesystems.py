@@ -115,7 +115,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
                 aws_credentials=AwsCredentials,
                 basepath="subfolder"
             )
-    
+
             key_contents = s3_bucket_block.read_path(path="subfolder/file1")
         ```
         """
