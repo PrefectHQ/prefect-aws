@@ -24,7 +24,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         minio_credentials: A block containing your credentials (choose this
             or aws_credentials).
         basepath: Used when you don't want to read/write at base level.
-            endpoint_url: Used for non-AWS configuration. When unspecified,
+        endpoint_url: Used for non-AWS configuration. When unspecified,
             defaults to AWS.
 
     Example:
