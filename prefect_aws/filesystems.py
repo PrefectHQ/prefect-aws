@@ -48,18 +48,55 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     @validator("basepath", pre=True)
     def cast_pathlib(cls, value):
+
+        """
+        If basepath provided, it means we aren't writing to the root directory
+        of the bucket. We need to ensure that it is a valid path. This is called
+        when the S3Bucket block is instantiated.
+        """
+
         if isinstance(value, Path):
             return str(value)
         return value
 
     def _resolve_path(self, path: str) -> Path:
 
+        """
+        A helper function used in write_path to resolve the basepath and key.
+
+        Args:
+
+            - path: Name of the key, e.g. "file1". Each object in your
+            bucket has a unique key (or key name).
+
+        Example:
+
+        ```python
+            s3_bucket_block = S3Bucket(
+                bucket_name="bucket",
+                aws_credentials=AwsCredentials,
+                basepath="subfolder"
+            )
+            s3_bucket_block.write_path(path="file1", content=data)
+        ```
+
+            _resolve_path("file1") in this example would return "subfolder/file1"
+        """
+
         path = path or str(uuid4())
+
+        # If basepath provided, it means we won't write to the root dir of
+        # the bucket. So we need to add it on the front of the path.
         path = str(Path(self.basepath) / path) if self.basepath else path
 
         return path
 
     def _get_s3_client(self) -> boto3.client:
+
+        """
+        Authenticate MinIO credentials or AWS credentials and return an S3 client.
+        This is a helper function called by read_path() or write_path().
+        """
 
         s3_client_kwargs = {}
 
@@ -78,9 +115,38 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     async def read_path(self, path: str) -> bytes:
 
+        """
+        Read specified path from S3 and return contents. Provide the entire
+        path to the key in S3.
+
+        Args:
+            - path: Entire path to (and including) the key.
+
+        Example:
+
+        If I have a bucket called "bucket" containing a folder called
+        "subfolder" which contains an object called "file1", I can
+        access its contents like so:
+
+        ```python
+        s3_bucket_block = S3Bucket(
+            bucket_name="bucket",
+            aws_credentials=AwsCredentials,
+            basepath="subfolder"
+        )
+
+        key_contents = s3_bucket_block.read_path(path="subfolder/file1")
+        ```
+        """
+
         return await to_thread.run_sync(self._read_sync, path)
 
     def _read_sync(self, key: str) -> bytes:
+
+        """
+        Called by read_path(). Creates an S3 client and retrieves the
+        contents from  a specified path.
+        """
 
         s3_client = self._get_s3_client()
 
@@ -93,6 +159,28 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     async def write_path(self, path: str, content: bytes) -> str:
 
+        """
+        Writes to an S3 bucket.
+
+        Args:
+
+        - path: The key name. Each object in your bucket has a unique
+        key (or key name).
+        - content: What you are uploading to S3.
+
+        Example:
+
+        ```python
+            s3_bucket_block = S3Bucket(
+                bucket_name="bucket",
+                minio_credentials=MinIOCredentials,
+                basepath="dogs/smalldogs",
+                endpoint_url="http://localhost:9000",
+            )
+            s3_havanese_path = s3_bucket_block.write_path(path="havanese", content=data)
+        ```
+        """
+
         path = self._resolve_path(path)
 
         await to_thread.run_sync(self._write_sync, path, content)
@@ -100,6 +188,11 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         return path
 
     def _write_sync(self, key: str, data: bytes) -> None:
+
+        """
+        Called by write_path(). Creates an S3 client and uploads a file
+        object.
+        """
 
         s3_client = self._get_s3_client()
 
