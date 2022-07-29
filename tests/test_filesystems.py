@@ -2,6 +2,7 @@ import boto3
 import pytest
 from botocore.exceptions import ClientError
 from moto import mock_s3
+
 from prefect_aws import AwsCredentials, MinIOCredentials, S3Bucket
 
 
