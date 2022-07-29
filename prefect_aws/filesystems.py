@@ -7,6 +7,7 @@ from uuid import uuid4
 import boto3
 from anyio import to_thread
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
+from pydantic import validator
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 
@@ -45,6 +46,19 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     basepath: Optional[Path]
     endpoint_url: Optional[str]
 
+    @validator("basepath", pre=True)
+    def cast_pathlib(cls, value):
+        if isinstance(value, Path):
+            return str(value)
+        return value
+
+    def _resolve_path(self, path: str) -> Path:
+
+        path = path or str(uuid4())
+        path = (str(Path(self.basepath) / path) if self.basepath else path)
+
+        return path
+
     def _get_s3_client(self) -> boto3.client:
 
         s3_client_kwargs = {}
@@ -64,6 +78,8 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     async def read_path(self, path: str) -> bytes:
 
+        path = self._resolve_path(path)
+
         return await to_thread.run_sync(self._read_sync, path)
 
     def _read_sync(self, key: str) -> bytes:
@@ -79,8 +95,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     async def write_path(self, path: str, content: bytes) -> str:
 
-        path = path or str(uuid4())
-        path = str(Path(self.basepath) / path) if self.basepath else path
+        path = self._resolve_path(path)
 
         await to_thread.run_sync(self._write_sync, path, content)
 
