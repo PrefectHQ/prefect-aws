@@ -170,7 +170,8 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         Example:
 
-        ```python
+            Write data to the path `dogs/small_dogs/havanese` in an S3 Bucket:
+            ```python
             s3_bucket_block = S3Bucket(
                 bucket_name="bucket",
                 minio_credentials=MinIOCredentials,
@@ -178,7 +179,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
                 endpoint_url="http://localhost:9000",
             )
             s3_havanese_path = s3_bucket_block.write_path(path="havanese", content=data)
-        ```
+           ```
         """
 
         path = self._resolve_path(path)
