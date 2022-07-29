@@ -69,18 +69,6 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             path: Name of the key, e.g. "file1". Each object in your
             bucket has a unique key (or key name).
 
-        Example:
-
-        ```python
-            s3_bucket_block = S3Bucket(
-                bucket_name="bucket",
-                aws_credentials=AwsCredentials,
-                basepath="subfolder"
-            )
-            s3_bucket_block.write_path(path="file1", content=data)
-        ```
-
-            _resolve_path("file1") in this example would return "subfolder/file1"
         """
 
         path = path or str(uuid4())
