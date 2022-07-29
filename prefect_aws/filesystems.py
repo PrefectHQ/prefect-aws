@@ -164,9 +164,9 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         Args:
 
-        - path: The key name. Each object in your bucket has a unique
-        key (or key name).
-        - content: What you are uploading to S3.
+        path: The key name. Each object in your bucket has a unique
+            key (or key name).
+        content: What you are uploading to S3.
 
         Example:
 
