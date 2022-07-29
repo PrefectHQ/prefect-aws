@@ -120,7 +120,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             )
 
             key_contents = s3_bucket_block.read_path(path="subfolder/file1")
-        ```
+            ```
         """
 
         return await to_thread.run_sync(self._read_sync, path)
