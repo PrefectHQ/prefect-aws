@@ -123,19 +123,15 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             path: Entire path to (and including) the key.
 
         Example:
-
-        If I have a bucket called "bucket" containing a folder called
-        "subfolder" which contains an object called "file1", I can
-        access its contents like so:
-
-        ```python
-        s3_bucket_block = S3Bucket(
-            bucket_name="bucket",
-            aws_credentials=AwsCredentials,
-            basepath="subfolder"
-        )
-
-        key_contents = s3_bucket_block.read_path(path="subfolder/file1")
+            Read "subfolder/file1" contents from an S3 bucket named "bucket":
+            ```python
+            s3_bucket_block = S3Bucket(
+                bucket_name="bucket",
+                aws_credentials=AwsCredentials,
+                basepath="subfolder"
+            )
+    
+            key_contents = s3_bucket_block.read_path(path="subfolder/file1")
         ```
         """
 
