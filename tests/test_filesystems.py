@@ -13,8 +13,7 @@ def aws_creds_block():
 @pytest.fixture
 def minio_creds_block():
     return MinIOCredentials(
-        minio_root_user="minioadmin",
-        minio_root_password="minioadmin"
+        minio_root_user="minioadmin", minio_root_password="minioadmin"
     )
 
 
