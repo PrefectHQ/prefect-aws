@@ -120,7 +120,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         path to the key in S3.
 
         Args:
-            - path: Entire path to (and including) the key.
+            path: Entire path to (and including) the key.
 
         Example:
 
