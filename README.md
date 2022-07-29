@@ -95,8 +95,8 @@ async def minio_s3_bucket_roundtrip():
         endpoint_url="http://localhost:9000"
     )
 
-    key = await s3_bucket.write_path("/data.csv", content=b"hello")
-    return await s3_bucket.read_path(key)
+    path_to_file = await s3_bucket.write_path("/data.csv", content=b"hello")
+    return await s3_bucket.read_path(path_to_file)
 
 asyncio.run(minio_s3_bucket_roundtrip())
 ```
