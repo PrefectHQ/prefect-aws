@@ -66,7 +66,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         Args:
 
-            - path: Name of the key, e.g. "file1". Each object in your
+            path: Name of the key, e.g. "file1". Each object in your
             bucket has a unique key (or key name).
 
         Example:
