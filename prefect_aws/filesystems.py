@@ -163,7 +163,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
                 endpoint_url="http://localhost:9000",
             )
             s3_havanese_path = s3_bucket_block.write_path(path="havanese", content=data)
-           ```
+            ```
         """
 
         path = self._resolve_path(path)
