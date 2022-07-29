@@ -34,7 +34,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     """
 
     # change
-    _logo_url = "https://w7.pngwing.com/pngs/564/59/png-transparent-amazon-com-amazon-s3-amazon-web-services-amazon-simple-queue-service-amazon-glacier-bucket-miscellaneous-data-amazon-dynamodb.png"  # noqa
+    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/uPezmBzEv4moXKdQJ3YyL/a1f029b423cf67f474d1eee33c1463d7/pngwing.com.png?h=250"  # noqa
     _block_type_name = "S3 Bucket"
 
     bucket_name: str
