@@ -55,7 +55,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     def _resolve_path(self, path: str) -> Path:
 
         path = path or str(uuid4())
-        path = (str(Path(self.basepath) / path) if self.basepath else path)
+        path = str(Path(self.basepath) / path) if self.basepath else path
 
         return path
 
