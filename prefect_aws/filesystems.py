@@ -47,8 +47,6 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         s3_client_kwargs = {}
 
-        s3_client = boto3.client(service_name="s3", **s3_client_kwargs)
-
         if self.minio_credentials:
 
             aws_secret_access_key = self.minio_credentials.minio_root_password
