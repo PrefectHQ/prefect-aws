@@ -65,7 +65,7 @@ async def batch_submit(
     batch_kwargs = batch_kwargs or {}
     batch_client = aws_credentials.get_boto3_session().client("batch")
 
-    response = run_sync_in_worker_thread(
+    response = await run_sync_in_worker_thread(
         batch_client.submit_job,
         jobName=job_name,
         jobQueue=job_queue,
