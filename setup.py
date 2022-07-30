@@ -26,6 +26,12 @@ setup(
     packages=find_packages(exclude=("tests", "docs")),
     python_requires=">=3.7",
     install_requires=install_requires,
+    entry_points={
+        "prefect.collections": [
+            "AwsCredentials = prefect_aws.credentials",
+            "MinIOCredentials = prefect_aws.credentials",
+        ]
+    },
     extras_require={"dev": dev_requires},
     classifiers=[
         "Natural Language :: English",
