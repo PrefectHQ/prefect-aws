@@ -1,15 +1,14 @@
 """Tasks for interacting with AWS S3"""
 import io
 import uuid
-from functools import partial
 from typing import Any, Dict, List, Optional
 
-from anyio import to_thread
 from botocore.paginate import PageIterator
 from prefect import get_run_logger, task
 
 from prefect_aws import AwsCredentials
 from prefect_aws.client_parameters import AwsClientParameters
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
 
 @task
@@ -133,8 +132,7 @@ async def s3_upload(
         "s3", **aws_client_parameters.get_params_override()
     )
     stream = io.BytesIO(data)
-    upload = partial(s3_client.upload_fileobj, stream, Bucket=bucket, Key=key)
-    await to_thread.run_sync(upload)
+    await run_sync_in_worker_thread(s3_client.upload_fileobj, stream, Bucket=bucket, Key=key)
 
     return key
 
@@ -222,4 +220,4 @@ async def s3_list_objects(
     if jmespath_query:
         page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
 
-    return await to_thread.run_sync(_list_objects_sync, page_iterator)
+    return await run_sync_in_worker_thread(_list_objects_sync, page_iterator)

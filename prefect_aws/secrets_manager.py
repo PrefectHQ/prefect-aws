@@ -1,9 +1,8 @@
 """Tasks for interacting with AWS Secrets Manager"""
-from functools import partial
 from typing import Dict, List, Optional, Union
 
-from anyio import to_thread
 from botocore.exceptions import ClientError
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from prefect import get_run_logger, task
 
 from prefect_aws import AwsCredentials
@@ -141,8 +140,7 @@ async def update_secret(
     client = aws_credentials.get_boto3_session().client("secretsmanager")
 
     try:
-        update_secret = partial(client.update_secret, **update_secret_kwargs)
-        response = await to_thread.run_sync(update_secret)
+        response = await run_sync_in_worker_thread(client.update_secret, **update_secret_kwargs)
         response.pop("ResponseMetadata", None)
         return response
     except ClientError:
@@ -230,8 +228,7 @@ async def create_secret(
     client = aws_credentials.get_boto3_session().client("secretsmanager")
 
     try:
-        create_secret = partial(client.create_secret, **create_secret_kwargs)
-        response = await to_thread.run_sync(create_secret)
+        response = await run_sync_in_worker_thread(client.create_secret, **create_secret_kwargs)
         print(response.pop("ResponseMetadata", None))
         return response
     except ClientError:
@@ -340,8 +337,7 @@ async def delete_secret(
     client = aws_credentials.get_boto3_session().client("secretsmanager")
 
     try:
-        delete_secret = partial(client.delete_secret, **delete_secret_kwargs)
-        response = await to_thread.run_sync(delete_secret)
+        response = await run_sync_in_worker_thread.run_sync(client.delete_secret, **delete_secret_kwargs)
         response.pop("ResponseMetadata", None)
         return response
     except ClientError:
