@@ -342,7 +342,7 @@ async def delete_secret(
     client = aws_credentials.get_boto3_session().client("secretsmanager")
 
     try:
-        response = await run_sync_in_worker_thread.run_sync(
+        response = await run_sync_in_worker_thread(
             client.delete_secret, **delete_secret_kwargs
         )
         response.pop("ResponseMetadata", None)
