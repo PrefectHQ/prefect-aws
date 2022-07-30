@@ -2,8 +2,8 @@
 from typing import Dict, List, Optional, Union
 
 from botocore.exceptions import ClientError
-from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from prefect import get_run_logger, task
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
 from prefect_aws import AwsCredentials
 
@@ -64,8 +64,9 @@ async def read_secret(
         get_secret_value_kwargs["VersionStage"] = version_stage
 
     try:
-        get_secret_value = partial(client.get_secret_value, **get_secret_value_kwargs)
-        response = await to_thread.run_sync(get_secret_value)
+        response = await run_sync_in_worker_thread(
+            client.get_secret_value, **get_secret_value_kwargs
+        )
     except ClientError:
         logger.exception("Unable to get value for secret %s", secret_name)
         raise
@@ -140,7 +141,9 @@ async def update_secret(
     client = aws_credentials.get_boto3_session().client("secretsmanager")
 
     try:
-        response = await run_sync_in_worker_thread(client.update_secret, **update_secret_kwargs)
+        response = await run_sync_in_worker_thread(
+            client.update_secret, **update_secret_kwargs
+        )
         response.pop("ResponseMetadata", None)
         return response
     except ClientError:
@@ -228,7 +231,9 @@ async def create_secret(
     client = aws_credentials.get_boto3_session().client("secretsmanager")
 
     try:
-        response = await run_sync_in_worker_thread(client.create_secret, **create_secret_kwargs)
+        response = await run_sync_in_worker_thread(
+            client.create_secret, **create_secret_kwargs
+        )
         print(response.pop("ResponseMetadata", None))
         return response
     except ClientError:
@@ -337,7 +342,9 @@ async def delete_secret(
     client = aws_credentials.get_boto3_session().client("secretsmanager")
 
     try:
-        response = await run_sync_in_worker_thread.run_sync(client.delete_secret, **delete_secret_kwargs)
+        response = await run_sync_in_worker_thread.run_sync(
+            client.delete_secret, **delete_secret_kwargs
+        )
         response.pop("ResponseMetadata", None)
         return response
     except ClientError:

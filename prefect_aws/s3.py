@@ -5,10 +5,10 @@ from typing import Any, Dict, List, Optional
 
 from botocore.paginate import PageIterator
 from prefect import get_run_logger, task
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
 from prefect_aws import AwsCredentials
 from prefect_aws.client_parameters import AwsClientParameters
-from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
 
 @task
@@ -64,10 +64,9 @@ async def s3_download(
         "s3", **aws_client_parameters.get_params_override()
     )
     stream = io.BytesIO()
-    download = partial(
+    await run_sync_in_worker_thread(
         s3_client.download_fileobj, Bucket=bucket, Key=key, Fileobj=stream
     )
-    await to_thread.run_sync(download)
     stream.seek(0)
     output = stream.read()
 
@@ -132,7 +131,9 @@ async def s3_upload(
         "s3", **aws_client_parameters.get_params_override()
     )
     stream = io.BytesIO(data)
-    await run_sync_in_worker_thread(s3_client.upload_fileobj, stream, Bucket=bucket, Key=key)
+    await run_sync_in_worker_thread(
+        s3_client.upload_fileobj, stream, Bucket=bucket, Key=key
+    )
 
     return key
 

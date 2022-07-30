@@ -3,9 +3,9 @@
 from typing import Any, Dict, Optional
 
 from prefect import get_run_logger, task
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
 from prefect_aws.credentials import AwsCredentials
-from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
 
 @task
