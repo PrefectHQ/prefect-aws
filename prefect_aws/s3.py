@@ -1,9 +1,9 @@
 """Tasks for interacting with AWS S3"""
 import io
-import uuid
 from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import uuid
 
 import boto3
 from anyio import to_thread
