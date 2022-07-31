@@ -53,7 +53,8 @@ example_s3_upload_flow()
 ```python
 import asyncio
 from prefect import flow
-from prefect_aws import AwsCredentials, S3Bucket
+from prefect_aws AwsCredentials
+from prefect_aws.s3 import S3Bucket
 
 @flow
 async def aws_s3_bucket_roundtrip(creds):
@@ -82,7 +83,8 @@ asyncio.run(aws_s3_bucket_roundtrip(aws_creds))
 ```python
 import asyncio
 from prefect import flow
-from prefect_aws import MinIOCredentials, S3Bucket
+from prefect_aws import MinIOCredentials
+from prefect_aws.s3 import S3Bucket
 
 @flow
 async def minio_s3_bucket_roundtrip():
