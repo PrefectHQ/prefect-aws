@@ -1,3 +1,3 @@
 boto3==1.21.21
 botocore==1.24.21
-prefect @ git+https://github.com/PrefectHQ/prefect@elongate_timeout # just to trigger the test again
+prefect>=2.0
