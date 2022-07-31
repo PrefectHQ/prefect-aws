@@ -3,8 +3,8 @@ import pytest
 from botocore.exceptions import ClientError
 from moto import mock_s3
 
-from prefect_aws import AwsCredentials, MinIOCredentials, S3Bucket
-
+from prefect_aws import AwsCredentials, MinIOCredentials
+from prefect_aws.s3 import S3Bucket
 
 @pytest.fixture
 def aws_creds_block():
