@@ -156,9 +156,17 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
             Write data to the path `dogs/small_dogs/havanese` in an S3 Bucket:
             ```python
+            from prefect_aws import MinioCredentials
+            from prefect_aws.s3 import S3Bucket
+
+            minio_creds = MinIOCredentials(
+                minio_root_user = "minioadmin",
+                minio_root_password = "minioadmin",
+            )
+
             s3_bucket_block = S3Bucket(
                 bucket_name="bucket",
-                minio_credentials=MinIOCredentials,
+                minio_credentials=minio_creds,
                 basepath="dogs/smalldogs",
                 endpoint_url="http://localhost:9000",
             )
