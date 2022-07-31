@@ -15,7 +15,7 @@ from prefect_aws import AwsCredentials, MinIOCredentials
 class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     """
-    Block used to store data using S3-compatible object storage like MinIO.
+    Block used to store data using AWS S3 or S3-compatible object storage like MinIO.
 
     Args:
         bucket_name: Name of your bucket.
