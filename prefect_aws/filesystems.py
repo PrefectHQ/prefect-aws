@@ -1,5 +1,6 @@
 """Module for reading and writing from S3."""
 import io
+from multiprocessing.sharedctypes import Value
 from pathlib import Path
 from typing import Optional
 from uuid import uuid4
@@ -7,7 +8,7 @@ from uuid import uuid4
 import boto3
 from anyio import to_thread
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
-from pydantic import validator
+from pydantic import root_validator, validator
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 
@@ -58,6 +59,33 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         if isinstance(value, Path):
             return str(value)
         return value
+
+    # @validator
+    # def logical_xor(self, minio_credentials, aws_credentials):
+    #     return bool(minio_credentials) ^ bool(aws_credentials)
+
+    @root_validator(pre=True)
+    def check_credentials(cls, values):
+
+        """
+        Ensure exactly 1 of 2 optional credentials fields has been provided by
+        user.
+        """
+
+        minio_creds_exist = bool(values.get('minio_credentials'))
+        aws_creds_exist = bool(values.get('aws_credentials'))
+
+        # if both credentials fields provided
+        if minio_creds_exist and aws_creds_exist:
+            raise ValueError(
+                "S3Bucket accepts a minio_credentials field or an aws_credentials field but not both."
+                )
+        # if neither credentials fields provided
+        if not minio_creds_exist and not aws_creds_exist:
+            raise ValueError(
+                "S3 Bucket requires either a minio_credentials field or an aws_credentials field."
+            )
+        return values
 
     def _resolve_path(self, path: str) -> Path:
 
