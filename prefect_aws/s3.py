@@ -1,25 +1,20 @@
 """Tasks for interacting with AWS S3"""
-import boto3
-
 import io
-
 import uuid
 from functools import partial
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import boto3
 from anyio import to_thread
 from botocore.paginate import PageIterator
-from multiprocessing.sharedctypes import Value
-from pathlib import Path
-
 from prefect import get_run_logger, task
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
-from prefect_aws import AwsCredentials, MinIOCredentials
-from prefect_aws.client_parameters import AwsClientParameters
 from pydantic import root_validator, validator
 
-from typing import Optional
-
+from prefect_aws import AwsCredentials, MinIOCredentials
+from prefect_aws.client_parameters import AwsClientParameters
+from uuid import uuid4
 
 @task
 async def s3_download(
@@ -289,18 +284,20 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         user.
         """
 
-        minio_creds_exist = bool(values.get('minio_credentials'))
-        aws_creds_exist = bool(values.get('aws_credentials'))
+        minio_creds_exist = bool(values.get("minio_credentials"))
+        aws_creds_exist = bool(values.get("aws_credentials"))
 
         # if both credentials fields provided
         if minio_creds_exist and aws_creds_exist:
             raise ValueError(
-                "S3Bucket accepts a minio_credentials field or an aws_credentials field but not both."
-                )
+                "S3Bucket accepts a minio_credentials field or an"
+                "aws_credentials field but not both."
+            )
         # if neither credentials fields provided
         if not minio_creds_exist and not aws_creds_exist:
             raise ValueError(
-                "S3 Bucket requires either a minio_credentials field or an aws_credentials field."
+                "S3 Bucket requires either a minio_credentials"
+                "field or an aws_credentials field."
             )
         return values
 
@@ -333,8 +330,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         if self.minio_credentials:
             s3_client = self.minio_credentials.get_boto3_session().client(
-                service_name="s3", 
-                endpoint_url=self.endpoint_url
+                service_name="s3", endpoint_url=self.endpoint_url
             )
 
         elif self.aws_credentials:
@@ -343,7 +339,6 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             )
 
         return s3_client
-        
 
     async def read_path(self, path: str) -> bytes:
 
@@ -361,7 +356,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             from prefect_aws.s3 import S3Bucket
 
             aws_creds = AwsCredentials(
-                aws_access_key_id=AWS_ACCESS_KEY_ID, 
+                aws_access_key_id=AWS_ACCESS_KEY_ID,
                 aws_secret_access_key=AWS_SECRET_ACCESS_KEY
             )
 
@@ -444,4 +439,3 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         with io.BytesIO(data) as stream:
 
             s3_client.upload_fileobj(Fileobj=stream, Bucket=self.bucket_name, Key=key)
-
