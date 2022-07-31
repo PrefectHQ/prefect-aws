@@ -15,14 +15,17 @@ from prefect_aws import AwsCredentials, MinIOCredentials
 class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
     """
-    Block used to store data using S3-compatible object storage like MinIO.
+    Block used to store data using AWS S3 or S3-compatible object storage like MinIO.
 
     Args:
         bucket_name: Name of your bucket.
-        aws_credentials: An AwsCredentials block.
-        minio_credentials: A MinIOCredentials block.
+        aws_credentials: A block containing your credentials (choose this
+            or minio_credentials).
+        minio_credentials: A block containing your credentials (choose this
+            or aws_credentials).
         basepath: Used when you don't want to read/write at base level.
-        endpoint_url: When unspecified, defaults to AWS.
+        endpoint_url: Used for non-AWS configuration. When unspecified,
+            defaults to AWS.
 
     Example:
         Load stored S3Bucket configuration:
@@ -64,7 +67,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         Args:
 
             path: Name of the key, e.g. "file1". Each object in your
-            bucket has a unique key (or key name).
+                bucket has a unique key (or key name).
 
         """
 
@@ -117,7 +120,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             )
 
             key_contents = s3_bucket_block.read_path(path="subfolder/file1")
-        ```
+            ```
         """
 
         return await to_thread.run_sync(self._read_sync, path)
@@ -145,9 +148,9 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         Args:
 
-        path: The key name. Each object in your bucket has a unique
-            key (or key name).
-        content: What you are uploading to S3.
+            path: The key name. Each object in your bucket has a unique
+                key (or key name).
+            content: What you are uploading to S3.
 
         Example:
 
@@ -160,7 +163,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
                 endpoint_url="http://localhost:9000",
             )
             s3_havanese_path = s3_bucket_block.write_path(path="havanese", content=data)
-           ```
+            ```
         """
 
         path = self._resolve_path(path)
