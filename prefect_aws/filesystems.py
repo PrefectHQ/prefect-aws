@@ -110,20 +110,19 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         This is a helper function called by read_path() or write_path().
         """
 
-        s3_client_kwargs = {}
-
         if self.minio_credentials:
-
-            aws_secret_access_key = self.minio_credentials.minio_root_password
-            s3_client_kwargs.update(
-                aws_access_key_id=self.minio_credentials.minio_root_user,
-                aws_secret_access_key=aws_secret_access_key.get_secret_value(),
-                endpoint_url=self.endpoint_url,
+            s3_client = self.minio_credentials.get_boto3_session().client(
+                service_name="s3", 
+                endpoint_url=self.endpoint_url
             )
 
-        s3_client = boto3.client(service_name="s3", **s3_client_kwargs)
+        elif self.aws_credentials:
+            s3_client = self.aws_credentials.get_boto3_session().client(
+                service_name="s3"
+            )
 
         return s3_client
+        
 
     async def read_path(self, path: str) -> bytes:
 
