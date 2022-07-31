@@ -60,10 +60,6 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             return str(value)
         return value
 
-    # @validator
-    # def logical_xor(self, minio_credentials, aws_credentials):
-    #     return bool(minio_credentials) ^ bool(aws_credentials)
-
     @root_validator(pre=True)
     def check_credentials(cls, values):
 
