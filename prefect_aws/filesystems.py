@@ -113,9 +113,17 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         Example:
             Read "subfolder/file1" contents from an S3 bucket named "bucket":
             ```python
+            from prefect_aws import AwsCredentials
+            from prefect_aws.s3 import S3Bucket
+
+            aws_creds = AwsCredentials(
+                aws_access_key_id=AWS_ACCESS_KEY_ID, 
+                aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+            )
+
             s3_bucket_block = S3Bucket(
                 bucket_name="bucket",
-                aws_credentials=AwsCredentials,
+                aws_credentials=aws_creds,
                 basepath="subfolder"
             )
 
