@@ -1,9 +1,10 @@
 """Tasks for interacting with AWS S3"""
 import io
+import uuid
 from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import uuid
+from uuid import uuid4
 
 import boto3
 from anyio import to_thread
@@ -14,7 +15,7 @@ from pydantic import root_validator, validator
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.client_parameters import AwsClientParameters
-from uuid import uuid4
+
 
 @task
 async def s3_download(
