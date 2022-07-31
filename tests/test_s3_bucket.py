@@ -6,6 +6,7 @@ from moto import mock_s3
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.s3 import S3Bucket
 
+
 @pytest.fixture
 def aws_creds_block():
     return AwsCredentials(aws_access_key_id="testing", aws_secret_access_key="testing")
@@ -100,28 +101,28 @@ async def test_aws_basepath(s3_bucket, aws_creds_block):
     assert await s3_bucket_block.read_path(key) == b"hello"
     assert key == "subfolder/test.txt"
 
+
 async def test_too_many_credentials_arguments(
     s3_bucket, aws_creds_block, minio_creds_block
-    ):
+):
 
     """Test providing too many credentials as input."""
     with pytest.raises(ValueError):
         # create a new block with a subfolder
-        s3_bucket_block = S3Bucket(
+        S3Bucket(
             bucket_name=bucket_name,
             aws_credentials=aws_creds_block,
             minio_credentials=minio_creds_block,
             basepath="subfolder",
         )
 
+
 async def test_too_few_credentials_arguments(s3_bucket, aws_creds_block):
 
     """Test providing no credentials as input."""
     with pytest.raises(ValueError):
         # create a new block with a subfolder
-        s3_bucket_block = S3Bucket(
+        S3Bucket(
             bucket_name=bucket_name,
             basepath="subfolder",
         )
-
-
