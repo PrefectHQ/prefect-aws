@@ -248,7 +248,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     Example:
         Load stored S3Bucket configuration:
         ```python
-        from prefect_aws import S3Bucket
+        from prefect_aws.s3 import S3Bucket
 
         s3bucket_block = S3Bucket.load("BLOCK_NAME")
         ```
