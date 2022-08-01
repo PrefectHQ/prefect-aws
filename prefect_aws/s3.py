@@ -301,8 +301,6 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
                 "S3Bucket requires either a minio_credentials"
                 "field or an aws_credentials field."
             )
-        if minio_creds_exist and not endpoint_url_exist:
-            raise ValueError("S3Bucket requires endpoint_url with minio_credentials.")
         return values
 
     def _resolve_path(self, path: str) -> Path:
