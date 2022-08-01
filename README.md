@@ -56,12 +56,18 @@ from prefect import flow
 from prefect_aws AwsCredentials
 from prefect_aws.s3 import S3Bucket
 
+
 @flow
 async def aws_s3_bucket_roundtrip(creds):
+    # create an AwsCredentials block here or through UI
+    aws_creds = AwsCredentials(
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
 
     s3_bucket = S3Bucket(
         bucket_name="bucket",  # must exist
-        aws_credentials=creds,
+        aws_credentials=aws_creds,
         basepath="subfolder",
     )
 
@@ -69,14 +75,7 @@ async def aws_s3_bucket_roundtrip(creds):
 
     return await s3_bucket.read_path(key)
 
-# create an AwsCredentials block here or through UI
-aws_creds = AwsCredentials(
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-)
-
 asyncio.run(aws_s3_bucket_roundtrip(aws_creds))
-```
 
 ### Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket
 
