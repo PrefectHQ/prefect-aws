@@ -287,6 +287,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         minio_creds_exist = bool(values.get("minio_credentials"))
         aws_creds_exist = bool(values.get("aws_credentials"))
+        endpoint_url_exist = bool(values.get("endpoint_url"))
 
         # if both credentials fields provided
         if minio_creds_exist and aws_creds_exist:
@@ -297,8 +298,12 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         # if neither credentials fields provided
         if not minio_creds_exist and not aws_creds_exist:
             raise ValueError(
-                "S3 Bucket requires either a minio_credentials"
+                "S3Bucket requires either a minio_credentials"
                 "field or an aws_credentials field."
+            )
+        if minio_creds_exist and not endpoint_url_exist:
+            raise ValueError(
+                "S3Bucket requires endpoint_url with minio_credentials."
             )
         return values
 
