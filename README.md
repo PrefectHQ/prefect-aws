@@ -53,16 +53,16 @@ example_s3_upload_flow()
 ```python
 import asyncio
 from prefect import flow
-from prefect_aws AwsCredentials
+from prefect_aws import AwsCredentials
 from prefect_aws.s3 import S3Bucket
 
 
 @flow
-async def aws_s3_bucket_roundtrip(creds):
+async def aws_s3_bucket_roundtrip():
     # create an AwsCredentials block here or through UI
     aws_creds = AwsCredentials(
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+        aws_access_key_id="AWS_ACCESS_KEY_ID",
+        aws_secret_access_key="AWS_SECRET_ACCESS_KEY"
     )
 
     s3_bucket = S3Bucket(
@@ -75,7 +75,7 @@ async def aws_s3_bucket_roundtrip(creds):
 
     return await s3_bucket.read_path(key)
 
-asyncio.run(aws_s3_bucket_roundtrip(aws_creds))
+asyncio.run(aws_s3_bucket_roundtrip())
 
 ### Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket
 
