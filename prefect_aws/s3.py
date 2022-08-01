@@ -287,7 +287,6 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         minio_creds_exist = bool(values.get("minio_credentials"))
         aws_creds_exist = bool(values.get("aws_credentials"))
-        endpoint_url_exist = bool(values.get("endpoint_url"))
 
         # if both credentials fields provided
         if minio_creds_exist and aws_creds_exist:
