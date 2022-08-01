@@ -76,6 +76,7 @@ async def aws_s3_bucket_roundtrip():
     return await s3_bucket.read_path(key)
 
 asyncio.run(aws_s3_bucket_roundtrip())
+```
 
 ### Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket
 
