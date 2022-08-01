@@ -26,8 +26,7 @@ pip install prefect-aws
 
 You will need to obtain AWS credentials in order to use these tasks. Refer to the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for authentication methods available.
 
-### Write and run a flow
-
+### Write and run a flow with prefect-aws tasks
 ```python
 from prefect import flow
 from prefect_aws.s3 import s3_upload
@@ -48,6 +47,61 @@ def example_s3_upload_flow():
 
 example_s3_upload_flow()
 ```
+
+### Write and run a flow with AwsCredentials and S3Bucket
+
+```python
+import asyncio
+from prefect import flow
+from prefect_aws import AwsCredentials
+from prefect_aws.s3 import S3Bucket
+
+
+@flow
+async def aws_s3_bucket_roundtrip():
+    # create an AwsCredentials block here or through UI
+    aws_creds = AwsCredentials(
+        aws_access_key_id="AWS_ACCESS_KEY_ID",
+        aws_secret_access_key="AWS_SECRET_ACCESS_KEY"
+    )
+
+    s3_bucket = S3Bucket(
+        bucket_name="bucket",  # must exist
+        aws_credentials=aws_creds,
+        basepath="subfolder",
+    )
+
+    key = await s3_bucket.write_path("data.csv", content=b"hello")
+
+    return await s3_bucket.read_path(key)
+
+asyncio.run(aws_s3_bucket_roundtrip())
+
+### Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket
+
+```python
+import asyncio
+from prefect import flow
+from prefect_aws import MinIOCredentials
+from prefect_aws.s3 import S3Bucket
+
+@flow
+async def minio_s3_bucket_roundtrip():
+
+    minio_creds = MinIOCredentials.load("MY_BLOCK_NAME")
+
+    s3_bucket = S3Bucket(
+        bucket_name="bucket",  # must exist
+        minio_credentials=minio_creds,
+        endpoint_url="http://localhost:9000"
+    )
+
+    path_to_file = await s3_bucket.write_path("/data.csv", content=b"hello")
+    return await s3_bucket.read_path(path_to_file)
+
+asyncio.run(minio_s3_bucket_roundtrip())
+```
+
 
 ## Next steps
 
