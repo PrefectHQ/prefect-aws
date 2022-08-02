@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.1.2
 
-Released on August 22nd, 2022
+Released on August 2nd, 2022
 
 ### Added
 
