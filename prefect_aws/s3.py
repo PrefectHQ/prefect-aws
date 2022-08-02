@@ -1,16 +1,15 @@
 """Tasks for interacting with AWS S3"""
 import io
 import uuid
-from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 import boto3
-from anyio import to_thread
 from botocore.paginate import PageIterator
 from prefect import get_run_logger, task
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from pydantic import root_validator, validator
 
 from prefect_aws import AwsCredentials, MinIOCredentials
@@ -70,10 +69,9 @@ async def s3_download(
         "s3", **aws_client_parameters.get_params_override()
     )
     stream = io.BytesIO()
-    download = partial(
+    await run_sync_in_worker_thread(
         s3_client.download_fileobj, Bucket=bucket, Key=key, Fileobj=stream
     )
-    await to_thread.run_sync(download)
     stream.seek(0)
     output = stream.read()
 
@@ -138,8 +136,9 @@ async def s3_upload(
         "s3", **aws_client_parameters.get_params_override()
     )
     stream = io.BytesIO(data)
-    upload = partial(s3_client.upload_fileobj, stream, Bucket=bucket, Key=key)
-    await to_thread.run_sync(upload)
+    await run_sync_in_worker_thread(
+        s3_client.upload_fileobj, stream, Bucket=bucket, Key=key
+    )
 
     return key
 
@@ -227,7 +226,7 @@ async def s3_list_objects(
     if jmespath_query:
         page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
 
-    return await to_thread.run_sync(_list_objects_sync, page_iterator)
+    return await run_sync_in_worker_thread(_list_objects_sync, page_iterator)
 
 
 class S3Bucket(ReadableFileSystem, WritableFileSystem):
@@ -371,7 +370,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             ```
         """
 
-        return await to_thread.run_sync(self._read_sync, path)
+        return await run_sync_in_worker_thread(self._read_sync, path)
 
     def _read_sync(self, key: str) -> bytes:
 
@@ -424,7 +423,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         path = self._resolve_path(path)
 
-        await to_thread.run_sync(self._write_sync, path, content)
+        await run_sync_in_worker_thread(self._write_sync, path, content)
 
         return path
 
