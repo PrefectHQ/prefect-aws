@@ -538,6 +538,7 @@
 <p>You will need to obtain AWS credentials in order to use these tasks. Refer to the <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html">AWS documentation</a> for authentication methods available.</p>
 <h3 id="write-and-run-a-flow-with-prefect-aws-tasks">Write and run a flow with prefect-aws tasks</h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
 <span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">s3_upload</span>
 
 <span class="nd">@flow</span>
