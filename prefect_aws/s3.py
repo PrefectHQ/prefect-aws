@@ -2,7 +2,7 @@
 import io
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 import boto3
@@ -22,7 +22,8 @@ async def s3_download(
     key: str,
     aws_credentials: AwsCredentials,
     aws_client_parameters: AwsClientParameters = AwsClientParameters(),
-) -> bytes:
+    as_bytes: bool = True,
+) -> Union[bytes, str]:
     """
     Downloads an object with a given key from a given S3 bucket.
 
@@ -33,6 +34,7 @@ async def s3_download(
             when creating the task.
         aws_credentials: Credentials to use for authentication with AWS.
         aws_client_parameters: Custom parameter for the boto3 client initialization..
+        as_bytes: Returns the downloaded object either as bytes or string.
 
 
     Returns:
@@ -75,12 +77,12 @@ async def s3_download(
     stream.seek(0)
     output = stream.read()
 
-    return output
+    return output if as_bytes else output.decode()
 
 
 @task
 async def s3_upload(
-    data: bytes,
+    data: Union[bytes, str],
     bucket: str,
     aws_credentials: AwsCredentials,
     aws_client_parameters: AwsClientParameters = AwsClientParameters(),
@@ -90,7 +92,7 @@ async def s3_upload(
     Uploads data to an S3 bucket.
 
     Args:
-        data: Bytes representation of data to upload to S3.
+        data: Bytes or string representation of data to upload to S3.
         bucket: Name of bucket to upload data to. Required if a default value was not
             supplied when creating the task.
         aws_credentials: Credentials to use for authentication with AWS.
@@ -135,7 +137,12 @@ async def s3_upload(
     s3_client = aws_credentials.get_boto3_session().client(
         "s3", **aws_client_parameters.get_params_override()
     )
-    stream = io.BytesIO(data)
+
+    try:
+        stream = io.BytesIO(data)
+    except TypeError:
+        stream = io.BytesIO(data.encode())
+
     await run_sync_in_worker_thread(
         s3_client.upload_fileobj, stream, Bucket=bucket, Key=key
     )

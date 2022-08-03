@@ -90,8 +90,11 @@ async def test_s3_download_failed_with_wrong_endpoint_setup(
         await test_flow()
 
 
+@pytest.mark.parametrize("as_bytes", [False, True])
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
-async def test_s3_download(object, client_parameters, aws_credentials):
+async def test_s3_download(object, client_parameters, aws_credentials, as_bytes):
+    data = b"TEST"
+
     @flow
     async def test_flow():
         return await s3_download(
@@ -99,10 +102,14 @@ async def test_s3_download(object, client_parameters, aws_credentials):
             key="object",
             aws_credentials=aws_credentials,
             aws_client_parameters=client_parameters,
+            as_bytes=as_bytes,
         )
 
     result = await test_flow()
-    assert result == b"TEST"
+    if as_bytes:
+        assert result == data
+    else:
+        assert result == data.decode("utf-8")
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
@@ -120,13 +127,14 @@ async def test_s3_download_object_not_found(object, client_parameters, aws_crede
         await test_flow()
 
 
+@pytest.mark.parametrize("mode", ["r", "rb"])
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
-async def test_s3_upload(bucket, client_parameters, tmp_path, aws_credentials):
+async def test_s3_upload(bucket, client_parameters, tmp_path, aws_credentials, mode):
     @flow
     async def test_flow():
         test_file = tmp_path / "test.txt"
         test_file.write_text("NEW OBJECT")
-        with open(test_file, "rb") as f:
+        with open(test_file, mode) as f:
             return await s3_upload(
                 data=f.read(),
                 bucket="bucket",
@@ -141,8 +149,10 @@ async def test_s3_upload(bucket, client_parameters, tmp_path, aws_credentials):
     bucket.download_fileobj("new_object", stream)
     stream.seek(0)
     output = stream.read()
-
-    assert output == b"NEW OBJECT"
+    if mode == "rb":
+        assert output == b"NEW OBJECT"
+    else:
+        assert output.decode("utf-8") == "NEW OBJECT"
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
