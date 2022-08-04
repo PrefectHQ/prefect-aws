@@ -29,6 +29,7 @@ You will need to obtain AWS credentials in order to use these tasks. Refer to th
 ### Write and run a flow with prefect-aws tasks
 ```python
 from prefect import flow
+from prefect_aws import AwsCredentials
 from prefect_aws.s3 import s3_upload
 
 @flow
