@@ -2,14 +2,14 @@ import base64
 from datetime import datetime
 from typing import Optional, Tuple
 
-from prefect.blocks.core import Block
-from prefect.infrastructure.docker import DockerRegistry
+from prefect.infrastructure.docker import BaseDockerLogin
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from pydantic import PrivateAttr
 
 from prefect_aws import AwsCredentials
 
 
-class ElasticContainerRegistry(Block):
+class ElasticContainerRegistry(BaseDockerLogin):
 
     """
     Block to login to ECR registries.
@@ -24,13 +24,14 @@ class ElasticContainerRegistry(Block):
     _registry_url: str = PrivateAttr(default=None)
     _token_expiration: datetime = PrivateAttr(default=None)
 
-    def login(self):
+    async def login(self):
+        return await run_sync_in_worker_thread(self._login_sync)
+
+    def _login_sync(self):
         token, registry_url = self._get_token_and_endpoint()
         username, password = self._parse_token(token)
         # Use the base implementation to perform login
-        return DockerRegistry(
-            username=username, password=password, registry_url=registry_url, reauth=True
-        ).login()
+        return self._login(username, password, registry_url, True)
 
     def _parse_token(self, token: str) -> Tuple[str, str]:
         """
