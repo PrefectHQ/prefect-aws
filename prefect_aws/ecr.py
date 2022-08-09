@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, Tuple
 
 from prefect.infrastructure.docker import BaseDockerLogin
-from prefect.utilities.asyncutils import run_sync_in_worker_thread
+from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from pydantic import PrivateAttr
 
 from prefect_aws import AwsCredentials
@@ -24,6 +24,7 @@ class ElasticContainerRegistry(BaseDockerLogin):
     _registry_url: str = PrivateAttr(default=None)
     _token_expiration: datetime = PrivateAttr(default=None)
 
+    @sync_compatible
     async def login(self):
         return await run_sync_in_worker_thread(self._login_sync)
 
@@ -31,7 +32,9 @@ class ElasticContainerRegistry(BaseDockerLogin):
         token, registry_url = self._get_token_and_endpoint()
         username, password = self._parse_token(token)
         # Use the base implementation to perform login
-        return self._login(username, password, registry_url, True)
+        return self._login(
+            username=username, password=password, registry_url=registry_url, reauth=True
+        )
 
     def _parse_token(self, token: str) -> Tuple[str, str]:
         """
