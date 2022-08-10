@@ -9,8 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 0.1.2
+
+Released on August 2nd, 2022
+
+### Added
+
 - `batch_submit` task - [#41](https://github.com/PrefectHQ/prefect-aws/issues/41)
 - `MinIOCredentials` block - [#46](https://github.com/PrefectHQ/prefect-aws/pull/46)
+- `S3Bucket` block - [#47](https://github.com/PrefectHQ/prefect-aws/pull/47)
 
 ### Changed
 
@@ -21,10 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Removed `.result()` and `is_complete` on test flow calls. [#45](https://github.com/PrefectHQ/prefect-aws/pull/45)
-
-### Fixed
-
-### Security
 
 ## 0.1.1
 

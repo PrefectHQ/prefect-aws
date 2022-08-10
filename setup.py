@@ -30,6 +30,7 @@ setup(
         "prefect.collections": [
             "AwsCredentials = prefect_aws.credentials",
             "MinIOCredentials = prefect_aws.credentials",
+            "S3Bucket = prefect_aws.s3",
         ]
     },
     extras_require={"dev": dev_requires},

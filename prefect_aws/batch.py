@@ -1,10 +1,9 @@
 """Tasks for interacting with AWS Batch"""
 
-from functools import partial
 from typing import Any, Dict, Optional
 
-from anyio import to_thread
 from prefect import get_run_logger, task
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
 from prefect_aws.credentials import AwsCredentials
 
@@ -65,12 +64,11 @@ async def batch_submit(
 
     batch_client = aws_credentials.get_boto3_session().client("batch")
 
-    submit_job = partial(
+    response = await run_sync_in_worker_thread(
         batch_client.submit_job,
         jobName=job_name,
         jobQueue=job_queue,
         jobDefinition=job_definition,
         **batch_kwargs,
     )
-    response = await to_thread.run_sync(submit_job)
     return response["jobId"]
