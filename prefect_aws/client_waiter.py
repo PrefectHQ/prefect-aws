@@ -34,12 +34,14 @@ async def client_waiter(
             waiter or one of prefect's custom waiters.
             Currently, Prefect offers three additional
             waiters for AWS client_wait:
-                - `"JobExists"` waits for a job to be instantiated
-                - `"JobRunning"` waits for a job to start running
-                - `"JobComplete"` waits for a job to finish.
+
+            - `"JobExists"` waits for a job to be instantiated
+            - `"JobRunning"` waits for a job to start running
+            - `"JobComplete"` waits for a job to finish.
+
             You can find the definitions for all prefect-defined waiters
             [here](https://github.com/PrefectHQ/prefect-aws/
-            tree/master/prefect_aws/waiters/).
+            tree/main/prefect_aws/waiters/).
             You may also use a custom waiter name, if you supply
             an accompanying waiter definition dict.
         credentials: your AWS credentials passed from an upstream
@@ -50,7 +52,7 @@ async def client_waiter(
         waiter_definition: A valid custom waiter model, as a dict. Note that if
             you supply a custom definition, it is assumed that the provided
             'waiter_name' is contained within the waiter definition dict.
-        waiter_kwargs: Arguments to pass to the `waiter.wait(...)` method. Will
+        **waiter_kwargs: Arguments to pass to the `waiter.wait(...)` method. Will
             depend upon the specific waiter being called.
 
     Example:
