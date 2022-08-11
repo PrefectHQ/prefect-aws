@@ -1,5 +1,10 @@
 # prefect-aws
 
+[![PyPI version](https://badge.fury.io/py/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
+[![PyPI license](https://img.shields.io/pypi/l/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
+[![Downloads](https://pepy.tech/badge/prefect-aws)](https://pepy.tech/project/prefect-aws)
+
 ## Welcome!
 
 `prefect-aws` is a collection of pre-built Prefect tasks that can be used to quickly construct Prefect flows that interact with Amazon Web Services.
