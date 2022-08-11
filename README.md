@@ -2,8 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
-[![PyPI license](https://img.shields.io/pypi/l/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
 [![Downloads](https://pepy.tech/badge/prefect-aws)](https://pepy.tech/project/prefect-aws)
+[![Stars](https://img.shields.io/github/stars/prefecthq/prefect-aws)](https://github.com/prefecthq/prefect-aws/)
+[![PyPI license](https://img.shields.io/pypi/l/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
 
 ## Welcome!
 
