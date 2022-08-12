@@ -1,10 +1,13 @@
 # prefect-aws
 
-[![PyPI version](https://badge.fury.io/py/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
-[![PyPI pyversions](https://img.shields.io/pypi/pyversions/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
-[![Downloads](https://pepy.tech/badge/prefect-aws)](https://pepy.tech/project/prefect-aws)
-[![Stars](https://img.shields.io/github/stars/prefecthq/prefect-aws)](https://github.com/prefecthq/prefect-aws/)
-[![PyPI license](https://img.shields.io/pypi/l/prefect-aws.svg)](https://pypi.python.org/pypi/prefect-aws/)
+<a href="https://github.com/prefecthq/prefect-aws/" alt="Stars">
+    <img src="https://img.shields.io/github/stars/prefecthq/prefect-aws" /></a>
+<a href="https://pepy.tech/badge/prefect-aws/" alt="Downloads">
+    <img src="https://pepy.tech/badge/prefect-aws" /></a>
+<a href="https://github.com/prefecthq/prefect-aws/pulse" alt="Activity">
+    <img src="https://img.shields.io/github/commit-activity/m/prefecthq/prefect-aws" /></a>
+<a href="https://github.com/prefecthq/prefect-aws/graphs/contributors" alt="Contributors">
+    <img src="https://img.shields.io/github/contributors/prefecthq/prefect-aws" /></a>
 
 ## Welcome!
 
