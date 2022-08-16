@@ -73,6 +73,9 @@ class ECSTask(Infrastructure):
 
     @sync_compatible
     async def run(self):
+        """
+        Run the configured task on ECS.
+        """
         ecs_client = self._get_ecs_client()
 
         requested_task_definition = (
@@ -104,9 +107,15 @@ class ECSTask(Infrastructure):
         try:
             result = ecs_client.run_task(**task_run)
         except Exception as exc:
-            self._report_task_run_failure(task_run, exc)
+            self._report_task_run_creation_failure(task_run, exc)
+
+        # TODO: Wait for the task run to complete
+        result
 
     def preview(self) -> str:
+        """
+        Generate a preview of the task definition and task run that will be sent to AWS.
+        """
         preview = ""
 
         task_definition_arn = self.task_definition_arn or "<registered at runtime>"
@@ -129,9 +138,9 @@ class ECSTask(Infrastructure):
 
         return preview
 
-    def _report_task_run_failure(self, task_run, exc: Exception) -> None:
+    def _report_task_run_creation_failure(self, task_run, exc: Exception) -> None:
         """
-        Wrap common AWS task run failures with nicer user-facing messages.
+        Wrap common AWS task run creation failures with nicer user-facing messages.
         """
         # AWS generates exception types at runtime so they must be captured a bit
         # differently than normal.
@@ -145,12 +154,18 @@ class ECSTask(Infrastructure):
             raise
 
     def _get_ecs_client(self):
+        """
+        Get an AWS ECS client
+        """
         return self.aws_credentials.get_boto3_session().client("ecs")
 
     def _retrieve_task_definition(self, ecs_client, task_definition_arn: str):
-
+        """
+        Retrieve an existing task definition from AWS.
+        """
         self.logger.info(
-            f"ECSTask {self.name!r}: Retrieving task definition {task_definition_arn!r}..."
+            f"ECSTask {self.name!r}: "
+            "Retrieving task definition {task_definition_arn!r}..."
         )
         response = ecs_client.describe_task_definition(
             taskDefinition=task_definition_arn
@@ -158,6 +173,9 @@ class ECSTask(Infrastructure):
         return response["taskDefinition"]
 
     def _register_task_definition(self, ecs_client, task_definition: dict) -> str:
+        """
+        Register a new task definition with AWS.
+        """
         # TODO: Consider including a global cache for this task definition since
         #       registration of task definitions is frequently rate limited
         response = ecs_client._register_task_definition(**task_definition)
@@ -166,13 +184,19 @@ class ECSTask(Infrastructure):
     def _get_prefect_container_definition(
         self, container_definitions: List[dict]
     ) -> Optional[dict]:
+        """
+        Extract the Prefect container definition from a list of container definitions.
+        If not found, `None` is returned.
+        """
         for container in container_definitions:
             if container.get("name") == ECS_TASK_RUN_CONTAINER_NAME:
                 return container
         return None
 
     def _prepare_task_definition(self, task_definition: dict) -> dict:
-        # Prepare the task definition by inferring any defaults and merging overrides
+        """
+        Prepare a task definition by inferring any defaults and merging overrides.
+        """
         task_definition = copy.deepcopy(task_definition)
 
         # Configure the Prefect runtime container
@@ -221,6 +245,9 @@ class ECSTask(Infrastructure):
         return task_definition
 
     def _prepare_task_run_overrides(self) -> dict:
+        """
+        Prepare the 'overrides' payload for a task run request.
+        """
         overrides = {
             "containerOverrides": [
                 {
@@ -253,7 +280,10 @@ class ECSTask(Infrastructure):
         return overrides
 
     def _load_vpc_network_config(self, vpc_id: Optional[str]) -> dict:
-
+        """
+        Load settings from a specific VPC or the default VPC and generate a task
+        run request's network configuration.
+        """
         ec2_client = self.aws_credentials.get_boto3_session().client("ec2")
         vpc_message = "the default VPC" if not vpc_id else f"VPC with ID {vpc_id}"
 
@@ -295,6 +325,9 @@ class ECSTask(Infrastructure):
     def _prepare_task_run(
         self, network_config: Optional[dict], task_definition_arn: str
     ) -> dict:
+        """
+        Prepare a task run request payload.
+        """
         task_run = {
             "overrides": self._prepare_task_run_overrides(),
             "capacityProviderStrategy": self.capacity_provider_strategy,
