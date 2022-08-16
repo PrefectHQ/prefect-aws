@@ -1,12 +1,12 @@
 import copy
 import warnings
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import yaml
 from prefect.docker import get_prefect_image_name
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import sync_compatible
-from pydantic import BaseModel, Field, root_validator
+from pydantic import Field, root_validator
 
 from prefect_aws import AwsCredentials
 
