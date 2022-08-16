@@ -5,6 +5,7 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 import yaml
 from prefect.docker import get_prefect_image_name
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
+from prefect.utilities.asyncutils import sync_compatible
 from pydantic import BaseModel, Field, root_validator
 
 from prefect_aws import AwsCredentials
@@ -35,6 +36,7 @@ class ECSTask(Infrastructure):
 
     # Task run settings
     launch_type: Optional[Literal["FARGATE", "EC2", "EXTERNAL"]] = None
+    vpc_id: Optional[str] = None
     cluster: Optional[str] = None
     env: Dict[str, str] = Field(default_factory=dict)
     cpu: Union[int, str] = None
@@ -75,12 +77,29 @@ class ECSTask(Infrastructure):
     # def set_default_network_mode(cls, values):
     #     """
     #     If a task definition arn is not linked or the network mode is not set in the
-    #     given task definition the network mode should default to 'awsvpc'
+    #     given task definition the network mode should default to 'awsvpc' when using
+    #     the FARGATE launch mode
     #     """
-    #     if not values.get("task_definition_arn") and not values.get(
-    #         "task_definition", {}
-    #     ).get("networkMode"):
+    #     if (
+    #         not values.get("task_definition_arn")
+    #         and not (values.get("task_definition") or {}).get("networkMode")
+    #         and values.get("launch_type") == "FARGATE"
+    #     ):
     #         values.setdefault("network_mode", "awsvpc")
+    #     return values
+
+    # @root_validator
+    # def check_network_mode_fargate_compatibility(cls, values):
+    #     """
+    #     If using the 'FARGATE' launch mode, the network mode must be 'awsvpc'
+    #     """
+    #     network_mode = (values.get("task_definition") or {}).get("networkMode")
+    #     launch_type = values.get("launch_type")
+    #     if network_mode and network_mode != "awsvpc" and launch_type == "FARGATE":
+    #         raise ValueError(
+    #             f"Network mode {network_mode!r} is not compatible with launch type 'FARGATE'. "
+    #             "'awsvpc' must be used instead."
+    #         )
     #     return values
 
     # @root_validator
@@ -95,26 +114,55 @@ class ECSTask(Infrastructure):
     #         values.setdefault("family", "prefect")
     #     return values
 
+    @sync_compatible
     async def run(self):
         ecs_client = self.get_ecs_client()
 
-        task_definition = (
+        requested_task_definition = (
             self.retrieve_task_definition(ecs_client, self.task_definition_arn)
             if self.task_definition_arn
             else self.task_definition
         ) or {}
-        task_definition_arn = task_definition.get("taskDefinitionArn", None)
+        task_definition_arn = requested_task_definition.get("taskDefinitionArn", None)
 
-        prepared_task_definition = self.prepare_task_definition(task_definition)
+        task_definition = self.prepare_task_definition(requested_task_definition)
 
         # We must register the task definition if the arn is null or changes were made
-        if prepared_task_definition != task_definition or not task_definition_arn:
+        if task_definition != requested_task_definition or not task_definition_arn:
+            self.logger.info(f"ECSTask {self.name!r}: Registering task definition...")
+            self.logger.debug("\n" + yaml.dump(task_definition))
             task_definition_arn = self.register_task_definition(
-                ecs_client, prepared_task_definition
+                ecs_client, task_definition
             )
 
-        task_run = self.prepare_task_run(prepared_task_definition, task_definition_arn)
-        return ecs_client.run_task(**task_run)
+        if task_definition.get("networkMode") == "awsvpc":
+            network_config = self.load_vpc_network_config(self.vpc_id)
+        else:
+            network_config = None
+
+        task_run = self.prepare_task_run(network_config, task_definition_arn)
+        self.logger.info(f"ECSTask {self.name!r}: Creating ECS task run...")
+        self.logger.debug("\n" + yaml.dump(task_run))
+
+        try:
+            result = ecs_client.run_task(**task_run)
+        except Exception as exc:
+            self.report_task_run_failure(task_run, exc)
+
+    def report_task_run_failure(self, task_run, exc: Exception) -> None:
+        """
+        Wrap common AWS task run failures with nicer user-facing messages.
+        """
+        # AWS generates exception types at runtime so they must be captured a bit
+        # differently than normal.
+        if "ClusterNotFoundException" in str(exc):
+            cluster = task_run.get("cluster", "default")
+            raise RuntimeError(
+                f"Failed to run ECS task, cluster {cluster!r} not found. "
+                "Confirm that the cluster is configured in your region."
+            ) from exc
+        else:
+            raise
 
     def preview(self) -> str:
         preview = ""
@@ -127,7 +175,13 @@ class ECSTask(Infrastructure):
             preview += yaml.dump(task_definition)
             preview += "\n"
 
-        task_run = self.prepare_task_run(task_definition or {}, task_definition_arn)
+        if task_definition.get("networkMode") == "awsvpc":
+            vpc = "the default VPC" if not self.vpc_id else self.vpc_id
+            network_config = {"awsvpcConfiguration": f"<loaded from {vpc} at runtime>"}
+        else:
+            network_config = None
+
+        task_run = self.prepare_task_run(network_config, task_definition_arn)
         preview += "----- Task run -----\n"
         preview += yaml.dump(task_run)
 
@@ -137,6 +191,10 @@ class ECSTask(Infrastructure):
         return self.aws_credentials.get_boto3_session().client("ecs")
 
     def retrieve_task_definition(self, ecs_client, task_definition_arn: str):
+
+        self.logger.info(
+            f"ECSTask {self.name!r}: Retrieving task definition {task_definition_arn!r}..."
+        )
         response = ecs_client.describe_task_definition(
             taskDefinition=task_definition_arn
         )
@@ -180,6 +238,18 @@ class ECSTask(Infrastructure):
             # Task level memory and cpu are required when using fargate
             task_definition["cpu"] = str(cpu)
             task_definition["memory"] = str(memory)
+
+            # The FARGATE compatibility is required if it will be used as as launch type
+            requires_compatibilities = task_definition.setdefault(
+                "requiresCompatibilities", []
+            )
+            if "FARGATE" not in requires_compatibilities:
+                task_definition["requiresCompatibilities"].append("FARGATE")
+
+            # Only the 'awsvpc' network mode is supported when using FARGATE
+            # However, we will not enforce that here if the user has set it
+            task_definition.setdefault("networkMode", "awsvpc")
+
         elif self.launch_type == "EC2":
             # Container level memory and cpu are required when using ec2
             container.setdefault("cpu", int(cpu))
@@ -219,39 +289,52 @@ class ECSTask(Infrastructure):
 
         return overrides
 
-    def infer_network_configuration(self, network_mode: Optional[str]) -> dict:
-        if network_mode == "awsvpc":
+    def load_vpc_network_config(self, vpc_id: Optional[str]) -> dict:
+
+        ec2_client = self.aws_credentials.get_boto3_session().client("ec2")
+        vpc_message = "the default VPC" if not vpc_id else f"VPC with ID {vpc_id}"
+
+        if not vpc_id:
             # Retrieve the default VPC
-            ec2_client = self.aws_credentials.get_boto3_session().client("ec2")
-            vpcs = ec2_client.describe_vpcs(
-                Filters=[{"Name": "isDefault", "Values": ["true"]}]
-            )["Vpcs"]
-            if vpcs:
-                vpc_id = vpcs[0]["VpcId"]
-                subnets = ec2_client.describe_subnets(
-                    Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
-                )["Subnets"]
-                if subnets:
-                    config = {
-                        "awsvpcConfiguration": {
-                            "subnets": [s["SubnetId"] for s in subnets],
-                            "assignPublicIp": "ENABLED",
-                        }
-                    }
-                    self.logger.debug(
-                        "ECSTask %r: Using networkConfiguration=%r", self.name, config
-                    )
-                    return config
+            describe = {"Filters": [{"Name": "isDefault", "Values": ["true"]}]}
+        else:
+            describe = {"VpcIds": [vpc_id]}
 
-        return {}
+        vpcs = ec2_client.describe_vpcs(**describe)["Vpcs"]
+        if not vpcs:
+            help_message = (
+                "Pass an explicit `vpc_id` or configure a default VPC."
+                if not vpc_id
+                else "Check that the VPC exists in the current region."
+            )
+            raise ValueError(
+                f"Failed to find {vpc_message}. "
+                "Network configuration cannot be inferred. " + help_message
+            )
 
-    def prepare_task_run(self, task_definition: dict, task_definition_arn: str) -> dict:
+        vpc_id = vpcs[0]["VpcId"]
+        subnets = ec2_client.describe_subnets(
+            Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
+        )["Subnets"]
+        if not subnets:
+            raise ValueError(
+                f"Failed to find subnets for {vpc_message}. "
+                "Network configuration cannot be inferred."
+            )
+
+        return {
+            "awsvpcConfiguration": {
+                "subnets": [s["SubnetId"] for s in subnets],
+                "assignPublicIp": "ENABLED",
+            }
+        }
+
+    def prepare_task_run(
+        self, network_config: Optional[dict], task_definition_arn: str
+    ) -> dict:
         task_run = {
             "overrides": self.prepare_task_run_overrides(),
             "capacityProviderStrategy": self.capacity_provider_strategy,
-            "networkConfiguration": self.infer_network_configuration(
-                task_definition.get("networkMode")
-            ),
             "tags": [
                 {"name": key, "value": value} for key, value in self.labels.items()
             ],
@@ -260,5 +343,8 @@ class ECSTask(Infrastructure):
 
         if self.launch_type:
             task_run["launchType"] = self.launch_type
+
+        if network_config:
+            task_run["networkConfiguration"] = network_config
 
         return task_run
