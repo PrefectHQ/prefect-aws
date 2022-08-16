@@ -130,9 +130,11 @@ class ECSTask(Infrastructure):
 
         if self.task_definition or not self.task_definition_arn:
             task_definition = self._prepare_task_definition(self.task_definition or {})
-            preview += "----- Task definition -----\n"
+            preview += "---\n# Task definition\n"
             preview += yaml.dump(task_definition)
             preview += "\n"
+        else:
+            task_definition = None
 
         if task_definition and task_definition.get("networkMode") == "awsvpc":
             vpc = "the default VPC" if not self.vpc_id else self.vpc_id
@@ -141,7 +143,7 @@ class ECSTask(Infrastructure):
             network_config = None
 
         task_run = self._prepare_task_run(network_config, task_definition_arn)
-        preview += "----- Task run -----\n"
+        preview += "---\n# Task run request\n"
         preview += yaml.dump(task_run)
 
         return preview
@@ -231,9 +233,7 @@ class ECSTask(Infrastructure):
         task_definition.setdefault(
             "containerDefinitions", [{"name": ECS_TASK_RUN_CONTAINER_NAME}]
         )
-        container = self._get_prefect_container_definition(
-            task_definition["containerDefinitions"]
-        )
+        container = self._get_prefect_container(task_definition["containerDefinitions"])
         container["image"] = self.image
 
         task_definition.setdefault("family", "prefect")
