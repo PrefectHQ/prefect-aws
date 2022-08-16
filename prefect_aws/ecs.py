@@ -1,4 +1,5 @@
 import copy
+import time
 import warnings
 from typing import Dict, List, Literal, Optional, Union
 
@@ -31,14 +32,17 @@ class ECSTask(Infrastructure):
     task_definition_arn: Optional[str] = None
     task_definition: Optional[dict] = None
     image: str = Field(default_factory=get_prefect_image_name)
+    family_prefix: str = "prefect"
+
+    # Mixed task definition / run settings
+    cpu: Union[int, str] = None
+    memory: Union[int, str] = None
 
     # Task run settings
     launch_type: Optional[Literal["FARGATE", "EC2", "EXTERNAL"]] = None
     vpc_id: Optional[str] = None
     cluster: Optional[str] = None
     env: Dict[str, str] = Field(default_factory=dict)
-    cpu: Union[int, str] = None
-    memory: Union[int, str] = None
     task_role_arn: str = None
     execution_role_arn: str = None
     capacity_provider_strategy: List[dict] = Field(default_factory=list)
@@ -100,17 +104,21 @@ class ECSTask(Infrastructure):
         else:
             network_config = None
 
-        task_run = self.prepare_task_run(network_config, task_definition_arn)
+        task_run = self._prepare_task_run(network_config, task_definition_arn)
         self.logger.info(f"ECSTask {self.name!r}: Creating ECS task run...")
         self.logger.debug("\n" + yaml.dump(task_run))
 
         try:
-            result = ecs_client.run_task(**task_run)
+            task_arn = ecs_client.run_task(**task_run)["tasks"][0]["taskArn"]
         except Exception as exc:
             self._report_task_run_creation_failure(task_run, exc)
 
-        # TODO: Wait for the task run to complete
-        result
+        task = self._watch_task(task_arn, ecs_client)
+
+        return ECSTaskResult(
+            identifier=task_arn,
+            status_code=self._get_prefect_container(task["containers"])["exitCode"],
+        )
 
     def preview(self) -> str:
         """
@@ -126,13 +134,13 @@ class ECSTask(Infrastructure):
             preview += yaml.dump(task_definition)
             preview += "\n"
 
-        if task_definition.get("networkMode") == "awsvpc":
+        if task_definition and task_definition.get("networkMode") == "awsvpc":
             vpc = "the default VPC" if not self.vpc_id else self.vpc_id
             network_config = {"awsvpcConfiguration": f"<loaded from {vpc} at runtime>"}
         else:
             network_config = None
 
-        task_run = self.prepare_task_run(network_config, task_definition_arn)
+        task_run = self._prepare_task_run(network_config, task_definition_arn)
         preview += "----- Task run -----\n"
         preview += yaml.dump(task_run)
 
@@ -152,6 +160,28 @@ class ECSTask(Infrastructure):
             ) from exc
         else:
             raise
+
+    def _watch_task(self, task_arn: str, ecs_client, poll_interval: int = 5):
+        """
+        Watch a task until it reaches a STOPPED status.
+
+        Returns a description of the task on completion.
+        """
+        last_status = status = "UNKNOWN"
+
+        while status != "STOPPED":
+            task = ecs_client.describe_tasks(tasks=[task_arn])["tasks"][0]
+
+            status = task["lastStatus"]
+            if status != last_status:
+                self.logger.info(
+                    f"ECSTask {self.name!r}: Entered new state {status!r}."
+                )
+
+            last_status = status
+            time.sleep(poll_interval)
+
+        return task
 
     def _get_ecs_client(self):
         """
@@ -178,17 +208,15 @@ class ECSTask(Infrastructure):
         """
         # TODO: Consider including a global cache for this task definition since
         #       registration of task definitions is frequently rate limited
-        response = ecs_client._register_task_definition(**task_definition)
+        response = ecs_client.register_task_definition(**task_definition)
         return response["taskDefinition"]["taskDefinitionArn"]
 
-    def _get_prefect_container_definition(
-        self, container_definitions: List[dict]
-    ) -> Optional[dict]:
+    def _get_prefect_container(self, containers: List[dict]) -> Optional[dict]:
         """
-        Extract the Prefect container definition from a list of container definitions.
+        Extract the Prefect container from a list of containers or container definitions
         If not found, `None` is returned.
         """
-        for container in container_definitions:
+        for container in containers:
             if container.get("name") == ECS_TASK_RUN_CONTAINER_NAME:
                 return container
         return None
