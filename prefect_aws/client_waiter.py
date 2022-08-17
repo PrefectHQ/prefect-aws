@@ -12,7 +12,6 @@ from botocore.waiter import WaiterModel, create_waiter_with_client
 from prefect import get_run_logger, task
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
-from prefect_aws import waiters
 from prefect_aws.credentials import AwsCredentials
 
 
@@ -30,18 +29,6 @@ async def client_waiter(
     Args:
         client: The AWS client on which to wait (e.g., 'client_wait', 'ec2', etc).
         waiter_name: The name of the waiter to instantiate.
-            Can be a boto-supported
-            waiter or one of prefect's custom waiters.
-            Currently, Prefect offers three additional
-            waiters for AWS client_wait:
-
-            - `"JobExists"` waits for a job to be instantiated
-            - `"JobRunning"` waits for a job to start running
-            - `"JobComplete"` waits for a job to finish.
-
-            You can find the definitions for all prefect-defined waiters
-            [here](https://github.com/PrefectHQ/prefect-aws/
-            tree/main/prefect_aws/waiters/).
             You may also use a custom waiter name, if you supply
             an accompanying waiter definition dict.
         credentials: your AWS credentials passed from an upstream
@@ -84,17 +71,16 @@ async def client_waiter(
 
     boto_client = aws_credentials.get_boto3_session().client(client)
 
-    if waiter_definition:
+    if waiter_definition is not None:
         # Use user-provided waiter definition
         waiter_model = WaiterModel(waiter_definition)
         waiter = create_waiter_with_client(waiter_name, waiter_model, boto_client)
+    elif waiter_name in boto_client.waiter_names:
+        waiter = boto_client.get_waiter(waiter_name)
     else:
-        # Use either boto-provided
-        if waiter_name in boto_client.waiter_names:
-            waiter = boto_client.get_waiter(waiter_name)
-        else:  # prefect provided
-            with pkg_resources.open_text(waiters, f"{client}.json") as handle:
-                waiter_model = WaiterModel(json.load(handle))
-            waiter = create_waiter_with_client(waiter_name, waiter_model, boto_client)
+        raise ValueError(
+            f"The waiter name, {waiter_name}, is not a valid boto waiter; "
+            f"if using a custom waiter, you must provide a waiter definition"
+        )
 
     await run_sync_in_worker_thread(waiter.wait, **waiter_kwargs)

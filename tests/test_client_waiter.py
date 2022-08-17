@@ -39,12 +39,23 @@ def test_client_waiter_custom(mock_waiter, aws_credentials):
             "batch",
             "JobExists",
             aws_credentials,
-            waiter_defintion={"custom": "definition"},
+            waiter_definition={"waiters": {"JobExists": ["definition"]}, "version": 2},
         )
         return waiter
 
     test_flow()
     assert mock_waiter.wait.called_once_with("JobExists")
+
+
+@mock_ec2
+def test_client_waiter_custom_no_definition(mock_waiter, aws_credentials):
+    @flow
+    def test_flow():
+        waiter = client_waiter("batch", "JobExists", aws_credentials)
+        return waiter
+
+    with pytest.raises(ValueError, match="The waiter name, JobExists"):
+        test_flow()
 
 
 @mock_ec2
@@ -56,14 +67,3 @@ def test_client_waiter_boto(mock_waiter, mock_client, aws_credentials):
 
     test_flow()
     assert mock_waiter.wait.called_once_with("instance_exists")
-
-
-@mock_ec2
-def test_client_waiter_prefect(mock_waiter, aws_credentials):
-    @flow
-    def test_flow():
-        waiter = client_waiter("batch", "JobExists", aws_credentials)
-        return waiter
-
-    test_flow()
-    assert mock_waiter.wait.called_once_with("JobExists")
