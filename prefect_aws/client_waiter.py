@@ -25,11 +25,7 @@ async def client_waiter(
         waiter_name: The name of the waiter to instantiate.
             You may also use a custom waiter name, if you supply
             an accompanying waiter definition dict.
-        credentials: your AWS credentials passed from an upstream
-            Secret task; this Secret must be a JSON string
-            with two keys: `ACCESS_KEY` and `SECRET_ACCESS_KEY` which will be
-            passed directly to `boto3`.  If not provided here or in context, `boto3`
-            will fall back on standard AWS rules for authentication.
+        aws_credentials: Credentials to use for authentication with AWS.
         waiter_definition: A valid custom waiter model, as a dict. Note that if
             you supply a custom definition, it is assumed that the provided
             'waiter_name' is contained within the waiter definition dict.
