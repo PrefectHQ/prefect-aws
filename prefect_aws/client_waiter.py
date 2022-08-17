@@ -1,12 +1,6 @@
 """Task for waiting on a long-running AWS job"""
 
-import json
 from typing import Any, Dict, Optional
-
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
 
 from botocore.waiter import WaiterModel, create_waiter_with_client
 from prefect import get_run_logger, task
