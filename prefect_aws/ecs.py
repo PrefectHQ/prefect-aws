@@ -154,25 +154,13 @@ class ECSTask(Infrastructure):
 
         task = self._watch_task(task_arn, task_definition, ecs_client, boto_session)
 
-        status_code = self._get_prefect_container(task["containers"]).get(
-            "exitCode", -1
-        )
-        if status_code == -1:
-            self.logger.error(
-                f"ECSTask {self.name!r}: Task exited without reporting a container "
-                "exit status."
-            )
-        elif status_code == 0:
-            self.logger.info(f"ECSTask {self.name!r}: Container exited successfully.")
-        else:
-            self.logger.warning(
-                f"ECSTask {self.name!r}: Container exited with non-zero exit code "
-                f"{status_code}."
-            )
+        status_code = self._get_prefect_container(task["containers"]).get("exitCode")
 
         return ECSTaskResult(
             identifier=task_arn,
-            status_code=status_code,
+            # If the container does not start the exit code can be null but we must
+            # still report a status code. We use a -1 to indicate a special code.
+            status_code=status_code or -1,
         )
 
     def preview(self) -> str:
@@ -206,6 +194,20 @@ class ECSTask(Infrastructure):
         preview += yaml.dump(task_run)
 
         return preview
+
+    def _report_container_status_code(self, status_code: Optional[int]) -> None:
+        if status_code is None:
+            self.logger.error(
+                f"ECSTask {self.name!r}: Task exited without reporting a container "
+                "exit status."
+            )
+        elif status_code == 0:
+            self.logger.info(f"ECSTask {self.name!r}: Container exited successfully.")
+        else:
+            self.logger.warning(
+                f"ECSTask {self.name!r}: Container exited with non-zero exit code "
+                f"{status_code}."
+            )
 
     def _report_task_run_creation_failure(self, task_run, exc: Exception) -> None:
         """
