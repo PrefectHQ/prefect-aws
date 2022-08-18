@@ -48,16 +48,16 @@ def test_ecr_login_with_cached_token(aws_credentials):
     registry._login = mock_base_login
 
     mock_get_token = MagicMock()
-    original_get_client = registry._get_client
+    original_get_ecr_client = registry._get_ecr_client
 
-    def tracked_get_client():
-        client = original_get_client()
+    def tracked_get_ecr_client():
+        client = original_get_ecr_client()
         # Retain original behavior
         mock_get_token.side_effect = client.get_authorization_token
         client.get_authorization_token = mock_get_token
         return client
 
-    registry._get_client = tracked_get_client
+    registry._get_ecr_client = tracked_get_ecr_client
 
     with mock_ecr():
         registry.login()
@@ -90,16 +90,16 @@ def test_ecr_login_with_expired_cached_token(aws_credentials):
     registry._login = mock_base_login
 
     mock_get_token = MagicMock()
-    original_get_client = registry._get_client
+    original_get_ecr_client = registry._get_ecr_client
 
-    def tracked_get_client():
-        client = original_get_client()
+    def tracked_get_ecr_client():
+        client = original_get_ecr_client()
         # Retain original behavior
         mock_get_token.side_effect = client.get_authorization_token
         client.get_authorization_token = mock_get_token
         return client
 
-    registry._get_client = tracked_get_client
+    registry._get_ecr_client = tracked_get_ecr_client
 
     with mock_ecr():
         registry.login()

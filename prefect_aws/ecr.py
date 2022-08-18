@@ -1,10 +1,11 @@
+"""Blocks for interacting with AWS ECR"""
 import base64
 from datetime import datetime
 from typing import Optional, Tuple
 
 from prefect.infrastructure.docker import BaseDockerLogin
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
-from pydantic import PrivateAttr
+from pydantic import Field, PrivateAttr
 
 from prefect_aws import AwsCredentials
 
@@ -17,7 +18,7 @@ class ElasticContainerRegistry(BaseDockerLogin):
     _block_type_name = "ECR Registry"
 
     registry_id: Optional[str]
-    aws_credentials: AwsCredentials
+    aws_credentials: AwsCredentials = Field(default_factory=AwsCredentials)
 
     _cached_token: bytes = PrivateAttr(default=None)
     _registry_url: str = PrivateAttr(default=None)
