@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
 from moto import mock_ecr
+from prefect.infrastructure.docker import DockerContainer
 
 from prefect_aws.ecr import ElasticContainerRegistry
 
@@ -111,3 +112,12 @@ def test_ecr_login_with_expired_cached_token(aws_credentials):
     assert (
         mock_get_token.call_count == 2
     ), "The token should be expired and retrieved again"
+
+
+def test_ecr_register_docker_container_compatibility(aws_credentials):
+    registry = ElasticContainerRegistry(
+        aws_credentials=aws_credentials, registry_id="test"
+    )
+    container = DockerContainer(image_registry=registry)
+
+    assert container.image_registry == registry
