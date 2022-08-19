@@ -13,8 +13,14 @@ Examples:
     Run a task on a specific VPC using ECS Fargate
     >>> ECSTask(command=["echo", "hello world"], vpc_id="vpc-01abcdf123456789a").run()
 
-    Run a task and stream the container's output to the local terminal
-    >>> ECSTask(command=["echo", "hello world"], stream_output=True)
+    Run a task and stream the container's output to the local terminal. Note an
+    execution role must be provided with permissions: logs:CreateLogStream, 
+    logs:CreateLogGroup, and logs:PutLogEvents.
+    >>> ECSTask(
+    >>>     command=["echo", "hello world"], 
+    >>>     stream_output=True, 
+    >>>     execution_role_arn="..."
+    >>> )
 
     Run a task using an existing task definition as a base
     >>> ECSTask(command=["echo", "hello world"], task_definition_arn="arn:aws:ecs:...")
@@ -32,9 +38,10 @@ Examples:
     >>> ECSTask(command=["echo", "hello world"], cluster="my-cluster-name")
 """
 import copy
+import sys
 import time
 import warnings
-from typing import Dict, List, Literal, Optional, Union
+from typing import Dict, Generator, List, Literal, Optional, Union
 
 import yaml
 from prefect.docker import get_prefect_image_name
@@ -49,7 +56,7 @@ class ECSTaskResult(InfrastructureResult):
     """The result of a run of an ECS task"""
 
 
-ECS_TASK_RUN_CONTAINER_NAME = "prefect"
+PREFECT_ECS_CONTAINER_NAME = "prefect"
 
 
 class ECSTask(Infrastructure):
@@ -144,17 +151,33 @@ class ECSTask(Infrastructure):
             network_config=network_config,
             task_definition_arn=task_definition_arn,
         )
-        self.logger.info(f"ECSTask {self.name!r}: Creating ECS task run...")
+        self.logger.info(f"ECSTask {self.name!r}: Creating task run...")
         self.logger.debug("Task run payload\n" + yaml.dump(task_run))
 
         try:
-            task_arn = ecs_client.run_task(**task_run)["tasks"][0]["taskArn"]
+            task = ecs_client.run_task(**task_run)["tasks"][0]
+            task_arn = task["taskArn"]
+            cluster_arn = task["clusterArn"]
         except Exception as exc:
             self._report_task_run_creation_failure(task_run, exc)
 
-        task = self._watch_task(task_arn, task_definition, ecs_client, boto_session)
+        # Raises an exception if the task does not start
+        self._wait_for_task_start(task_arn, cluster_arn, ecs_client)
 
+        # Display a nice message indicating the command and image
+        self.logger.info(
+            f"ECSTask {self.name!r}: Running command {' '.join(self.command)!r} "
+            f"in container {PREFECT_ECS_CONTAINER_NAME!r} ({self.image})..."
+        )
+
+        # Wait for completion and stream logs
+        task = self._wait_for_task_finish(
+            task_arn, cluster_arn, task_definition, ecs_client, boto_session
+        )
+
+        # Check the status code of the Prefect container
         status_code = self._get_prefect_container(task["containers"]).get("exitCode")
+        self._report_container_status_code(PREFECT_ECS_CONTAINER_NAME, status_code)
 
         return ECSTaskResult(
             identifier=task_arn,
@@ -195,17 +218,24 @@ class ECSTask(Infrastructure):
 
         return preview
 
-    def _report_container_status_code(self, status_code: Optional[int]) -> None:
+    def _report_container_status_code(
+        self, name: str, status_code: Optional[int]
+    ) -> None:
+        """
+        Display a log for the given container status code.
+        """
         if status_code is None:
             self.logger.error(
-                f"ECSTask {self.name!r}: Task exited without reporting a container "
-                "exit status."
+                f"ECSTask {self.name!r}: Task exited without reporting an exit status "
+                f"for container {name!r}."
             )
         elif status_code == 0:
-            self.logger.info(f"ECSTask {self.name!r}: Container exited successfully.")
+            self.logger.info(
+                f"ECSTask {self.name!r}: Container {name!r} exited successfully."
+            )
         else:
             self.logger.warning(
-                f"ECSTask {self.name!r}: Container exited with non-zero exit code "
+                f"ECSTask {self.name!r}: Container {name!r} exited with non-zero exit code "
                 f"{status_code}."
             )
 
@@ -231,60 +261,179 @@ class ECSTask(Infrastructure):
         else:
             raise
 
-    def _watch_task(
+    def _watch_task_run(
         self,
         task_arn: str,
+        cluster_arn: str,
+        ecs_client,
+        current_status: str = "UNKNOWN",
+        until_status: str = None,
+        poll_interval: int = 5,
+    ) -> Generator[None, None, dict]:
+        """
+        Watches an ECS task run by querying every `poll_interval` seconds. After each
+        query, the retrieved task is yielded. This function returns when the task run
+        reaches a STOPPED status or the provided `until_status`.
+
+        Emits a log each time the status changes.
+        """
+        last_status = status = current_status
+        while status != until_status:
+            task = ecs_client.describe_tasks(tasks=[task_arn], cluster=cluster_arn)[
+                "tasks"
+            ][0]
+
+            status = task["lastStatus"]
+            if status != last_status:
+                self.logger.info(f"ECSTask {self.name!r}: Status is {status}.")
+
+            yield task
+
+            # No point in continuing if the status is final
+            if status == "STOPPED":
+                break
+
+            last_status = status
+            time.sleep(poll_interval)
+
+    def _wait_for_task_start(self, task_arn: str, cluster_arn: str, ecs_client) -> dict:
+        """
+        Waits for an ECS task run to reach a RUNNING status.
+
+        If a STOPPED status is reached instead, an exception is raised indicating the
+        reason that the task run did not start.
+        """
+        for task in self._watch_task_run(
+            task_arn, cluster_arn, ecs_client, until_status="RUNNING"
+        ):
+            # TODO: It is possible that the task has passed _through_ a RUNNING
+            #       status during the polling interval. In this case, there is not an
+            #       exception to raise.
+            if task["lastStatus"] == "STOPPED":
+                code = task.get("stopCode")
+                reason = task.get("stoppedReason")
+                raise type(code, (RuntimeError,), {})(reason)
+
+        return task
+
+    def _wait_for_task_finish(
+        self,
+        task_arn: str,
+        cluster_arn: str,
         task_definition: dict,
         ecs_client,
         boto_session,
         poll_interval: int = 5,
     ):
         """
-        Watch a task until it reaches a STOPPED status.
+        Watch an ECS task until it reaches a STOPPED status.
+
+        If configured, logs from the Prefect container are streamed to stderr.
 
         Returns a description of the task on completion.
         """
-        last_status = status = "UNKNOWN"
+        can_stream_output = False
 
         if self.stream_output:
-            log_driver = task_definition.get("logConfiguration", {}).get("logDriver")
-            if not task_definition.get("logConfiguration"):
+            container_def = self._get_prefect_container(
+                task_definition["containerDefinitions"]
+            )
+            if not container_def:
+                self.logger.warning(
+                    f"ECSTask {self.name!r}: Prefect container definition not found in "
+                    "task definition. Output cannot be streamed."
+                )
+            elif not container_def.get("logConfiguration"):
                 self.logger.warning(
                     f"ECSTask {self.name!r}: Logging configuration not found on task. "
-                    "Logs cannot be streamed."
+                    "Output cannot be streamed."
                 )
-            elif not log_driver == "awslogs":
+            elif not container_def["logConfiguration"].get("logDriver") == "awslogs":
                 self.logger.warning(
                     f"ECSTask {self.name!r}: Logging configuration uses unsupported "
-                    " driver {log_driver!r}. Logs cannot be streamed."
+                    " driver {container_def['logConfiguration'].get('logDriver')!r}. "
+                    "Output cannot be streamed."
                 )
             else:
-                log_config = task_definition["logConfiguration"]["options"]
+                # Prepare to stream the output
+                log_config = container_def["logConfiguration"]["options"]
                 logs_client = boto_session.client("logs")
-
-        while status != "STOPPED":
-            task = ecs_client.describe_tasks(tasks=[task_arn])["tasks"][0]
-
-            status = task["lastStatus"]
-            if status != last_status:
+                can_stream_output = True
+                # Track the last log timestamp to prevent double display
+                last_log_timestamp: Optional[int] = None
+                # Determine the name of the stream as "prefix/family/run"
+                stream_name = "/".join(
+                    [
+                        log_config["awslogs-stream-prefix"],
+                        task_definition["family"],
+                        task_arn.rsplit("/")[-1],
+                    ]
+                )
                 self.logger.info(
-                    f"ECSTask {self.name!r}: Entered new state {status!r}."
+                    f"ECSTask {self.name!r}: Streaming output from container {PREFECT_ECS_CONTAINER_NAME!r}..."
                 )
 
-            last_status = status
-
-            if self.stream_output and log_config:
-                response = logs_client.get_log_events(
-                    logGroupName=log_config["awslogs-group"],
-                    logStreamName=log_config["awslogs-stream-prefix"],
+        for task in self._watch_task_run(
+            task_arn, cluster_arn, ecs_client, current_status="RUNNING"
+        ):
+            if self.stream_output and can_stream_output:
+                # On each poll for task run status, also retrieve available logs
+                last_log_timestamp = self._stream_available_logs(
+                    logs_client,
+                    log_group=log_config["awslogs-group"],
+                    log_stream=stream_name,
+                    last_log_timestamp=last_log_timestamp,
                 )
-                log_events = response["events"]
-                for log_event in log_events:
-                    self.logger.info(log_event)
-
-            time.sleep(poll_interval)
 
         return task
+
+    def _stream_available_logs(
+        self,
+        logs_client,
+        log_group,
+        log_stream,
+        last_log_timestamp: Optional[int] = None,
+    ) -> Optional[int]:
+        last_log_stream_token = "NO-TOKEN"
+        next_log_stream_token = None
+
+        # AWS will return the same token that we send once the end of the paginated
+        # response is reached
+        while last_log_stream_token != next_log_stream_token:
+            last_log_stream_token = next_log_stream_token
+
+            request = {
+                "logGroupName": log_group,
+                "logStreamName": log_stream,
+            }
+
+            if last_log_stream_token is not None:
+                request["nextToken"] = last_log_stream_token
+
+            if last_log_timestamp is not None:
+                # Bump the timestamp by one ms to avoid retrieving the last log again
+                request["startTime"] = last_log_timestamp + 1
+
+            response = logs_client.get_log_events(**request)
+
+            log_events = response["events"]
+            for log_event in log_events:
+                # TODO: This doesn't forward to the local logger, which can be
+                #       bad for customizing handling and understanding where the
+                #       log is coming from, but it avoid nesting logger information
+                #       when the content is output from a Prefect logger on the
+                #       running infrastructure
+                print(log_event["message"], file=sys.stderr)
+
+                if (
+                    last_log_timestamp is None
+                    or log_event["timestamp"] > last_log_timestamp
+                ):
+                    last_log_timestamp = log_event["timestamp"]
+
+            next_log_stream_token = response.get("nextForwardToken")
+
+        return last_log_timestamp
 
     def _retrieve_task_definition(self, ecs_client, task_definition_arn: str):
         """
@@ -314,7 +463,7 @@ class ECSTask(Infrastructure):
         If not found, `None` is returned.
         """
         for container in containers:
-            if container.get("name") == ECS_TASK_RUN_CONTAINER_NAME:
+            if container.get("name") == PREFECT_ECS_CONTAINER_NAME:
                 return container
         return None
 
@@ -326,7 +475,7 @@ class ECSTask(Infrastructure):
 
         # Configure the Prefect runtime container
         task_definition.setdefault(
-            "containerDefinitions", [{"name": ECS_TASK_RUN_CONTAINER_NAME}]
+            "containerDefinitions", [{"name": PREFECT_ECS_CONTAINER_NAME}]
         )
         container = self._get_prefect_container(task_definition["containerDefinitions"])
         container["image"] = self.image
@@ -388,7 +537,7 @@ class ECSTask(Infrastructure):
         overrides = {
             "containerOverrides": [
                 {
-                    "name": ECS_TASK_RUN_CONTAINER_NAME,
+                    "name": PREFECT_ECS_CONTAINER_NAME,
                     "environment": [
                         {"name": key, "value": value} for key, value in self.env.items()
                     ],
@@ -406,9 +555,6 @@ class ECSTask(Infrastructure):
 
         if self.task_role_arn:
             overrides["taskRoleArn"] = self.task_role_arn
-
-        if self.cluster:
-            overrides["cluster"] = self.cluster
 
         if self.memory:
             overrides["memory"] = str(self.memory)
@@ -476,6 +622,9 @@ class ECSTask(Infrastructure):
             ],
             "taskDefinition": task_definition_arn,
         }
+
+        if self.cluster:
+            task_run["cluster"] = self.cluster
 
         if self.launch_type:
             if self.launch_type == "FARGATE_SPOT":
