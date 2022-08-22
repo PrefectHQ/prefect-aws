@@ -91,7 +91,7 @@ async def update_secret(
         description: Desired description of the secret.
 
     Returns:
-        Dict[str, str]: A dict containing the secret ARN (Amazon Resource Name),
+        A dict containing the secret ARN (Amazon Resource Name),
             name, and current version ID.
             ```python
             {
@@ -177,7 +177,7 @@ async def create_secret(
             ```
 
     Returns:
-        Dict[str, str]: A dict containing the secret ARN (Amazon Resource Name),
+        A dict containing the secret ARN (Amazon Resource Name),
             name, and current version ID.
             ```python
             {
@@ -247,7 +247,7 @@ async def delete_secret(
     aws_credentials: AwsCredentials,
     recovery_window_in_days: int = 30,
     force_delete_without_recovery: bool = False,
-):
+) -> Dict[str, str]:
     """
     Deletes a secret from AWS Secrets Manager.
 
@@ -259,14 +259,14 @@ async def delete_secret(
         secret_name: Name of the secret to be deleted.
         aws_credentials: Credentials to use for authentication with AWS.
         recovery_window_in_days: Number of days a secret should be recoverable for
-            before permenant deletion. Minium window is 7 days and maximum window
+            before permanent deletion. Minium window is 7 days and maximum window
             is 30 days. If `force_delete_without_recovery` is set to `True`, this
             value will be ignored.
         force_delete_without_recovery: If `True`, the secret will be immediately
             deleted and will not be recoverable.
 
     Returns:
-        Dict[str, str]: A dict containing the secret ARN (Amazon Resource Name),
+        A dict containing the secret ARN (Amazon Resource Name),
             name, and deletion date of the secret. DeletionDate is the date and
             time of the delete request plus the number of days in
             `recovery_window_in_days`.

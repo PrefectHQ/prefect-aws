@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import boto3
 import pytest
 from botocore.exceptions import ClientError
@@ -19,7 +21,7 @@ def minio_creds_block():
     )
 
 
-bucket_name = "test_bucket"
+BUCKET_NAME = "test_bucket"
 
 
 @pytest.fixture
@@ -38,17 +40,33 @@ def s3():
         )
 
 
+@pytest.fixture
+def nested_s3_bucket_structure(s3, s3_bucket, tmp_path: Path):
+    """Creates an S3 bucket with multiple files in a nested structure"""
+
+    file = tmp_path / "object.txt"
+    file.write_text("TEST")
+
+    s3.upload_file(str(file), BUCKET_NAME, "object.txt")
+    s3.upload_file(str(file), BUCKET_NAME, "level1/object_level1.txt")
+    s3.upload_file(str(file), BUCKET_NAME, "level1/level2/object_level2.txt")
+    s3.upload_file(str(file), BUCKET_NAME, "level1/level2/object2_level2.txt")
+
+    file.unlink()
+    assert not file.exists()
+
+
 @pytest.fixture(params=["aws_credentials", "minio_credentials"])
 def s3_bucket(s3, request, aws_creds_block, minio_creds_block):
 
     key = request.param
 
     if key == "aws_credentials":
-        fs = S3Bucket(bucket_name=bucket_name, aws_credentials=aws_creds_block)
+        fs = S3Bucket(bucket_name=BUCKET_NAME, aws_credentials=aws_creds_block)
     elif key == "minio_credentials":
-        fs = S3Bucket(bucket_name=bucket_name, minio_credentials=minio_creds_block)
+        fs = S3Bucket(bucket_name=BUCKET_NAME, minio_credentials=minio_creds_block)
 
-    s3.create_bucket(Bucket=bucket_name)
+    s3.create_bucket(Bucket=BUCKET_NAME)
 
     return fs
 
@@ -98,7 +116,7 @@ async def test_aws_basepath(s3_bucket, aws_creds_block):
 
     # create a new block with a subfolder
     s3_bucket_block = S3Bucket(
-        bucket_name=bucket_name,
+        bucket_name=BUCKET_NAME,
         aws_credentials=aws_creds_block,
         basepath="subfolder",
     )
@@ -106,6 +124,135 @@ async def test_aws_basepath(s3_bucket, aws_creds_block):
     key = await s3_bucket_block.write_path("test.txt", content=b"hello")
     assert await s3_bucket_block.read_path(key) == b"hello"
     assert key == "subfolder/test.txt"
+
+
+async def test_get_directory(
+    nested_s3_bucket_structure, s3_bucket: S3Bucket, tmp_path: Path
+):
+    await s3_bucket.get_directory(local_path=str(tmp_path))
+
+    assert (tmp_path / "object.txt").exists()
+    assert (tmp_path / "level1" / "object_level1.txt").exists()
+    assert (tmp_path / "level1" / "level2" / "object_level2.txt").exists()
+    assert (tmp_path / "level1" / "level2" / "object2_level2.txt").exists()
+
+
+async def test_get_directory_respects_basepath(
+    nested_s3_bucket_structure, s3_bucket: S3Bucket, tmp_path: Path, aws_creds_block
+):
+    s3_bucket_block = S3Bucket(
+        bucket_name=BUCKET_NAME,
+        aws_credentials=aws_creds_block,
+        basepath="level1/level2",
+    )
+
+    await s3_bucket_block.get_directory(local_path=str(tmp_path))
+
+    assert (len(list(tmp_path.glob("*")))) == 2
+    assert (tmp_path / "object_level2.txt").exists()
+    assert (tmp_path / "object2_level2.txt").exists()
+
+
+async def test_get_directory_respects_from_path(
+    nested_s3_bucket_structure, s3_bucket: S3Bucket, tmp_path: Path, aws_creds_block
+):
+    await s3_bucket.get_directory(local_path=str(tmp_path), from_path="level1")
+
+    assert (tmp_path / "object_level1.txt").exists()
+    assert (tmp_path / "level2" / "object_level2.txt").exists()
+    assert (tmp_path / "level2" / "object2_level2.txt").exists()
+
+
+async def test_put_directory(s3_bucket: S3Bucket, tmp_path: Path):
+    (tmp_path / "file1.txt").write_text("FILE 1")
+    (tmp_path / "file2.txt").write_text("FILE 2")
+    (tmp_path / "folder1").mkdir()
+    (tmp_path / "folder1" / "file3.txt").write_text("FILE 3")
+    (tmp_path / "folder1" / "file4.txt").write_text("FILE 4")
+    (tmp_path / "folder1" / "folder2").mkdir()
+    (tmp_path / "folder1" / "folder2" / "file5.txt").write_text("FILE 5")
+
+    uploaded_file_count = await s3_bucket.put_directory(local_path=str(tmp_path))
+    assert uploaded_file_count == 5
+
+    (tmp_path / "downloaded_files").mkdir()
+
+    await s3_bucket.get_directory(local_path=str(tmp_path / "downloaded_files"))
+
+    assert (tmp_path / "downloaded_files" / "file1.txt").exists()
+    assert (tmp_path / "downloaded_files" / "file2.txt").exists()
+    assert (tmp_path / "downloaded_files" / "folder1" / "file3.txt").exists()
+    assert (tmp_path / "downloaded_files" / "folder1" / "file4.txt").exists()
+    assert (
+        tmp_path / "downloaded_files" / "folder1" / "folder2" / "file5.txt"
+    ).exists()
+
+
+async def test_put_directory_respects_basepath(
+    s3_bucket: S3Bucket, tmp_path: Path, aws_creds_block
+):
+    (tmp_path / "file1.txt").write_text("FILE 1")
+    (tmp_path / "file2.txt").write_text("FILE 2")
+    (tmp_path / "folder1").mkdir()
+    (tmp_path / "folder1" / "file3.txt").write_text("FILE 3")
+    (tmp_path / "folder1" / "file4.txt").write_text("FILE 4")
+    (tmp_path / "folder1" / "folder2").mkdir()
+    (tmp_path / "folder1" / "folder2" / "file5.txt").write_text("FILE 5")
+
+    s3_bucket_block = S3Bucket(
+        bucket_name=BUCKET_NAME,
+        aws_credentials=aws_creds_block,
+        basepath="subfolder",
+    )
+
+    uploaded_file_count = await s3_bucket_block.put_directory(local_path=str(tmp_path))
+    assert uploaded_file_count == 5
+
+    (tmp_path / "downloaded_files").mkdir()
+
+    await s3_bucket_block.get_directory(local_path=str(tmp_path / "downloaded_files"))
+
+    assert (tmp_path / "downloaded_files" / "subfolder" / "file1.txt").exists()
+    assert (tmp_path / "downloaded_files" / "subfolder" / "file2.txt").exists()
+    assert (
+        tmp_path / "downloaded_files" / "subfolder" / "folder1" / "file3.txt"
+    ).exists()
+    assert (
+        tmp_path / "downloaded_files" / "subfolder" / "folder1" / "file4.txt"
+    ).exists()
+    assert (
+        tmp_path
+        / "downloaded_files"
+        / "subfolder"
+        / "folder1"
+        / "folder2"
+        / "file5.txt"
+    ).exists()
+
+
+async def test_put_directory_respects_local_path(
+    s3_bucket: S3Bucket, tmp_path: Path, aws_creds_block
+):
+    (tmp_path / "file1.txt").write_text("FILE 1")
+    (tmp_path / "file2.txt").write_text("FILE 2")
+    (tmp_path / "folder1").mkdir()
+    (tmp_path / "folder1" / "file3.txt").write_text("FILE 3")
+    (tmp_path / "folder1" / "file4.txt").write_text("FILE 4")
+    (tmp_path / "folder1" / "folder2").mkdir()
+    (tmp_path / "folder1" / "folder2" / "file5.txt").write_text("FILE 5")
+
+    uploaded_file_count = await s3_bucket.put_directory(
+        local_path=str(tmp_path / "folder1")
+    )
+    assert uploaded_file_count == 3
+
+    (tmp_path / "downloaded_files").mkdir()
+
+    await s3_bucket.get_directory(local_path=str(tmp_path / "downloaded_files"))
+
+    assert (tmp_path / "downloaded_files" / "file3.txt").exists()
+    assert (tmp_path / "downloaded_files" / "file4.txt").exists()
+    assert (tmp_path / "downloaded_files" / "folder2" / "file5.txt").exists()
 
 
 async def test_too_many_credentials_arguments(
@@ -116,7 +263,7 @@ async def test_too_many_credentials_arguments(
     with pytest.raises(ValueError):
         # create a new block with a subfolder
         S3Bucket(
-            bucket_name=bucket_name,
+            bucket_name=BUCKET_NAME,
             aws_credentials=aws_creds_block,
             minio_credentials=minio_creds_block,
             basepath="subfolder",
@@ -129,7 +276,7 @@ async def test_too_few_credentials_arguments(s3_bucket, aws_creds_block):
     with pytest.raises(ValueError):
         # create a new block with a subfolder
         S3Bucket(
-            bucket_name=bucket_name,
+            bucket_name=BUCKET_NAME,
             basepath="subfolder",
         )
 
