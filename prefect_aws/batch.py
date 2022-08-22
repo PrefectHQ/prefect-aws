@@ -24,7 +24,7 @@ async def batch_submit(
         job_definition: The AWS batch job definition.
         job_queue: Name of the AWS batch job queue.
         aws_credentials: Credentials to use for authentication with AWS.
-        batch_kwargs: Additional keyword arguments to pass to the boto3
+        **batch_kwargs: Additional keyword arguments to pass to the boto3
             `submit_job` function. See the documentation for
             [submit_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/batch.html#Batch.Client.submit_job)
             for more details.
@@ -62,7 +62,6 @@ async def batch_submit(
     logger = get_run_logger()
     logger.info("Preparing to submit %s job to %s job queue", job_name, job_queue)
 
-    batch_kwargs = batch_kwargs or {}
     batch_client = aws_credentials.get_boto3_session().client("batch")
 
     response = await run_sync_in_worker_thread(
