@@ -44,9 +44,10 @@ import warnings
 from typing import Dict, Generator, List, Literal, Optional, Union
 
 import yaml
+from anyio.abc import TaskStatus
 from prefect.docker import get_prefect_image_name
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
-from prefect.utilities.asyncutils import sync_compatible
+from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from pydantic import Field, root_validator
 
 from prefect_aws import AwsCredentials
@@ -91,6 +92,9 @@ class ECSTask(Infrastructure):
     env: Dict[str, str] = Field(default_factory=dict)
     task_role_arn: str = None
 
+    # Execution settings
+    task_start_timeout_seconds: int = 30
+
     @root_validator(pre=True)
     def set_default_configure_cloudwatch_logs(cls, values):
         """
@@ -106,8 +110,13 @@ class ECSTask(Infrastructure):
 
     @root_validator
     def configure_cloudwatch_logs_requires_execution_role_arn(cls, values):
-        if values.get("configure_cloudwatch_logs") and not values.get(
-            "execution_role_arn"
+        if (
+            values.get("configure_cloudwatch_logs")
+            and not values.get("execution_role_arn")
+            # Do not raise if they've linked to another task definition or provided
+            # it without using our shortcuts
+            and not values.get("task_definition_arn")
+            and not (values.get("task_definition") or {}).get("executionRoleArn")
         ):
             raise ValueError(
                 "An `execution_role_arn` must be provided to use "
@@ -116,13 +125,48 @@ class ECSTask(Infrastructure):
         return values
 
     @sync_compatible
-    async def run(self):
+    async def run(self, task_status: Optional[TaskStatus] = None):
         """
         Run the configured task on ECS.
         """
+        boto_session, ecs_client = await run_sync_in_worker_thread(
+            self._get_session_and_client
+        )
+
+        task_arn, cluster_arn, task_definition = await run_sync_in_worker_thread(
+            self._create_task_and_wait_for_start, boto_session, ecs_client
+        )
+
+        # Display a nice message indicating the command and image
+        self.logger.info(
+            f"ECSTask {self.name!r}: Running command {' '.join(self.command)!r} "
+            f"in container {PREFECT_ECS_CONTAINER_NAME!r} ({self.image})..."
+        )
+
+        if task_status:
+            task_status.started(task_arn)
+
+        return await run_sync_in_worker_thread(
+            self._watch_task_and_get_result,
+            task_arn,
+            cluster_arn,
+            task_definition,
+            boto_session,
+            ecs_client,
+        )
+
+    def _get_session_and_client(self):
+        """
+        Retrieve a boto3 session and ECS client
+        """
         boto_session = self.aws_credentials.get_boto3_session()
         ecs_client = boto_session.client("ecs")
+        return boto_session, ecs_client
 
+    def _create_task_and_wait_for_start(self, boto_session, ecs_client):
+        """
+        Register the task definition, create the task run, and wait for it to start.
+        """
         requested_task_definition = (
             self._retrieve_task_definition(ecs_client, self.task_definition_arn)
             if self.task_definition_arn
@@ -162,21 +206,39 @@ class ECSTask(Infrastructure):
             self._report_task_run_creation_failure(task_run, exc)
 
         # Raises an exception if the task does not start
-        self._wait_for_task_start(task_arn, cluster_arn, ecs_client)
-
-        # Display a nice message indicating the command and image
-        self.logger.info(
-            f"ECSTask {self.name!r}: Running command {' '.join(self.command)!r} "
-            f"in container {PREFECT_ECS_CONTAINER_NAME!r} ({self.image})..."
+        self.logger.info(f"ECSTask {self.name!r}: Waiting for task run to start...")
+        self._wait_for_task_start(
+            task_arn, cluster_arn, ecs_client, timeout=self.task_start_timeout_seconds
         )
+
+        return task_arn, cluster_arn, task_definition
+
+    def _watch_task_and_get_result(
+        self,
+        task_arn: str,
+        cluster_arn: str,
+        task_definition: dict,
+        boto_session,
+        ecs_client,
+    ):
+        """
+        Wait for the task run to complete and retrieve the exit code of the Prefect
+        container.
+        """
 
         # Wait for completion and stream logs
         task = self._wait_for_task_finish(
             task_arn, cluster_arn, task_definition, ecs_client, boto_session
         )
 
+        # TODO: Consider deactivating the task definition
+
         # Check the status code of the Prefect container
-        status_code = self._get_prefect_container(task["containers"]).get("exitCode")
+        prefect_container = self._get_prefect_container(task["containers"])
+        assert (
+            prefect_container is not None
+        ), f"'prefect' container missing from task: {task}"
+        status_code = prefect_container.get("exitCode")
         self._report_container_status_code(PREFECT_ECS_CONTAINER_NAME, status_code)
 
         return ECSTaskResult(
@@ -258,6 +320,18 @@ class ECSTask(Infrastructure):
                 "have any container instances associated with it. Confirm that you "
                 "have EC2 container instances available."
             ) from exc
+        elif (
+            "failed to validate logger args" in str(exc)
+            and "AccessDeniedException" in str(exc)
+            and self.configure_cloudwatch_logs
+        ):
+
+            raise RuntimeError(
+                f"Failed to run ECS task, the attached execution role does not appear "
+                "to have sufficient permissions. Ensure that the execution role "
+                f"{self.execution_role!r} has permissions logs:CreateLogStream, "
+                "logs:CreateLogGroup, and logs:PutLogEvents."
+            )
         else:
             raise
 
@@ -269,6 +343,7 @@ class ECSTask(Infrastructure):
         current_status: str = "UNKNOWN",
         until_status: str = None,
         poll_interval: int = 5,
+        timeout: int = None,
     ) -> Generator[None, None, dict]:
         """
         Watches an ECS task run by querying every `poll_interval` seconds. After each
@@ -278,6 +353,7 @@ class ECSTask(Infrastructure):
         Emits a log each time the status changes.
         """
         last_status = status = current_status
+        t0 = time.time()
         while status != until_status:
             task = ecs_client.describe_tasks(tasks=[task_arn], cluster=cluster_arn)[
                 "tasks"
@@ -294,9 +370,17 @@ class ECSTask(Infrastructure):
                 break
 
             last_status = status
+            elapsed_time = time.time() - t0
+            if timeout is not None and elapsed_time > timeout:
+                raise TimeoutError(
+                    f"Timed out after {elapsed_time}s while watching task for status "
+                    "{until_status or 'STOPPED'}"
+                )
             time.sleep(poll_interval)
 
-    def _wait_for_task_start(self, task_arn: str, cluster_arn: str, ecs_client) -> dict:
+    def _wait_for_task_start(
+        self, task_arn: str, cluster_arn: str, ecs_client, timeout: int
+    ) -> dict:
         """
         Waits for an ECS task run to reach a RUNNING status.
 
@@ -304,7 +388,7 @@ class ECSTask(Infrastructure):
         reason that the task run did not start.
         """
         for task in self._watch_task_run(
-            task_arn, cluster_arn, ecs_client, until_status="RUNNING"
+            task_arn, cluster_arn, ecs_client, until_status="RUNNING", timeout=timeout
         ):
             # TODO: It is possible that the task has passed _through_ a RUNNING
             #       status during the polling interval. In this case, there is not an
@@ -312,6 +396,7 @@ class ECSTask(Infrastructure):
             if task["lastStatus"] == "STOPPED":
                 code = task.get("stopCode")
                 reason = task.get("stoppedReason")
+                # Generate a dynamic exception type from the AWS name
                 raise type(code, (RuntimeError,), {})(reason)
 
         return task
@@ -323,7 +408,6 @@ class ECSTask(Infrastructure):
         task_definition: dict,
         ecs_client,
         boto_session,
-        poll_interval: int = 5,
     ):
         """
         Watch an ECS task until it reaches a STOPPED status.
@@ -390,10 +474,18 @@ class ECSTask(Infrastructure):
     def _stream_available_logs(
         self,
         logs_client,
-        log_group,
-        log_stream,
+        log_group: str,
+        log_stream: str,
         last_log_timestamp: Optional[int] = None,
     ) -> Optional[int]:
+        """
+        Stream logs from the given log group and stream since the last log timestamp.
+
+        Will continue on paginated responses until all logs are returned.
+
+        Returns the last log timestamp which can be used to call this method in the
+        future.
+        """
         last_log_stream_token = "NO-TOKEN"
         next_log_stream_token = None
 
@@ -441,7 +533,7 @@ class ECSTask(Infrastructure):
         """
         self.logger.info(
             f"ECSTask {self.name!r}: "
-            "Retrieving task definition {task_definition_arn!r}..."
+            f"Retrieving task definition {task_definition_arn!r}..."
         )
         response = ecs_client.describe_task_definition(
             taskDefinition=task_definition_arn
@@ -528,6 +620,15 @@ class ECSTask(Infrastructure):
         if self.execution_role_arn and not self.task_definition_arn:
             task_definition["executionRoleArn"] = self.execution_role_arn
 
+        if self.configure_cloudwatch_logs and not task_definition.get(
+            "executionRoleArn"
+        ):
+            raise ValueError(
+                "An execution role arn must be set on the task definition to use "
+                "`configure_cloudwatch_logs` or `stream_logs` but no execution role "
+                "was found on the task definition."
+            )
+
         return task_definition
 
     def _prepare_task_run_overrides(self) -> dict:
@@ -558,6 +659,7 @@ class ECSTask(Infrastructure):
 
         if self.memory:
             overrides["memory"] = str(self.memory)
+            prefect_container_overrides.setdefault("memory", self.memory)
 
         if self.cpu:
             overrides["cpu"] = str(self.cpu)
