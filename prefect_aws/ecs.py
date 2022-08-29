@@ -633,8 +633,8 @@ class ECSTask(Infrastructure):
             if network_mode != "awsvpc":
                 warnings.warn(
                     f"Found network mode {network_mode!r} which is not compatible with "
-                    f"launch type {self.launch_type}. Either use the 'EC2' launch type "
-                    "or the 'awsvpc' network mode."
+                    f"launch type {self.launch_type!r}. Use either the 'EC2' launch "
+                    "type or the 'awsvpc' network mode."
                 )
 
         elif self.launch_type == "EC2":

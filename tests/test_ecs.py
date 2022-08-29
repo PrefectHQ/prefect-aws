@@ -671,7 +671,7 @@ async def test_task_role_arn(aws_credentials):
 
     task = describe_task(ecs_client, task_arn)
 
-    assert task["taskRoleArn"] == "test"
+    assert task["overrides"]["taskRoleArn"] == "test"
 
 
 @pytest.mark.usefixtures("ecs_mocks")
