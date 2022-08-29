@@ -41,7 +41,7 @@ import copy
 import sys
 import time
 import warnings
-from typing import Dict, Generator, List, Optional, Union
+from typing import Dict, Generator, List, Optional
 
 import yaml
 from anyio.abc import TaskStatus
@@ -87,34 +87,150 @@ class ECSTask(Infrastructure):
     Run a command as an ECS task
     """
 
-    type: Literal["ecs-task"] = "ecs-task"
+    type: Literal["ecs-task"] = Field(
+        "ecs-task", description="The slug for this task type."
+    )
 
-    aws_credentials: AwsCredentials = Field(default_factory=AwsCredentials)
+    aws_credentials: AwsCredentials = Field(
+        default_factory=AwsCredentials,
+        description="The AWS credentials to use to connect to ECS.",
+    )
 
     # Task definition settings
-    task_definition_arn: Optional[str] = None
-    task_definition: Optional[dict] = None
-    image: str = Field(default_factory=get_prefect_image_name)
+    task_definition_arn: Optional[str] = Field(
+        default=None,
+        description=(
+            "An identifier for an existing task definition to use. If fields are set "
+            "that on the `ECSTask` that conflict with the task definition, a new copy "
+            "will be registered with the required values. "
+            "Cannot be used with `task_definition`. If not provided, Prefect will "
+            "generate and register a minimal task definition."
+        ),
+    )
+    task_definition: Optional[dict] = Field(
+        default=None,
+        description=(
+            "An ECS task definition to use. Prefect may set defaults or override "
+            "fields on this task definition to match other `ECSTask` fields. "
+            "Cannot be used with `task_definition_arn`. If not provided, Prefect will "
+            "generate and register a minimal task definition."
+        ),
+    )
+    image: Optional[str] = Field(
+        default_factory=get_prefect_image_name,
+        description=(
+            "The image to use for the Prefect container in the task. If this value is "
+            "not null, it will override the value in the task definition. This value "
+            "defaults to a Prefect base image matching your local versions."
+        ),
+    )
 
     # Mixed task definition / run settings
-    cpu: Union[int, str] = None
-    memory: Union[int, str] = None
-    execution_role_arn: str = None
-    configure_cloudwatch_logs: bool = None
-    stream_output: bool = False
+    cpu: int = Field(
+        default=None,
+        description=(
+            "The amount of CPU to provide to the ECS task. Valid amounts are "
+            "specified in the AWS documentation. If not provided, a default value of "
+            f"{ECS_DEFAULT_CPU} will be used unless present on the task definition."
+        ),
+    )
+    memory: int = Field(
+        default=None,
+        description=(
+            "The amount of memory to provide to the ECS task. Valid amounts are "
+            "specified in the AWS documentation. If not provided, a default value of "
+            f"{ECS_DEFAULT_MEMORY} will be used unless present on the task definition."
+        ),
+    )
+    execution_role_arn: str = Field(
+        default=None,
+        description=(
+            "An execution role to use for the task. This controls the permissions of "
+            "the task when it is launching. If this value is not null, it will "
+            "override the value in the task definition. An execution role must be "
+            "provided to capture logs from the container."
+        ),
+    )
+    configure_cloudwatch_logs: bool = Field(
+        default=None,
+        description=(
+            "If `True`, the Prefect container will be configured to send its output "
+            "to the AWS CloudWatch logs service. This functionality requires an "
+            "execution role with logs:CreateLogStream, logs:CreateLogGroup, and "
+            "logs:PutLogEvents permissions. The default for this field is `False` "
+            "unless `stream_output` is set. "
+        ),
+    )
+    stream_output: bool = Field(
+        default=None,
+        description=(
+            "If `True`, logs will be streamed from the Prefect container to the local "
+            "console. Unless you have configured AWS CloudWatch logs manually on your "
+            "task definition, this requires the same prerequisites outlined in "
+            "`configure_cloudwatch_logs`."
+        ),
+    )
 
     # Task run settings
     launch_type: Optional[
         Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]
-    ] = "FARGATE"
-    vpc_id: Optional[str] = None
-    cluster: Optional[str] = None
-    env: Dict[str, str] = Field(default_factory=dict)
-    task_role_arn: str = None
+    ] = Field(
+        default="FARGATE",
+        description=(
+            "The type of ECS task run infrastructure that should be used. Note that "
+            "'FARGATE_SPOT' is not a formal ECS launch type, but we will configure the "
+            "proper capacity provider stategy if set here."
+        ),
+    )
+    vpc_id: Optional[str] = Field(
+        default=None,
+        description=(
+            "The AWS VPC to link the task run to. This is only applicable when using "
+            "the 'awsvpc' network mode for your task. FARGATE tasks require this "
+            "network  mode, but for EC2 tasks the default network mode is 'bridge'. "
+            "If using the 'awsvpc' network mode and this field is null, your default "
+            "VPC will be used. If no default VPC can be found, the task run will fail."
+        ),
+    )
+    cluster: Optional[str] = Field(
+        default=None,
+        description=(
+            "The ECS cluster to run the task in. The ARN or name may be provided. If "
+            "not provided, the default cluster will be used."
+        ),
+    )
+    env: Dict[str, str] = Field(
+        default_factory=dict,
+        description=(
+            "Environment variables to provide to the task run. These variables are set "
+            "on the Prefect container at task runtime. These will not be set on the "
+            "task definition."
+        ),
+    )
+    task_role_arn: str = Field(
+        default=None,
+        description=(
+            "A role to attach to the task run. This controls the permissions of the "
+            "task while it is running."
+        ),
+    )
 
     # Execution settings
-    task_start_timeout_seconds: int = 30
-    task_watch_poll_interval: float = 5.0
+    task_start_timeout_seconds: int = Field(
+        default=30,
+        description=(
+            "The amount of time to watch for the start of the ECS task "
+            "before marking it as failed. The task must enter a RUNNING state to be "
+            "considered started."
+        ),
+    )
+    task_watch_poll_interval: float = Field(
+        default=5.0,
+        description=(
+            "The amount of time to wait between AWS API calls while monitoring the "
+            "state of an ECS task."
+        ),
+    )
 
     @root_validator(pre=True)
     def set_default_configure_cloudwatch_logs(cls, values):
