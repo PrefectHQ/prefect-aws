@@ -73,7 +73,7 @@ def get_prefect_container(containers: List[dict]) -> Optional[dict]:
 
 def get_container(containers: List[dict], name: str) -> Optional[dict]:
     """
-    Extract the Prefect container from a list of containers or container definitions
+    Extract the a container from a list of containers or container definitions
     If not found, `None` is returned.
     """
     for container in containers:
