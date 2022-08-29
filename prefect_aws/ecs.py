@@ -746,7 +746,7 @@ class ECSTask(Infrastructure):
         task_run = {
             "overrides": self._prepare_task_run_overrides(),
             "tags": [
-                {"name": key, "value": value} for key, value in self.labels.items()
+                {"key": key, "value": value} for key, value in self.labels.items()
             ],
             "taskDefinition": task_definition_arn,
         }

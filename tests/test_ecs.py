@@ -348,6 +348,26 @@ async def test_environment_variables(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_labels(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        labels={"foo": "bar"},
+    )
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    assert not task_definition.get("tags"), "Labels should not be passed until runtime"
+
+    assert task.get("tags") == [{"key": "foo", "value": "bar"}]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_container_command_from_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
