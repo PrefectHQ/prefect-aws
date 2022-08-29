@@ -14,11 +14,11 @@ Examples:
     >>> ECSTask(command=["echo", "hello world"], vpc_id="vpc-01abcdf123456789a").run()
 
     Run a task and stream the container's output to the local terminal. Note an
-    execution role must be provided with permissions: logs:CreateLogStream, 
+    execution role must be provided with permissions: logs:CreateLogStream,
     logs:CreateLogGroup, and logs:PutLogEvents.
     >>> ECSTask(
-    >>>     command=["echo", "hello world"], 
-    >>>     stream_output=True, 
+    >>>     command=["echo", "hello world"],
+    >>>     stream_output=True,
     >>>     execution_role_arn="..."
     >>> )
 
@@ -58,6 +58,27 @@ class ECSTaskResult(InfrastructureResult):
 
 
 PREFECT_ECS_CONTAINER_NAME = "prefect"
+ECS_DEFAULT_CPU = 1024
+ECS_DEFAULT_MEMORY = 2048
+
+
+def get_prefect_container(containers: List[dict]) -> Optional[dict]:
+    """
+    Extract the Prefect container from a list of containers or container definitions
+    If not found, `None` is returned.
+    """
+    return get_container(containers, PREFECT_ECS_CONTAINER_NAME)
+
+
+def get_container(containers: List[dict], name: str) -> Optional[dict]:
+    """
+    Extract the Prefect container from a list of containers or container definitions
+    If not found, `None` is returned.
+    """
+    for container in containers:
+        if container.get("name") == name:
+            return container
+    return None
 
 
 class ECSTask(Infrastructure):
@@ -73,8 +94,6 @@ class ECSTask(Infrastructure):
     task_definition_arn: Optional[str] = None
     task_definition: Optional[dict] = None
     image: str = Field(default_factory=get_prefect_image_name)
-
-    family_prefix: str = "prefect"
 
     # Mixed task definition / run settings
     cpu: Union[int, str] = None
@@ -94,6 +113,7 @@ class ECSTask(Infrastructure):
 
     # Execution settings
     task_start_timeout_seconds: int = 30
+    task_watch_poll_interval: float = 5.0
 
     @root_validator(pre=True)
     def set_default_configure_cloudwatch_logs(cls, values):
@@ -110,6 +130,10 @@ class ECSTask(Infrastructure):
 
     @root_validator
     def configure_cloudwatch_logs_requires_execution_role_arn(cls, values):
+        """
+        Enforces that an execution role arn is provided (or could be provided by a
+        runtime task definition) when configuring logging.
+        """
         if (
             values.get("configure_cloudwatch_logs")
             and not values.get("execution_role_arn")
@@ -139,7 +163,7 @@ class ECSTask(Infrastructure):
 
         # Display a nice message indicating the command and image
         self.logger.info(
-            f"ECSTask {self.name!r}: Running command {' '.join(self.command)!r} "
+            f"{self.log_prefix}: Running command {' '.join(self.command)!r} "
             f"in container {PREFECT_ECS_CONTAINER_NAME!r} ({self.image})..."
         )
 
@@ -154,6 +178,16 @@ class ECSTask(Infrastructure):
             boto_session,
             ecs_client,
         )
+
+    @property
+    def log_prefix(self):
+        """
+        Internal property for generating a prefix for logs where `name` may be null
+        """
+        if self.name is not None:
+            return f"ECSTask {self.name!r}"
+        else:
+            return "ECSTask"
 
     def _get_session_and_client(self):
         """
@@ -180,7 +214,7 @@ class ECSTask(Infrastructure):
 
         # We must register the task definition if the arn is null or changes were made
         if task_definition != requested_task_definition or not task_definition_arn:
-            self.logger.info(f"ECSTask {self.name!r}: Registering task definition...")
+            self.logger.info(f"{self.log_prefix}: Registering task definition...")
             self.logger.debug("Task definition payload\n" + yaml.dump(task_definition))
             task_definition_arn = self._register_task_definition(
                 ecs_client, task_definition
@@ -195,18 +229,18 @@ class ECSTask(Infrastructure):
             network_config=network_config,
             task_definition_arn=task_definition_arn,
         )
-        self.logger.info(f"ECSTask {self.name!r}: Creating task run...")
+        self.logger.info(f"{self.log_prefix}: Creating task run...")
         self.logger.debug("Task run payload\n" + yaml.dump(task_run))
 
         try:
-            task = ecs_client.run_task(**task_run)["tasks"][0]
+            task = self._run_task(ecs_client, task_run)
             task_arn = task["taskArn"]
             cluster_arn = task["clusterArn"]
         except Exception as exc:
             self._report_task_run_creation_failure(task_run, exc)
 
         # Raises an exception if the task does not start
-        self.logger.info(f"ECSTask {self.name!r}: Waiting for task run to start...")
+        self.logger.info(f"{self.log_prefix}: Waiting for task run to start...")
         self._wait_for_task_start(
             task_arn, cluster_arn, ecs_client, timeout=self.task_start_timeout_seconds
         )
@@ -234,7 +268,7 @@ class ECSTask(Infrastructure):
         # TODO: Consider deactivating the task definition
 
         # Check the status code of the Prefect container
-        prefect_container = self._get_prefect_container(task["containers"])
+        prefect_container = get_prefect_container(task["containers"])
         assert (
             prefect_container is not None
         ), f"'prefect' container missing from task: {task}"
@@ -288,16 +322,16 @@ class ECSTask(Infrastructure):
         """
         if status_code is None:
             self.logger.error(
-                f"ECSTask {self.name!r}: Task exited without reporting an exit status "
+                f"{self.log_prefix}: Task exited without reporting an exit status "
                 f"for container {name!r}."
             )
         elif status_code == 0:
             self.logger.info(
-                f"ECSTask {self.name!r}: Container {name!r} exited successfully."
+                f"{self.log_prefix}: Container {name!r} exited successfully."
             )
         else:
             self.logger.warning(
-                f"ECSTask {self.name!r}: Container {name!r} exited with non-zero exit code "
+                f"{self.log_prefix}: Container {name!r} exited with non-zero exit code "
                 f"{status_code}."
             )
 
@@ -342,7 +376,6 @@ class ECSTask(Infrastructure):
         ecs_client,
         current_status: str = "UNKNOWN",
         until_status: str = None,
-        poll_interval: int = 5,
         timeout: int = None,
     ) -> Generator[None, None, dict]:
         """
@@ -361,7 +394,7 @@ class ECSTask(Infrastructure):
 
             status = task["lastStatus"]
             if status != last_status:
-                self.logger.info(f"ECSTask {self.name!r}: Status is {status}.")
+                self.logger.info(f"{self.log_prefix}: Status is {status}.")
 
             yield task
 
@@ -376,7 +409,7 @@ class ECSTask(Infrastructure):
                     f"Timed out after {elapsed_time}s while watching task for status "
                     "{until_status or 'STOPPED'}"
                 )
-            time.sleep(poll_interval)
+            time.sleep(self.task_watch_poll_interval)
 
     def _wait_for_task_start(
         self, task_arn: str, cluster_arn: str, ecs_client, timeout: int
@@ -419,22 +452,22 @@ class ECSTask(Infrastructure):
         can_stream_output = False
 
         if self.stream_output:
-            container_def = self._get_prefect_container(
+            container_def = get_prefect_container(
                 task_definition["containerDefinitions"]
             )
             if not container_def:
                 self.logger.warning(
-                    f"ECSTask {self.name!r}: Prefect container definition not found in "
+                    f"{self.log_prefix}: Prefect container definition not found in "
                     "task definition. Output cannot be streamed."
                 )
             elif not container_def.get("logConfiguration"):
                 self.logger.warning(
-                    f"ECSTask {self.name!r}: Logging configuration not found on task. "
+                    f"{self.log_prefix}: Logging configuration not found on task. "
                     "Output cannot be streamed."
                 )
             elif not container_def["logConfiguration"].get("logDriver") == "awslogs":
                 self.logger.warning(
-                    f"ECSTask {self.name!r}: Logging configuration uses unsupported "
+                    f"{self.log_prefix}: Logging configuration uses unsupported "
                     " driver {container_def['logConfiguration'].get('logDriver')!r}. "
                     "Output cannot be streamed."
                 )
@@ -454,7 +487,8 @@ class ECSTask(Infrastructure):
                     ]
                 )
                 self.logger.info(
-                    f"ECSTask {self.name!r}: Streaming output from container {PREFECT_ECS_CONTAINER_NAME!r}..."
+                    f"{self.log_prefix}: Streaming output from container "
+                    f"{PREFECT_ECS_CONTAINER_NAME!r}..."
                 )
 
         for task in self._watch_task_run(
@@ -532,7 +566,7 @@ class ECSTask(Infrastructure):
         Retrieve an existing task definition from AWS.
         """
         self.logger.info(
-            f"ECSTask {self.name!r}: "
+            f"{self.log_prefix}: "
             f"Retrieving task definition {task_definition_arn!r}..."
         )
         response = ecs_client.describe_task_definition(
@@ -549,16 +583,6 @@ class ECSTask(Infrastructure):
         response = ecs_client.register_task_definition(**task_definition)
         return response["taskDefinition"]["taskDefinitionArn"]
 
-    def _get_prefect_container(self, containers: List[dict]) -> Optional[dict]:
-        """
-        Extract the Prefect container from a list of containers or container definitions
-        If not found, `None` is returned.
-        """
-        for container in containers:
-            if container.get("name") == PREFECT_ECS_CONTAINER_NAME:
-                return container
-        return None
-
     def _prepare_task_definition(self, task_definition: dict, region: str) -> dict:
         """
         Prepare a task definition by inferring any defaults and merging overrides.
@@ -566,10 +590,11 @@ class ECSTask(Infrastructure):
         task_definition = copy.deepcopy(task_definition)
 
         # Configure the Prefect runtime container
-        task_definition.setdefault(
-            "containerDefinitions", [{"name": PREFECT_ECS_CONTAINER_NAME}]
-        )
-        container = self._get_prefect_container(task_definition["containerDefinitions"])
+        task_definition.setdefault("containerDefinitions", [])
+        container = get_prefect_container(task_definition["containerDefinitions"])
+        if container is None:
+            container = {"name": PREFECT_ECS_CONTAINER_NAME}
+            task_definition["containerDefinitions"].append(container)
         container["image"] = self.image
 
         if self.configure_cloudwatch_logs:
@@ -586,8 +611,8 @@ class ECSTask(Infrastructure):
         task_definition.setdefault("family", "prefect")
 
         # CPU and memory are required in some cases, retrieve the value to use
-        cpu = self.cpu or task_definition.get("cpu") or 1024
-        memory = self.memory or task_definition.get("memory") or 2048
+        cpu = self.cpu or task_definition.get("cpu") or ECS_DEFAULT_CPU
+        memory = self.memory or task_definition.get("memory") or ECS_DEFAULT_MEMORY
 
         if self.launch_type == "FARGATE" or self.launch_type == "FARGATE_SPOT":
             # Task level memory and cpu are required when using fargate
@@ -608,8 +633,8 @@ class ECSTask(Infrastructure):
             if network_mode != "awsvpc":
                 warnings.warn(
                     f"Found network mode {network_mode!r} which is not compatible with "
-                    "launch type 'FARGATE'. Either use the 'EC2' launch type or the "
-                    "'awsvpc' network mode."
+                    f"launch type {self.launch_type}. Either use the 'EC2' launch type "
+                    "or the 'awsvpc' network mode."
                 )
 
         elif self.launch_type == "EC2":
@@ -663,6 +688,7 @@ class ECSTask(Infrastructure):
 
         if self.cpu:
             overrides["cpu"] = str(self.cpu)
+            prefect_container_overrides.setdefault("cpu", self.cpu)
 
         return overrides
 
@@ -740,3 +766,11 @@ class ECSTask(Infrastructure):
             task_run["networkConfiguration"] = network_config
 
         return task_run
+
+    def _run_task(self, ecs_client, task_run):
+        """
+        Run the task using the ECS client.
+
+        This is isolated as a separate method for testing purposes.
+        """
+        return ecs_client.run_task(**task_run)["tasks"][0]
