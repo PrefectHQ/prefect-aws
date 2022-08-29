@@ -41,7 +41,7 @@ import copy
 import sys
 import time
 import warnings
-from typing import Dict, Generator, List, Literal, Optional, Union
+from typing import Dict, Generator, List, Optional, Union
 
 import yaml
 from anyio.abc import TaskStatus
@@ -49,6 +49,7 @@ from prefect.docker import get_prefect_image_name
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from pydantic import Field, root_validator
+from typing_extensions import Literal
 
 from prefect_aws import AwsCredentials
 
