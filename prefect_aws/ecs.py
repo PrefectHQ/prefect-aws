@@ -130,6 +130,15 @@ class ECSTask(Infrastructure):
             "defaults to a Prefect base image matching your local versions."
         ),
     )
+    auto_remove_task_definitions: bool = Field(
+        default=True,
+        description=(
+            "If set, any task definitions that are created by this block will be "
+            "deregistered. Existing task definitions linked by ARN will never be "
+            "deregistered. Deregistering a task definition does not remove it from "
+            "your AWS account, instead it will be marked as INACTIVE."
+        ),
+    )
 
     # Mixed task definition / run settings
     cpu: int = Field(
@@ -282,7 +291,12 @@ class ECSTask(Infrastructure):
             self._get_session_and_client
         )
 
-        task_arn, cluster_arn, task_definition = await run_sync_in_worker_thread(
+        (
+            task_arn,
+            cluster_arn,
+            task_definition,
+            deregister_task_definition,
+        ) = await run_sync_in_worker_thread(
             self._create_task_and_wait_for_start, boto_session, ecs_client
         )
 
@@ -295,13 +309,21 @@ class ECSTask(Infrastructure):
         if task_status:
             task_status.started(task_arn)
 
-        return await run_sync_in_worker_thread(
-            self._watch_task_and_get_result,
+        status_code = await run_sync_in_worker_thread(
+            self._watch_task_and_get_exit_code,
             task_arn,
             cluster_arn,
             task_definition,
+            deregister_task_definition,
             boto_session,
             ecs_client,
+        )
+
+        return ECSTaskResult(
+            identifier=task_arn,
+            # If the container does not start the exit code can be null but we must
+            # still report a status code. We use a -1 to indicate a special code.
+            status_code=status_code or -1,
         )
 
     @property
@@ -324,7 +346,7 @@ class ECSTask(Infrastructure):
 
     def _create_task_and_wait_for_start(
         self, boto_session: boto3.Session, ecs_client: _ECSClient
-    ) -> Tuple[str, str, dict]:
+    ) -> Tuple[str, str, dict, bool]:
         """
         Register the task definition, create the task run, and wait for it to start.
 
@@ -332,6 +354,7 @@ class ECSTask(Infrastructure):
         - The task ARN
         - The task's cluster ARN
         - The task definition
+        - A bool indicating if the task definition is newly registered
         """
         new_task_definition_registered = False
         requested_task_definition = (
@@ -379,20 +402,17 @@ class ECSTask(Infrastructure):
             task_arn, cluster_arn, ecs_client, timeout=self.task_start_timeout_seconds
         )
 
-        if new_task_definition_registered:
-            # Clean up the temporary task definition
-            ecs_client.deregister_task_definition(taskDefinition=task_definition_arn)
+        return task_arn, cluster_arn, task_definition, new_task_definition_registered
 
-        return task_arn, cluster_arn, task_definition
-
-    def _watch_task_and_get_result(
+    def _watch_task_and_get_exit_code(
         self,
         task_arn: str,
         cluster_arn: str,
         task_definition: dict,
+        deregister_task_definition: bool,
         boto_session: boto3.Session,
         ecs_client: _ECSClient,
-    ):
+    ) -> Optional[int]:
         """
         Wait for the task run to complete and retrieve the exit code of the Prefect
         container.
@@ -403,7 +423,10 @@ class ECSTask(Infrastructure):
             task_arn, cluster_arn, task_definition, ecs_client, boto_session
         )
 
-        # TODO: Consider deactivating the task definition
+        if deregister_task_definition:
+            ecs_client.deregister_task_definition(
+                taskDefinition=task["taskDefinitionArn"]
+            )
 
         # Check the status code of the Prefect container
         prefect_container = get_prefect_container(task["containers"])
@@ -413,12 +436,7 @@ class ECSTask(Infrastructure):
         status_code = prefect_container.get("exitCode")
         self._report_container_status_code(PREFECT_ECS_CONTAINER_NAME, status_code)
 
-        return ECSTaskResult(
-            identifier=task_arn,
-            # If the container does not start the exit code can be null but we must
-            # still report a status code. We use a -1 to indicate a special code.
-            status_code=status_code or -1,
-        )
+        return status_code
 
     def preview(self) -> str:
         """

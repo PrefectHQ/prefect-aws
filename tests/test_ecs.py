@@ -71,7 +71,7 @@ def patch_run_task(mock, run_task, *args, **kwargs):
     return run_task(*args, **kwargs)
 
 
-def _patch_calculate_task_resource_requirements(
+def patch_calculate_task_resource_requirements(
     _calculate_task_resource_requirements, task_definition
 ):
     """
@@ -174,7 +174,7 @@ def ecs_mocks(aws_credentials):
                     "describe_tasks": [patch_describe_tasks_add_prefect_container],
                     # Fix moto internal resource requirement calculations
                     "_calculate_task_resource_requirements": [
-                        _patch_calculate_task_resource_requirements
+                        patch_calculate_task_resource_requirements
                     ],
                 },
             )
