@@ -41,8 +41,9 @@ import copy
 import sys
 import time
 import warnings
-from typing import Dict, Generator, List, Optional, Tuple
+from typing import Any, Dict, Generator, List, Optional, Tuple
 
+import boto3
 import yaml
 from anyio.abc import TaskStatus
 from prefect.docker import get_prefect_image_name
@@ -52,6 +53,9 @@ from pydantic import Field, root_validator
 from typing_extensions import Literal
 
 from prefect_aws import AwsCredentials
+
+# Internal type alias for ECS clients which are generated dynamically in botocore
+_ECSClient = Any
 
 
 class ECSTaskResult(InfrastructureResult):
@@ -233,7 +237,7 @@ class ECSTask(Infrastructure):
     )
 
     @root_validator(pre=True)
-    def set_default_configure_cloudwatch_logs(cls, values):
+    def set_default_configure_cloudwatch_logs(cls, values: dict) -> dict:
         """
         Streaming output generally requires CloudWatch logs to be configured.
 
@@ -246,7 +250,9 @@ class ECSTask(Infrastructure):
         return values
 
     @root_validator
-    def configure_cloudwatch_logs_requires_execution_role_arn(cls, values):
+    def configure_cloudwatch_logs_requires_execution_role_arn(
+        cls, values: dict
+    ) -> dict:
         """
         Enforces that an execution role arn is provided (or could be provided by a
         runtime task definition) when configuring logging.
@@ -266,7 +272,7 @@ class ECSTask(Infrastructure):
         return values
 
     @sync_compatible
-    async def run(self, task_status: Optional[TaskStatus] = None):
+    async def run(self, task_status: Optional[TaskStatus] = None) -> ECSTaskResult:
         """
         Run the configured task on ECS.
         """
@@ -297,7 +303,7 @@ class ECSTask(Infrastructure):
         )
 
     @property
-    def log_prefix(self):
+    def log_prefix(self) -> str:
         """
         Internal property for generating a prefix for logs where `name` may be null
         """
@@ -306,7 +312,7 @@ class ECSTask(Infrastructure):
         else:
             return "ECSTask"
 
-    def _get_session_and_client(self):
+    def _get_session_and_client(self) -> Tuple[boto3.Session, _ECSClient]:
         """
         Retrieve a boto3 session and ECS client
         """
@@ -315,7 +321,7 @@ class ECSTask(Infrastructure):
         return boto_session, ecs_client
 
     def _create_task_and_wait_for_start(
-        self, boto_session, ecs_client
+        self, boto_session: boto3.Session, ecs_client: _ECSClient
     ) -> Tuple[str, str, dict]:
         """
         Register the task definition, create the task run, and wait for it to start.
@@ -382,8 +388,8 @@ class ECSTask(Infrastructure):
         task_arn: str,
         cluster_arn: str,
         task_definition: dict,
-        boto_session,
-        ecs_client,
+        boto_session: boto3.Session,
+        ecs_client: _ECSClient,
     ):
         """
         Wait for the task run to complete and retrieve the exit code of the Prefect
@@ -465,7 +471,7 @@ class ECSTask(Infrastructure):
                 f"{status_code}."
             )
 
-    def _report_task_run_creation_failure(self, task_run, exc: Exception) -> None:
+    def _report_task_run_creation_failure(self, task_run: dict, exc: Exception) -> None:
         """
         Wrap common AWS task run creation failures with nicer user-facing messages.
         """
@@ -503,7 +509,7 @@ class ECSTask(Infrastructure):
         self,
         task_arn: str,
         cluster_arn: str,
-        ecs_client,
+        ecs_client: _ECSClient,
         current_status: str = "UNKNOWN",
         until_status: str = None,
         timeout: int = None,
@@ -542,7 +548,7 @@ class ECSTask(Infrastructure):
             time.sleep(self.task_watch_poll_interval)
 
     def _wait_for_task_start(
-        self, task_arn: str, cluster_arn: str, ecs_client, timeout: int
+        self, task_arn: str, cluster_arn: str, ecs_client: _ECSClient, timeout: int
     ) -> dict:
         """
         Waits for an ECS task run to reach a RUNNING status.
@@ -569,8 +575,8 @@ class ECSTask(Infrastructure):
         task_arn: str,
         cluster_arn: str,
         task_definition: dict,
-        ecs_client,
-        boto_session,
+        ecs_client: _ECSClient,
+        boto_session: boto3.Session,
     ):
         """
         Watch an ECS task until it reaches a STOPPED status.
@@ -637,7 +643,7 @@ class ECSTask(Infrastructure):
 
     def _stream_available_logs(
         self,
-        logs_client,
+        logs_client: Any,
         log_group: str,
         log_stream: str,
         last_log_timestamp: Optional[int] = None,
@@ -691,7 +697,9 @@ class ECSTask(Infrastructure):
 
         return last_log_timestamp
 
-    def _retrieve_task_definition(self, ecs_client, task_definition_arn: str):
+    def _retrieve_task_definition(
+        self, ecs_client: _ECSClient, task_definition_arn: str
+    ):
         """
         Retrieve an existing task definition from AWS.
         """
@@ -704,7 +712,9 @@ class ECSTask(Infrastructure):
         )
         return response["taskDefinition"]
 
-    def _register_task_definition(self, ecs_client, task_definition: dict) -> str:
+    def _register_task_definition(
+        self, ecs_client: _ECSClient, task_definition: dict
+    ) -> str:
         """
         Register a new task definition with AWS.
         """
@@ -830,7 +840,9 @@ class ECSTask(Infrastructure):
 
         return overrides
 
-    def _load_vpc_network_config(self, vpc_id: Optional[str], boto_session) -> dict:
+    def _load_vpc_network_config(
+        self, vpc_id: Optional[str], boto_session: boto3.Session
+    ) -> dict:
         """
         Load settings from a specific VPC or the default VPC and generate a task
         run request's network configuration.
@@ -905,7 +917,7 @@ class ECSTask(Infrastructure):
 
         return task_run
 
-    def _run_task(self, ecs_client, task_run):
+    def _run_task(self, ecs_client: _ECSClient, task_run: dict):
         """
         Run the task using the ECS client.
 
