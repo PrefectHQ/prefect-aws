@@ -1065,16 +1065,26 @@ async def test_task_definition_arn(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-@pytest.mark.parametrize("overrides", [{"image": "new-image"}])
-async def test_task_definition_arn_with_overrides(aws_credentials, overrides):
-    # Any of these overrides should cause the task definition to be copied and
-    # registered as a new version
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"image": "new-image"},
+        {"configure_cloudwatch_logs": True},
+    ],
+)
+async def test_task_definition_arn_with_overrides_that_require_copy(
+    aws_credentials, overrides
+):
+    """
+    Any of these overrides should cause the task definition to be copied and
+    registered as a new version
+    """
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
 
-    task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION)[
-        "taskDefinition"
-    ]["taskDefinitionArn"]
+    task_definition_arn = ecs_client.register_task_definition(
+        **BASE_TASK_DEFINITION, executionRoleArn="base"
+    )["taskDefinition"]["taskDefinitionArn"]
 
     task = ECSTask(
         aws_credentials=aws_credentials,
@@ -1090,6 +1100,65 @@ async def test_task_definition_arn_with_overrides(aws_credentials, overrides):
     assert (
         task["taskDefinitionArn"] != task_definition_arn
     ), "A new task definition should be registered"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"env": {"FOO": "BAR"}},
+        {"command": ["test"]},
+        {"labels": {"FOO": "BAR"}},
+        {"cpu": 2048},
+        {"memory": 4096},
+        {"execution_role_arn": "test"},
+        {"stream_output": True, "configure_cloudwatch_logs": False},
+        {"launch_type": "EXTERNAL"},
+        {"cluster": "test"},
+        {"task_role_arn": "test"},
+        # Note: null environment variables can cause override, but not when missing
+        # from the base task definition
+        {"env": {"FOO": None}},
+    ],
+    ids=lambda item: str(set(item.keys())),
+)
+async def test_task_definition_arn_with_overrides_that_do_not_require_copy(
+    aws_credentials, overrides
+):
+    """
+    Any of these overrides should be configured at runtime and not require a new
+    task definition to be registered
+    """
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    if "cluster" in overrides:
+        cluster_arn = create_test_ecs_cluster(ecs_client, overrides["cluster"])
+        add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
+    else:
+        cluster_arn = "default"
+
+    task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION,)[
+        "taskDefinition"
+    ]["taskDefinitionArn"]
+
+    # Set the default launch type for compatibility with the base task definition
+    overrides.setdefault("launch_type", "EC2")
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition_arn=task_definition_arn,
+        image=None,
+        **overrides,
+    )
+    print(task.preview())
+    task_arn = await run_then_stop_task(task, cluster=cluster_arn)
+
+    task = describe_task(ecs_client, task_arn, cluster=cluster_arn)
+    assert (
+        task["taskDefinitionArn"] == task_definition_arn
+    ), "The existing task definition should be used"
 
 
 @pytest.mark.usefixtures("ecs_mocks")
