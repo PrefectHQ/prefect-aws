@@ -348,47 +348,6 @@ async def test_environment_variables(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_unset_environment_variables_in_task_definition(aws_credentials):
-    task = ECSTask(
-        aws_credentials=aws_credentials,
-        task_definition={
-            "containerDefinitions": [
-                {
-                    "name": "prefect",
-                    "environment": [
-                        {"name": "FOO", "value": "FOO"},
-                        {"name": "BAR", "value": "BAR"},
-                    ],
-                }
-            ]
-        },
-        env={"FOO": None},
-    )
-    print(task.preview())
-
-    session = aws_credentials.get_boto3_session()
-    ecs_client = session.client("ecs")
-
-    task_arn = await run_then_stop_task(task)
-
-    task = describe_task(ecs_client, task_arn)
-    task_definition = describe_task_definition(ecs_client, task)
-    prefect_container_definition = get_prefect_container(
-        task_definition["containerDefinitions"]
-    )
-    assert prefect_container_definition["environment"] == [
-        {"name": "BAR", "value": "BAR"}
-    ], "FOO should be removed from the task definition"
-
-    prefect_container_overrides = get_prefect_container(
-        task["overrides"]["containerOverrides"]
-    )
-    assert (
-        prefect_container_overrides.get("environment") == []
-    ), "FOO should not be passed at runtime"
-
-
-@pytest.mark.usefixtures("ecs_mocks")
 async def test_labels(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
@@ -577,6 +536,7 @@ async def test_default_cpu_and_memory_in_task_definition(
 
 @pytest.mark.usefixtures("ecs_mocks")
 async def test_environment_variables_in_task_definition(aws_credentials):
+    # See also,
     task = ECSTask(
         aws_credentials=aws_credentials,
         task_definition={
@@ -616,6 +576,50 @@ async def test_environment_variables_in_task_definition(aws_credentials):
         {"name": "FOO", "value": "BAR"},
         {"name": "OVERRIDE", "value": "NEW"},
     ]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_unset_environment_variables_in_task_definition(aws_credentials):
+    # In contrast to `test_environment_variables_in_task_definition`, this tests the
+    # use of `None` in `ECSTask.env` values to signal _removal_ of an environment
+    # variable instead of overriding a value.
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        task_definition={
+            "containerDefinitions": [
+                {
+                    "name": "prefect",
+                    "environment": [
+                        {"name": "FOO", "value": "FOO"},
+                        {"name": "BAR", "value": "BAR"},
+                    ],
+                }
+            ]
+        },
+        env={"FOO": None},
+    )
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    prefect_container_definition = get_prefect_container(
+        task_definition["containerDefinitions"]
+    )
+    assert prefect_container_definition["environment"] == [
+        {"name": "BAR", "value": "BAR"}
+    ], "FOO should be removed from the task definition"
+
+    prefect_container_overrides = get_prefect_container(
+        task["overrides"]["containerOverrides"]
+    )
+    assert (
+        prefect_container_overrides.get("environment") == []
+    ), "FOO should not be passed at runtime"
 
 
 @pytest.mark.usefixtures("ecs_mocks")
