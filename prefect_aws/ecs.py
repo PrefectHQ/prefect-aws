@@ -130,7 +130,7 @@ class ECSTask(Infrastructure):
             "defaults to a Prefect base image matching your local versions."
         ),
     )
-    auto_remove_task_definitions: bool = Field(
+    auto_remove_task_definition: bool = Field(
         default=True,
         description=(
             "If set, any task definitions that are created by this block will be "
@@ -282,6 +282,30 @@ class ECSTask(Infrastructure):
             )
         return values
 
+    @root_validator
+    def image_is_required(cls, values: dict) -> dict:
+        """
+        Enforces that an image is available if the user sets it to `None`.
+        """
+        if (
+            not values.get("image")
+            and not values.get("task_definition_arn")
+            # Check for an image in the task definition; whew!
+            and not (
+                get_prefect_container(
+                    (values.get("task_definition") or {}).get(
+                        "containerDefinitions", []
+                    )
+                )
+                or {}
+            ).get("image")
+        ):
+            raise ValueError(
+                "A value for the `image` field must be provided unless already "
+                "present for the Prefect container definition a given task definition."
+            )
+        return values
+
     @sync_compatible
     async def run(self, task_status: Optional[TaskStatus] = None) -> ECSTaskResult:
         """
@@ -295,7 +319,7 @@ class ECSTask(Infrastructure):
             task_arn,
             cluster_arn,
             task_definition,
-            deregister_task_definition,
+            is_new_task_definition,
         ) = await run_sync_in_worker_thread(
             self._create_task_and_wait_for_start, boto_session, ecs_client
         )
@@ -314,7 +338,7 @@ class ECSTask(Infrastructure):
             task_arn,
             cluster_arn,
             task_definition,
-            deregister_task_definition,
+            is_new_task_definition and self.auto_remove_task_definition,
             boto_session,
             ecs_client,
         )
@@ -755,7 +779,9 @@ class ECSTask(Infrastructure):
         if container is None:
             container = {"name": PREFECT_ECS_CONTAINER_NAME}
             task_definition["containerDefinitions"].append(container)
-        container["image"] = self.image
+
+        if self.image:
+            container["image"] = self.image
 
         # Remove any keys that have been explicitly "unset"
         unset_keys = {key for key, value in self.env.items() if value is None}
