@@ -41,7 +41,7 @@ import copy
 import sys
 import time
 import warnings
-from typing import Dict, Generator, List, Optional
+from typing import Dict, Generator, List, Optional, Tuple
 
 import yaml
 from anyio.abc import TaskStatus
@@ -314,10 +314,18 @@ class ECSTask(Infrastructure):
         ecs_client = boto_session.client("ecs")
         return boto_session, ecs_client
 
-    def _create_task_and_wait_for_start(self, boto_session, ecs_client):
+    def _create_task_and_wait_for_start(
+        self, boto_session, ecs_client
+    ) -> Tuple[str, str, dict]:
         """
         Register the task definition, create the task run, and wait for it to start.
+
+        Returns a tuple of
+        - The task ARN
+        - The task's cluster ARN
+        - The task definition
         """
+        new_task_definition_registered = False
         requested_task_definition = (
             self._retrieve_task_definition(ecs_client, self.task_definition_arn)
             if self.task_definition_arn
@@ -336,6 +344,7 @@ class ECSTask(Infrastructure):
             task_definition_arn = self._register_task_definition(
                 ecs_client, task_definition
             )
+            new_task_definition_registered = True
 
         if task_definition.get("networkMode") == "awsvpc":
             network_config = self._load_vpc_network_config(self.vpc_id, boto_session)
@@ -361,6 +370,10 @@ class ECSTask(Infrastructure):
         self._wait_for_task_start(
             task_arn, cluster_arn, ecs_client, timeout=self.task_start_timeout_seconds
         )
+
+        if new_task_definition_registered:
+            # Clean up the temporary task definition
+            ecs_client.deregister_task_definition(taskDefinition=task_definition_arn)
 
         return task_arn, cluster_arn, task_definition
 
