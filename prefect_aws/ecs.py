@@ -199,7 +199,7 @@ class ECSTask(Infrastructure):
             "not provided, the default cluster will be used."
         ),
     )
-    env: Dict[str, str] = Field(
+    env: Dict[str, Optional[str]] = Field(
         default_factory=dict,
         description=(
             "Environment variables to provide to the task run. These variables are set "
@@ -714,6 +714,12 @@ class ECSTask(Infrastructure):
             task_definition["containerDefinitions"].append(container)
         container["image"] = self.image
 
+        # Remove any keys that have been explicitly "unset"
+        unset_keys = {key for key, value in self.env.items() if value is None}
+        for item in tuple(container["environment"]):
+            if item["name"] in unset_keys:
+                container["environment"].remove(item)
+
         if self.configure_cloudwatch_logs:
             container["logConfiguration"] = {
                 "logDriver": "awslogs",
@@ -782,7 +788,9 @@ class ECSTask(Infrastructure):
                 {
                     "name": PREFECT_ECS_CONTAINER_NAME,
                     "environment": [
-                        {"name": key, "value": value} for key, value in self.env.items()
+                        {"name": key, "value": value}
+                        for key, value in self.env.items()
+                        if value is not None
                     ],
                 }
             ],
