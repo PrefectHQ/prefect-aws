@@ -130,7 +130,7 @@ class ECSTask(Infrastructure):
             "defaults to a Prefect base image matching your local versions."
         ),
     )
-    auto_remove_task_definition: bool = Field(
+    auto_deregister_task_definition: bool = Field(
         default=True,
         description=(
             "If set, any task definitions that are created by this block will be "
@@ -338,7 +338,7 @@ class ECSTask(Infrastructure):
             task_arn,
             cluster_arn,
             task_definition,
-            is_new_task_definition and self.auto_remove_task_definition,
+            is_new_task_definition and self.auto_deregister_task_definition,
             boto_session,
             ecs_client,
         )
@@ -764,7 +764,16 @@ class ECSTask(Infrastructure):
         """
         # TODO: Consider including a global cache for this task definition since
         #       registration of task definitions is frequently rate limited
-        response = ecs_client.register_task_definition(**task_definition)
+        task_definition_request = copy.deepcopy(task_definition)
+
+        # We need to remove some fields here if copying an existing task definition
+        if self.task_definition_arn:
+            task_definition_request.pop("compatibilities", None)
+            task_definition_request.pop("taskDefinitionArn", None)
+            task_definition_request.pop("revision", None)
+            task_definition_request.pop("status", None)
+
+        response = ecs_client.register_task_definition(**task_definition_request)
         return response["taskDefinition"]["taskDefinitionArn"]
 
     def _prepare_task_definition(self, task_definition: dict, region: str) -> dict:

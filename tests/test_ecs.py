@@ -194,7 +194,7 @@ def ecs_mocks(aws_credentials):
 async def test_launch_types(aws_credentials, launch_type: str):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         command=["prefect", "version"],
         launch_type=launch_type,
     )
@@ -236,7 +236,7 @@ async def test_launch_types(aws_credentials, launch_type: str):
 async def test_cpu_and_memory(aws_credentials, launch_type: str, cpu: int, memory: int):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         command=["prefect", "version"],
         launch_type=launch_type,
         cpu=cpu,
@@ -279,7 +279,7 @@ async def test_cpu_and_memory(aws_credentials, launch_type: str, cpu: int, memor
 async def test_network_mode_default(aws_credentials, launch_type: str):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         command=["prefect", "version"],
         launch_type=launch_type,
     )
@@ -304,7 +304,7 @@ async def test_network_mode_default(aws_credentials, launch_type: str):
 async def test_container_command(aws_credentials, launch_type: str):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         command=["prefect", "version"],
         launch_type=launch_type,
     )
@@ -325,7 +325,7 @@ async def test_container_command(aws_credentials, launch_type: str):
 async def test_environment_variables(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         env={"FOO": "BAR"},
     )
     print(task.preview())
@@ -356,7 +356,7 @@ async def test_environment_variables(aws_credentials):
 async def test_labels(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         labels={"foo": "bar"},
     )
     print(task.preview())
@@ -377,7 +377,7 @@ async def test_labels(aws_credentials):
 async def test_container_command_from_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         task_definition={
             "containerDefinitions": [{"name": "prefect", "command": ["echo", "hello"]}]
         },
@@ -400,7 +400,7 @@ async def test_container_command_from_task_definition(aws_credentials):
 async def test_extra_containers_in_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         task_definition={
             "containerDefinitions": [
                 {"name": "secondary", "command": ["echo", "hello"], "image": "alpine"}
@@ -447,7 +447,7 @@ async def test_extra_containers_in_task_definition(aws_credentials):
 async def test_prefect_container_in_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         task_definition={
             "containerDefinitions": [
                 {
@@ -495,7 +495,7 @@ async def test_prefect_container_in_task_definition(aws_credentials):
 async def test_image_in_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         task_definition={
             "containerDefinitions": [
                 {
@@ -555,7 +555,7 @@ async def test_error_if_null_image_without_image_in_task_definition(
     ):
         ECSTask(
             aws_credentials=aws_credentials,
-            auto_remove_task_definition=False,
+            auto_deregister_task_definition=False,
             task_definition=task_definition,
             command=["prefect", "version"],
             image=None,
@@ -569,7 +569,7 @@ async def test_default_cpu_and_memory_in_task_definition(
 ):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         task_definition={
             "containerDefinitions": [
                 {
@@ -620,7 +620,7 @@ async def test_environment_variables_in_task_definition(aws_credentials):
     # See also,
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         task_definition={
             "containerDefinitions": [
                 {
@@ -667,7 +667,7 @@ async def test_unset_environment_variables_in_task_definition(aws_credentials):
     # variable instead of overriding a value.
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         task_definition={
             "containerDefinitions": [
                 {
@@ -715,7 +715,7 @@ async def test_execution_role_arn_in_task_definition(
 
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         task_definition={"executionRoleArn": "test"},
         execution_role_arn="override" if provided_as_field else None,
     )
@@ -748,7 +748,7 @@ async def test_cluster(aws_credentials, default_cluster: bool):
 
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         cluster=None if default_cluster else "second-cluster",
     )
     print(task.preview())
@@ -774,7 +774,7 @@ async def test_execution_role_arn(aws_credentials):
 
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         execution_role_arn="test",
     )
     print(task.preview())
@@ -794,7 +794,7 @@ async def test_task_role_arn(aws_credentials):
 
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         task_role_arn="test",
     )
     print(task.preview())
@@ -873,7 +873,7 @@ async def test_network_config_is_empty_without_awsvpc_network_mode(
 ):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         # EC2 uses the 'bridge' network mode by default but we want to have test
         # coverage for when it is set on the task definition
         task_definition={"networkMode": "bridge"} if explicit_network_mode else None,
@@ -918,7 +918,7 @@ async def test_network_config_from_vpc_with_no_subnets(aws_credentials):
 
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         vpc_id=vpc.id,
     )
     print(task.preview())
@@ -953,7 +953,7 @@ async def test_logging_requires_execution_role_arn_at_runtime(aws_credentials):
 
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         command=["prefect", "version"],
         configure_cloudwatch_logs=True,
         task_definition_arn=task_definition_arn,
@@ -973,7 +973,7 @@ async def test_configure_cloudwatch_logging(aws_credentials):
     with mock_logs():
         task = ECSTask(
             aws_credentials=aws_credentials,
-            auto_remove_task_definition=False,
+            auto_deregister_task_definition=False,
             command=["prefect", "version"],
             configure_cloudwatch_logs=True,
             execution_role_arn="test",
@@ -1005,7 +1005,7 @@ async def test_configure_cloudwatch_logging(aws_credentials):
 async def test_bridge_network_mode_warns_on_fargate(aws_credentials, launch_type: str):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=False,
+        auto_deregister_task_definition=False,
         command=["prefect", "version"],
         task_definition={"networkMode": "bridge"},
         launch_type=launch_type,
@@ -1024,7 +1024,7 @@ async def test_bridge_network_mode_warns_on_fargate(aws_credentials, launch_type
 async def test_deregister_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
-        auto_remove_task_definition=True,
+        auto_deregister_task_definition=True,
     )
     print(task.preview())
 
@@ -1039,26 +1039,78 @@ async def test_deregister_task_definition(aws_credentials):
         describe_task_definition(ecs_client, task)
 
 
-# @pytest.mark.usefixtures("ecs_mocks")
-# async def test_deregister_task_definition_does_not_apply_to_linked_arn(
-# aws_credentials):
-#     session = aws_credentials.get_boto3_session()
-#     ecs_client = session.client("ecs")
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_task_definition_arn(aws_credentials):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
 
-#     task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION)[
-#         "taskDefinition"
-#     ]["taskDefinitionArn"]
+    task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION)[
+        "taskDefinition"
+    ]["taskDefinitionArn"]
 
-#     task = ECSTask(
-#         aws_credentials=aws_credentials,
-#         auto_remove_task_definition=True,
-#         task_definition_arn=task_definition_arn,
-#         launch_type="EC2",
-#         image=None,
-#     )
-#     print(task.preview())
-#     task_arn = await run_then_stop_task(task)
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+        image=None,
+    )
+    print(task.preview())
+    task_arn = await run_then_stop_task(task)
 
-#     task = describe_task(ecs_client, task_arn)
-#     # The task definition can be retrieved
-#     assert describe_task_definition(ecs_client, task)
+    task = describe_task(ecs_client, task_arn)
+    assert (
+        task["taskDefinitionArn"] == task_definition_arn
+    ), "The task definition should be used without registering a new one"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("overrides", [{"image": "new-image"}])
+async def test_task_definition_arn_with_overrides(aws_credentials, overrides):
+    # Any of these overrides should cause the task definition to be copied and
+    # registered as a new version
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION)[
+        "taskDefinition"
+    ]["taskDefinitionArn"]
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+        **overrides,
+    )
+    print(task.preview())
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    assert (
+        task["taskDefinitionArn"] != task_definition_arn
+    ), "A new task definition should be registered"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_deregister_task_definition_does_not_apply_to_linked_arn(aws_credentials):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION)[
+        "taskDefinition"
+    ]["taskDefinitionArn"]
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=True,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+        image=None,
+    )
+    print(task.preview())
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    # The task definition can be retrieved still
+    assert describe_task_definition(ecs_client, task)
