@@ -739,7 +739,7 @@ class ECSTask(Infrastructure):
 
         # Remove any keys that have been explicitly "unset"
         unset_keys = {key for key, value in self.env.items() if value is None}
-        for item in tuple(container["environment"]):
+        for item in tuple(container.get("environment", [])):
             if item["name"] in unset_keys:
                 container["environment"].remove(item)
 
