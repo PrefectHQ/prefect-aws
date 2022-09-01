@@ -91,6 +91,8 @@ class ECSTask(Infrastructure):
     Run a command as an ECS task
     """
 
+    _block_type_slug = "ecs-task"
+
     type: Literal["ecs-task"] = Field(
         "ecs-task", description="The slug for this task type."
     )
