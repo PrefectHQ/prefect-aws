@@ -120,6 +120,7 @@ class ECSTask(Infrastructure):
     )
 
     aws_credentials: AwsCredentials = Field(
+        title="AWS Credentials",
         default_factory=AwsCredentials,
         description="The AWS credentials to use to connect to ECS.",
     )
@@ -164,6 +165,7 @@ class ECSTask(Infrastructure):
 
     # Mixed task definition / run settings
     cpu: int = Field(
+        title="CPU",
         default=None,
         description=(
             "The amount of CPU to provide to the ECS task. Valid amounts are "
@@ -180,6 +182,7 @@ class ECSTask(Infrastructure):
         ),
     )
     execution_role_arn: str = Field(
+        title="Execution Role ARN",
         default=None,
         description=(
             "An execution role to use for the task. This controls the permissions of "
@@ -220,6 +223,7 @@ class ECSTask(Infrastructure):
         ),
     )
     vpc_id: Optional[str] = Field(
+        title="VPC ID",
         default=None,
         description=(
             "The AWS VPC to link the task run to. This is only applicable when using "
@@ -237,6 +241,7 @@ class ECSTask(Infrastructure):
         ),
     )
     env: Dict[str, Optional[str]] = Field(
+        title="Environment Variables",
         default_factory=dict,
         description=(
             "Environment variables to provide to the task run. These variables are set "
@@ -245,6 +250,7 @@ class ECSTask(Infrastructure):
         ),
     )
     task_role_arn: str = Field(
+        title="Task Role ARN",
         default=None,
         description=(
             "A role to attach to the task run. This controls the permissions of the "
