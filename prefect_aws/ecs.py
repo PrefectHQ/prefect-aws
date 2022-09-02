@@ -354,7 +354,7 @@ class ECSTask(Infrastructure):
 
         # Display a nice message indicating the command and image
         self.logger.info(
-            f"{self.log_prefix}: Running command {' '.join(self.command)!r} "
+            f"{self._log_prefix}: Running command {' '.join(self.command)!r} "
             f"in container {PREFECT_ECS_CONTAINER_NAME!r} ({self.image})..."
         )
 
@@ -379,7 +379,7 @@ class ECSTask(Infrastructure):
         )
 
     @property
-    def log_prefix(self) -> str:
+    def _log_prefix(self) -> str:
         """
         Internal property for generating a prefix for logs where `name` may be null
         """
@@ -422,7 +422,7 @@ class ECSTask(Infrastructure):
 
         # We must register the task definition if the arn is null or changes were made
         if task_definition != requested_task_definition or not task_definition_arn:
-            self.logger.info(f"{self.log_prefix}: Registering task definition...")
+            self.logger.info(f"{self._log_prefix}: Registering task definition...")
             self.logger.debug("Task definition payload\n" + yaml.dump(task_definition))
             task_definition_arn = self._register_task_definition(
                 ecs_client, task_definition
@@ -438,7 +438,7 @@ class ECSTask(Infrastructure):
             network_config=network_config,
             task_definition_arn=task_definition_arn,
         )
-        self.logger.info(f"{self.log_prefix}: Creating task run...")
+        self.logger.info(f"{self._log_prefix}: Creating task run...")
         self.logger.debug("Task run payload\n" + yaml.dump(task_run))
 
         try:
@@ -449,7 +449,7 @@ class ECSTask(Infrastructure):
             self._report_task_run_creation_failure(task_run, exc)
 
         # Raises an exception if the task does not start
-        self.logger.info(f"{self.log_prefix}: Waiting for task run to start...")
+        self.logger.info(f"{self._log_prefix}: Waiting for task run to start...")
         self._wait_for_task_start(
             task_arn, cluster_arn, ecs_client, timeout=self.task_start_timeout_seconds
         )
@@ -530,17 +530,17 @@ class ECSTask(Infrastructure):
         """
         if status_code is None:
             self.logger.error(
-                f"{self.log_prefix}: Task exited without reporting an exit status "
+                f"{self._log_prefix}: Task exited without reporting an exit status "
                 f"for container {name!r}."
             )
         elif status_code == 0:
             self.logger.info(
-                f"{self.log_prefix}: Container {name!r} exited successfully."
+                f"{self._log_prefix}: Container {name!r} exited successfully."
             )
         else:
             self.logger.warning(
-                f"{self.log_prefix}: Container {name!r} exited with non-zero exit code "
-                f"{status_code}."
+                f"{self._log_prefix}: Container {name!r} exited with non-zero exit "
+                f"code {status_code}."
             )
 
     def _report_task_run_creation_failure(self, task_run: dict, exc: Exception) -> None:
@@ -602,7 +602,7 @@ class ECSTask(Infrastructure):
 
             status = task["lastStatus"]
             if status != last_status:
-                self.logger.info(f"{self.log_prefix}: Status is {status}.")
+                self.logger.info(f"{self._log_prefix}: Status is {status}.")
 
             yield task
 
@@ -665,17 +665,17 @@ class ECSTask(Infrastructure):
             )
             if not container_def:
                 self.logger.warning(
-                    f"{self.log_prefix}: Prefect container definition not found in "
+                    f"{self._log_prefix}: Prefect container definition not found in "
                     "task definition. Output cannot be streamed."
                 )
             elif not container_def.get("logConfiguration"):
                 self.logger.warning(
-                    f"{self.log_prefix}: Logging configuration not found on task. "
+                    f"{self._log_prefix}: Logging configuration not found on task. "
                     "Output cannot be streamed."
                 )
             elif not container_def["logConfiguration"].get("logDriver") == "awslogs":
                 self.logger.warning(
-                    f"{self.log_prefix}: Logging configuration uses unsupported "
+                    f"{self._log_prefix}: Logging configuration uses unsupported "
                     " driver {container_def['logConfiguration'].get('logDriver')!r}. "
                     "Output cannot be streamed."
                 )
@@ -695,7 +695,7 @@ class ECSTask(Infrastructure):
                     ]
                 )
                 self.logger.info(
-                    f"{self.log_prefix}: Streaming output from container "
+                    f"{self._log_prefix}: Streaming output from container "
                     f"{PREFECT_ECS_CONTAINER_NAME!r}..."
                 )
 
@@ -776,7 +776,7 @@ class ECSTask(Infrastructure):
         Retrieve an existing task definition from AWS.
         """
         self.logger.info(
-            f"{self.log_prefix}: "
+            f"{self._log_prefix}: "
             f"Retrieving task definition {task_definition_arn!r}..."
         )
         response = ecs_client.describe_task_definition(
