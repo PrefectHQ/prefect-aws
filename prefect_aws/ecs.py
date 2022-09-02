@@ -129,7 +129,7 @@ class ECSTask(Infrastructure):
         default=None,
         description=(
             "An identifier for an existing task definition to use. If fields are set "
-            "that on the `ECSTask` that conflict with the task definition, a new copy "
+            "on the `ECSTask` that conflict with the task definition, a new copy "
             "will be registered with the required values. "
             "Cannot be used with `task_definition`. If not provided, Prefect will "
             "generate and register a minimal task definition."
