@@ -51,3 +51,4 @@ nav:
     - Secrets Manager: secrets_manager.md
     - Batch: batch.md
     - ECS: ecs.md
+    - Client Waiter: client_waiter.md
