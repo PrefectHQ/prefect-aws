@@ -2,40 +2,60 @@
 Examples:
 
     Run a task using ECS Fargate
-    >>> ECSTask(command=["echo", "hello world"]).run()
+    ```python
+    ECSTask(command=["echo", "hello world"]).run()
+    ```
 
     Run a task using ECS Fargate with a spot container instance
-    >>> ECSTask(command=["echo", "hello world"], launch_type="FARGATE_SPOT").run()
+    ```python
+    ECSTask(command=["echo", "hello world"], launch_type="FARGATE_SPOT").run()
+    ```
 
     Run a task using ECS with an EC2 container instance
-    >>> ECSTask(command=["echo", "hello world"], launch_type="EC2").run()
+    ```python
+    ECSTask(command=["echo", "hello world"], launch_type="EC2").run()
+    ```
 
     Run a task on a specific VPC using ECS Fargate
-    >>> ECSTask(command=["echo", "hello world"], vpc_id="vpc-01abcdf123456789a").run()
+    ```python
+    ECSTask(command=["echo", "hello world"], vpc_id="vpc-01abcdf123456789a").run()
+    ```
 
     Run a task and stream the container's output to the local terminal. Note an
     execution role must be provided with permissions: logs:CreateLogStream,
     logs:CreateLogGroup, and logs:PutLogEvents.
-    >>> ECSTask(
-    >>>     command=["echo", "hello world"],
-    >>>     stream_output=True,
-    >>>     execution_role_arn="..."
-    >>> )
+    ```python
+    ECSTask(
+        command=["echo", "hello world"],
+        stream_output=True,
+        execution_role_arn="..."
+    )
+    ```
 
     Run a task using an existing task definition as a base
-    >>> ECSTask(command=["echo", "hello world"], task_definition_arn="arn:aws:ecs:...")
+    ```python
+    ECSTask(command=["echo", "hello world"], task_definition_arn="arn:aws:ecs:...")
+    ```
 
     Run a task with a specific image
-    >>> ECSTask(command=["echo", "hello world"], image="alpine:latest")
+    ```python
+    ECSTask(command=["echo", "hello world"], image="alpine:latest")
+    ```
 
     Run a task with custom memory and CPU requirements
-    >>> ECSTask(command=["echo", "hello world"], memory=4096, cpu=2048)
+    ```python
+    ECSTask(command=["echo", "hello world"], memory=4096, cpu=2048)
+    ```
 
     Run a task with custom environment variables
-    >>> ECSTask(command=["echo", "hello $PLANET"], env={"PLANET": "earth"})
+    ```python
+    ECSTask(command=["echo", "hello $PLANET"], env={"PLANET": "earth"})
+    ```
 
     Run a task in a specific ECS cluster
-    >>> ECSTask(command=["echo", "hello world"], cluster="my-cluster-name")
+    ```python
+    ECSTask(command=["echo", "hello world"], cluster="my-cluster-name")
+    ```
 """
 import copy
 import sys
