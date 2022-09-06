@@ -613,7 +613,7 @@ class ECSTask(Infrastructure):
             last_status = status
             elapsed_time = time.time() - t0
             if timeout is not None and elapsed_time > timeout:
-                raise TimeoutError(
+                raise RuntimeError(
                     f"Timed out after {elapsed_time}s while watching task for status "
                     "{until_status or 'STOPPED'}"
                 )
