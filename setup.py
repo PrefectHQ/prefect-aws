@@ -28,9 +28,9 @@ setup(
     install_requires=install_requires,
     entry_points={
         "prefect.collections": [
-            "AwsCredentials = prefect_aws.credentials",
-            "MinIOCredentials = prefect_aws.credentials",
-            "S3Bucket = prefect_aws.s3",
+            "prefect_aws = prefect_aws",
+            "prefect_aws_s3 = prefect_aws.s3",
+            "prefect_aws_ecs = prefect_aws.ecs",
         ]
     },
     extras_require={"dev": dev_requires},

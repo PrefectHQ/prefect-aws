@@ -50,4 +50,5 @@ nav:
     - S3: s3.md
     - Secrets Manager: secrets_manager.md
     - Batch: batch.md
+    - ECS: ecs.md
     - Client Waiter: client_waiter.md
