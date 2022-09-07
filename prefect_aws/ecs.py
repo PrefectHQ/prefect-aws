@@ -1,7 +1,9 @@
 """
+<span class="badge-api experimental"/>
+
 Integrations with the Amazon Elastic Container Service.
 
-This module is EXPERIMENTAL. The intefaces within may change without notice.
+Note this module is experimental. The intefaces within may change without notice.
 
 Examples:
 
@@ -112,9 +114,11 @@ def get_container(containers: List[dict], name: str) -> Optional[dict]:
 
 class ECSTask(Infrastructure):
     """
+    <span class="badge-api experimental"/>
+
     Run a command as an ECS task.
 
-    This block is EXPERIMENTAL. The interface may change without notice.
+    Note this block is experimental. The interface may change without notice.
     """
 
     _block_type_slug = "ecs-task"
