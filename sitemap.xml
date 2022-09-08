@@ -2,27 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://prefecthq.github.io/prefect-aws/</loc>
-         <lastmod>2022-08-03</lastmod>
+         <lastmod>2022-09-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://prefecthq.github.io/prefect-aws/batch/</loc>
-         <lastmod>2022-08-03</lastmod>
+         <lastmod>2022-09-08</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://prefecthq.github.io/prefect-aws/client_waiter/</loc>
+         <lastmod>2022-09-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://prefecthq.github.io/prefect-aws/credentials/</loc>
-         <lastmod>2022-08-03</lastmod>
+         <lastmod>2022-09-08</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://prefecthq.github.io/prefect-aws/ecs/</loc>
+         <lastmod>2022-09-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://prefecthq.github.io/prefect-aws/s3/</loc>
-         <lastmod>2022-08-03</lastmod>
+         <lastmod>2022-09-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://prefecthq.github.io/prefect-aws/secrets_manager/</loc>
-         <lastmod>2022-08-03</lastmod>
+         <lastmod>2022-09-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

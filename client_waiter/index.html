@@ -8,14 +8,14 @@
       
       
       
-        <link rel="canonical" href="https://prefecthq.github.io/prefect-aws/batch/">
+        <link rel="canonical" href="https://prefecthq.github.io/prefect-aws/client_waiter/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.3">
     
     
       
-        <title>Batch - prefect-aws</title>
+        <title>Client Waiter - prefect-aws</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#prefect_aws.batch" class="md-skip">
+        <a href="#prefect_aws.client_waiter" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Batch
+              Client Waiter
             
           </span>
         </div>
@@ -269,52 +269,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Batch
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../batch/" class="md-nav__link">
         Batch
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#prefect_aws.batch.batch_submit" class="md-nav__link">
-    batch_submit()
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -340,11 +299,52 @@
 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../client_waiter/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Client Waiter
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Client Waiter
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prefect_aws.client_waiter.client_waiter" class="md-nav__link">
+    client_waiter()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -376,8 +376,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prefect_aws.batch.batch_submit" class="md-nav__link">
-    batch_submit()
+  <a href="#prefect_aws.client_waiter.client_waiter" class="md-nav__link">
+    client_waiter()
   </a>
   
 </li>
@@ -395,7 +395,7 @@
               
                 
 
-  <a href="https://github.com/edit/main/docs/batch.md" title="Edit this page" class="md-content__button md-icon">
+  <a href="https://github.com/edit/main/docs/client_waiter.md" title="Edit this page" class="md-content__button md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
   </a>
@@ -405,15 +405,15 @@
 
 
 
-<h1 id="prefect_aws.batch" class="doc doc-heading">
-          <code>prefect_aws.batch</code>
+<h1 id="prefect_aws.client_waiter" class="doc doc-heading">
+          <code>prefect_aws.client_waiter</code>
 
 
 </h1>
 
   <div class="doc doc-contents first">
   
-      <p>Tasks for interacting with AWS Batch</p>
+      <p>Task for waiting on a long-running AWS job</p>
 
   
 
@@ -431,8 +431,8 @@
 
 
 
-<h2 id="prefect_aws.batch.batch_submit" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">batch_submit</span></code>
+<h2 id="prefect_aws.client_waiter.client_waiter" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">client_waiter</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-async"><code>async</code></small>
@@ -443,7 +443,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>Submit a job to the AWS Batch job service.</p>
+      <p>Uses the underlying boto3 waiter functionality.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -457,31 +457,23 @@
     </thead>
     <tbody>
         <tr>
-          <td><code>job_name</code></td>
+          <td><code>client</code></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>The AWS batch job name.</p></td>
+          <td><p>The AWS client on which to wait (e.g., 'client_wait', 'ec2', etc).</p></td>
           <td>
               <em>required</em>
           </td>
         </tr>
         <tr>
-          <td><code>job_definition</code></td>
+          <td><code>waiter_name</code></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>The AWS batch job definition.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>job_queue</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>Name of the AWS batch job queue.</p></td>
+          <td><p>The name of the waiter to instantiate.
+You may also use a custom waiter name, if you supply
+an accompanying waiter definition dict.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -497,14 +489,24 @@
           </td>
         </tr>
         <tr>
-          <td><code>**batch_kwargs</code></td>
+          <td><code>waiter_definition</code></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>Additional keyword arguments to pass to the boto3
-<code>submit_job</code> function. See the documentation for
-<a href="https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/batch.html#Batch.Client.submit_job">submit_job</a>
-for more details.</p></td>
+          <td><p>A valid custom waiter model, as a dict. Note that if
+you supply a custom definition, it is assumed that the provided
+'waiter_name' is contained within the waiter definition dict.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>**waiter_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>Arguments to pass to the <code>waiter.wait(...)</code> method. Will
+depend upon the specific waiter being called.</p></td>
           <td>
                 <code>{}</code>
           </td>
@@ -512,52 +514,33 @@ for more details.</p></td>
     </tbody>
   </table>
 
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-          </td>
-          <td><p>The id corresponding to the job.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
 <details class="example">
   <summary>Example</summary>
-  <p>Submits a job to batch.</p>
+  <p>Run an ec2 waiter until instance_exists.
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
 <span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
-<span class="kn">from</span> <span class="nn">prefect_aws.batch</span> <span class="kn">import</span> <span class="n">batch_submit</span>
-
+<span class="kn">from</span> <span class="nn">prefect_aws.client_wait</span> <span class="kn">import</span> <span class="n">client_waiter</span>
 
 <span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">example_batch_submit_flow</span><span class="p">():</span>
+<span class="k">def</span> <span class="nf">example_client_wait_flow</span><span class="p">():</span>
     <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="p">(</span>
         <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;acccess_key_id&quot;</span><span class="p">,</span>
         <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;secret_access_key&quot;</span>
     <span class="p">)</span>
-    <span class="n">job_id</span> <span class="o">=</span> <span class="n">batch_submit</span><span class="p">(</span>
-        <span class="s2">&quot;job_name&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;job_definition&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;job_queue&quot;</span><span class="p">,</span>
+
+    <span class="n">waiter</span> <span class="o">=</span> <span class="n">client_waiter</span><span class="p">(</span>
+        <span class="s2">&quot;ec2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;instance_exists&quot;</span><span class="p">,</span>
         <span class="n">aws_credentials</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">job_id</span>
 
-<span class="n">example_batch_submit_flow</span><span class="p">()</span>
-</code></pre></div>
+    <span class="k">return</span> <span class="n">waiter</span>
+<span class="n">example_client_wait_flow</span><span class="p">()</span>
+</code></pre></div></p>
 </details>
       <details class="quote">
-        <summary>Source code in <code>prefect_aws/batch.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
-<span class="normal">12</span>
+        <summary>Source code in <code>prefect_aws/client_waiter.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span>
@@ -619,70 +602,73 @@ for more details.</p></td>
 <span class="normal">71</span>
 <span class="normal">72</span>
 <span class="normal">73</span>
-<span class="normal">74</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@task</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">batch_submit</span><span class="p">(</span>
-    <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">job_queue</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">job_definition</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@task</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">client_waiter</span><span class="p">(</span>
+    <span class="n">client</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">waiter_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">aws_credentials</span><span class="p">:</span> <span class="n">AwsCredentials</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">batch_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+    <span class="n">waiter_definition</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">waiter_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Submit a job to the AWS Batch job service.</span>
+<span class="sd">    Uses the underlying boto3 waiter functionality.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        job_name: The AWS batch job name.</span>
-<span class="sd">        job_definition: The AWS batch job definition.</span>
-<span class="sd">        job_queue: Name of the AWS batch job queue.</span>
+<span class="sd">        client: The AWS client on which to wait (e.g., &#39;client_wait&#39;, &#39;ec2&#39;, etc).</span>
+<span class="sd">        waiter_name: The name of the waiter to instantiate.</span>
+<span class="sd">            You may also use a custom waiter name, if you supply</span>
+<span class="sd">            an accompanying waiter definition dict.</span>
 <span class="sd">        aws_credentials: Credentials to use for authentication with AWS.</span>
-<span class="sd">        **batch_kwargs: Additional keyword arguments to pass to the boto3</span>
-<span class="sd">            `submit_job` function. See the documentation for</span>
-<span class="sd">            [submit_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/batch.html#Batch.Client.submit_job)</span>
-<span class="sd">            for more details.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        The id corresponding to the job.</span>
+<span class="sd">        waiter_definition: A valid custom waiter model, as a dict. Note that if</span>
+<span class="sd">            you supply a custom definition, it is assumed that the provided</span>
+<span class="sd">            &#39;waiter_name&#39; is contained within the waiter definition dict.</span>
+<span class="sd">        **waiter_kwargs: Arguments to pass to the `waiter.wait(...)` method. Will</span>
+<span class="sd">            depend upon the specific waiter being called.</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        Submits a job to batch.</span>
-
+<span class="sd">        Run an ec2 waiter until instance_exists.</span>
 <span class="sd">        ```python</span>
 <span class="sd">        from prefect import flow</span>
 <span class="sd">        from prefect_aws import AwsCredentials</span>
-<span class="sd">        from prefect_aws.batch import batch_submit</span>
-
+<span class="sd">        from prefect_aws.client_wait import client_waiter</span>
 
 <span class="sd">        @flow</span>
-<span class="sd">        def example_batch_submit_flow():</span>
+<span class="sd">        def example_client_wait_flow():</span>
 <span class="sd">            aws_credentials = AwsCredentials(</span>
 <span class="sd">                aws_access_key_id=&quot;acccess_key_id&quot;,</span>
 <span class="sd">                aws_secret_access_key=&quot;secret_access_key&quot;</span>
 <span class="sd">            )</span>
-<span class="sd">            job_id = batch_submit(</span>
-<span class="sd">                &quot;job_name&quot;,</span>
-<span class="sd">                &quot;job_definition&quot;,</span>
-<span class="sd">                &quot;job_queue&quot;,</span>
+
+<span class="sd">            waiter = client_waiter(</span>
+<span class="sd">                &quot;ec2&quot;,</span>
+<span class="sd">                &quot;instance_exists&quot;,</span>
 <span class="sd">                aws_credentials</span>
 <span class="sd">            )</span>
-<span class="sd">            return job_id</span>
 
-<span class="sd">        example_batch_submit_flow()</span>
+<span class="sd">            return waiter</span>
+<span class="sd">        example_client_wait_flow()</span>
 <span class="sd">        ```</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Preparing to submit </span><span class="si">%s</span><span class="s2"> job to </span><span class="si">%s</span><span class="s2"> job queue&quot;</span><span class="p">,</span> <span class="n">job_name</span><span class="p">,</span> <span class="n">job_queue</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting on </span><span class="si">%s</span><span class="s2"> job&quot;</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
 
-    <span class="n">batch_client</span> <span class="o">=</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;batch&quot;</span><span class="p">)</span>
+    <span class="n">boto_client</span> <span class="o">=</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
 
-    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
-        <span class="n">batch_client</span><span class="o">.</span><span class="n">submit_job</span><span class="p">,</span>
-        <span class="n">jobName</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span>
-        <span class="n">jobQueue</span><span class="o">=</span><span class="n">job_queue</span><span class="p">,</span>
-        <span class="n">jobDefinition</span><span class="o">=</span><span class="n">job_definition</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">batch_kwargs</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">waiter_definition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Use user-provided waiter definition</span>
+        <span class="n">waiter_model</span> <span class="o">=</span> <span class="n">WaiterModel</span><span class="p">(</span><span class="n">waiter_definition</span><span class="p">)</span>
+        <span class="n">waiter</span> <span class="o">=</span> <span class="n">create_waiter_with_client</span><span class="p">(</span><span class="n">waiter_name</span><span class="p">,</span> <span class="n">waiter_model</span><span class="p">,</span> <span class="n">boto_client</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">waiter_name</span> <span class="ow">in</span> <span class="n">boto_client</span><span class="o">.</span><span class="n">waiter_names</span><span class="p">:</span>
+        <span class="n">waiter</span> <span class="o">=</span> <span class="n">boto_client</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="n">waiter_name</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The waiter name, </span><span class="si">{</span><span class="n">waiter_name</span><span class="si">}</span><span class="s2">, is not a valid boto waiter; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;if using a custom waiter, you must provide a waiter definition&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span><span class="n">waiter</span><span class="o">.</span><span class="n">wait</span><span class="p">,</span> <span class="o">**</span><span class="n">waiter_kwargs</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -714,7 +700,7 @@ for more details.</p></td>
     <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href="../secrets_manager/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Secrets Manager" rel="prev">
+        <a href="../ecs/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ECS" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -723,26 +709,11 @@ for more details.</p></td>
               <span class="md-footer__direction">
                 Previous
               </span>
-              Secrets Manager
-            </div>
-          </div>
-        </a>
-      
-      
-        
-        <a href="../ecs/" class="md-footer__link md-footer__link--next" aria-label="Next: ECS" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
               ECS
             </div>
           </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
-          </div>
         </a>
+      
       
     </nav>
   
