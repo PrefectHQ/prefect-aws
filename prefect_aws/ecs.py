@@ -364,8 +364,11 @@ class ECSTask(Infrastructure):
         )
 
         # Display a nice message indicating the command and image
+        command = self.command or get_prefect_container(
+            task_definition["containerDefinitions"]
+        ).get("command", [])
         self.logger.info(
-            f"{self._log_prefix}: Running command {' '.join(self.command)!r} "
+            f"{self._log_prefix}: Running command {' '.join(command)!r} "
             f"in container {PREFECT_ECS_CONTAINER_NAME!r} ({self.image})..."
         )
 
@@ -906,7 +909,10 @@ class ECSTask(Infrastructure):
                     "name": PREFECT_ECS_CONTAINER_NAME,
                     "environment": [
                         {"name": key, "value": value}
-                        for key, value in self.env.items()
+                        for key, value in {
+                            **self._base_environment(),
+                            **self.env,
+                        }.items()
                         if value is not None
                     ],
                 }

@@ -347,9 +347,12 @@ async def test_environment_variables(aws_credentials):
     prefect_container_overrides = get_prefect_container(
         task["overrides"]["containerOverrides"]
     )
-    assert prefect_container_overrides.get("environment") == [
-        {"name": "FOO", "value": "BAR"}
+    expected = [
+        {"name": key, "value": value}
+        for key, value in ECSTask._base_environment().items()
     ]
+    expected.append({"name": "FOO", "value": "BAR"})
+    assert prefect_container_overrides.get("environment") == expected
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -617,7 +620,7 @@ async def test_default_cpu_and_memory_in_task_definition(
 
 @pytest.mark.usefixtures("ecs_mocks")
 async def test_environment_variables_in_task_definition(aws_credentials):
-    # See also,
+    # See also, `test_unset_environment_variables_in_task_definition`
     task = ECSTask(
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
@@ -646,6 +649,7 @@ async def test_environment_variables_in_task_definition(aws_credentials):
     prefect_container_definition = get_prefect_container(
         task_definition["containerDefinitions"]
     )
+
     assert prefect_container_definition["environment"] == [
         {"name": "BAR", "value": "FOO"},
         {"name": "OVERRIDE", "value": "OLD"},
@@ -654,7 +658,11 @@ async def test_environment_variables_in_task_definition(aws_credentials):
     prefect_container_overrides = get_prefect_container(
         task["overrides"]["containerOverrides"]
     )
-    assert prefect_container_overrides.get("environment") == [
+    expected_base = [
+        {"name": key, "value": value}
+        for key, value in ECSTask._base_environment().items()
+    ]
+    assert prefect_container_overrides.get("environment") == expected_base + [
         {"name": "FOO", "value": "BAR"},
         {"name": "OVERRIDE", "value": "NEW"},
     ]
@@ -697,11 +705,15 @@ async def test_unset_environment_variables_in_task_definition(aws_credentials):
         {"name": "BAR", "value": "BAR"}
     ], "FOO should be removed from the task definition"
 
+    expected_base = [
+        {"name": key, "value": value}
+        for key, value in ECSTask._base_environment().items()
+    ]
     prefect_container_overrides = get_prefect_container(
         task["overrides"]["containerOverrides"]
     )
     assert (
-        prefect_container_overrides.get("environment") == []
+        prefect_container_overrides.get("environment") == expected_base
     ), "FOO should not be passed at runtime"
 
 
