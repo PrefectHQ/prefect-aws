@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## 0.1.4
+
+Released on September 13th, 2022.
+
+### Changed
+
+- Increased default timeout on the `ECSTask` block - [#106](https://github.com/PrefectHQ/prefect-aws/pull/106)
+
 ## 0.1.3
 
 Released on September 12th, 2022.
