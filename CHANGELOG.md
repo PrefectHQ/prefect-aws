@@ -19,13 +19,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-## 0.1.2
+## 0.1.3
 
-Released on August 2nd, 2022
+Released on September 13th, 2022.
 
 ### Added
 
-- `batch_submit` task - [#41](https://github.com/PrefectHQ/prefect-aws/issues/41)
+- `client_waiter` task - [#43](https://github.com/PrefectHQ/prefect-aws/pull/43)
+- `ECSTask` infrastructure block - [#85](https://github.com/PrefectHQ/prefect-aws/pull/85)
+
+## 0.1.2
+
+Released on August 2nd, 2022.
+
+### Added
+
+- `batch_submit` task - [#41](https://github.com/PrefectHQ/prefect-aws/pull/41)
 - `MinIOCredentials` block - [#46](https://github.com/PrefectHQ/prefect-aws/pull/46)
 - `S3Bucket` block - [#47](https://github.com/PrefectHQ/prefect-aws/pull/47)
 
@@ -43,7 +52,7 @@ Released on August 2nd, 2022
 
 ## Added
 
-Released on April 18th, 2022
+Released on April 18th, 2022.
 
 - `AwsClientParameters` for added configuration of the `boto3` S3 client - [#29](https://github.com/PrefectHQ/prefect-aws/pull/29)
   - Contributed by [davzucky](https://github.com/davzucky)
