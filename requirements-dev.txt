@@ -5,7 +5,7 @@ flake8
 mypy
 mkdocs
 mkdocs-material
-mkdocstrings[python]
+mkdocstrings-python-legacy
 isort
 pre-commit
 moto >= 3.1.16
