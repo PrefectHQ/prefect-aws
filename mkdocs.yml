@@ -46,9 +46,9 @@ plugins:
 
 nav:
     - Home: index.md
+    - Batch: batch.md
+    - Client Waiter: client_waiter.md
     - Credentials: credentials.md
+    - ECS: ecs.md
     - S3: s3.md
     - Secrets Manager: secrets_manager.md
-    - Batch: batch.md
-    - ECS: ecs.md
-    - Client Waiter: client_waiter.md
