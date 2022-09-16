@@ -95,7 +95,7 @@ ECS_DEFAULT_MEMORY = 2048
 
 def get_prefect_container(containers: List[dict]) -> Optional[dict]:
     """
-    Extract the Prefect container from a list of containers or container definitions
+    Extract the Prefect container from a list of containers or container definitions.
     If not found, `None` is returned.
     """
     return get_container(containers, PREFECT_ECS_CONTAINER_NAME)
@@ -103,7 +103,7 @@ def get_prefect_container(containers: List[dict]) -> Optional[dict]:
 
 def get_container(containers: List[dict], name: str) -> Optional[dict]:
     """
-    Extract the a container from a list of containers or container definitions
+    Extract a container from a list of containers or container definitions.
     If not found, `None` is returned.
     """
     for container in containers:
