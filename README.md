@@ -1,3 +1,12 @@
+---
+description: prefect-aws provides pre-built Prefect tasks for working with Amazon Web Services.
+tags:
+    - overview
+    - getting started
+    - installation
+    - examples
+---
+
 # prefect-aws
 
 <p align="center">
