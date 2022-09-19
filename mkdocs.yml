@@ -1,7 +1,7 @@
 site_name: prefect-aws
 site_url: https://prefecthq.github.io/prefect-aws
 repo_url: https://github.com/prefecthq/prefect-aws
-edit_uri: /edit/main/docs/
+edit_uri: edit/main/docs/
 theme:
   name: material
   favicon: img/favicon.ico
@@ -46,9 +46,9 @@ plugins:
 
 nav:
     - Home: index.md
+    - Batch: batch.md
+    - Client Waiter: client_waiter.md
     - Credentials: credentials.md
+    - ECS: ecs.md
     - S3: s3.md
     - Secrets Manager: secrets_manager.md
-    - Batch: batch.md
-    - ECS: ecs.md
-    - Client Waiter: client_waiter.md
