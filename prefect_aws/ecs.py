@@ -212,6 +212,15 @@ class ECSTask(Infrastructure):
             "unless `stream_output` is set. "
         ),
     )
+    cloudwatch_logs_options: Dict[str, str] = Field(
+        default_factory=dict,
+        description=(
+            "When `configure_cloudwatch_logs` is enabled, this setting may be used to "
+            "pass additional options to the CloudWatch logs configuration or override "
+            "the default options. See the AWS documentation for available options. "
+            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options"  # noqa
+        ),
+    )
     stream_output: bool = Field(
         default=None,
         description=(
@@ -318,6 +327,23 @@ class ECSTask(Infrastructure):
             raise ValueError(
                 "An `execution_role_arn` must be provided to use "
                 "`configure_cloudwatch_logs` or `stream_logs`."
+            )
+        return values
+
+    @root_validator
+    def cloudwatch_logs_options_requires_configure_cloudwatch_logs(
+        cls, values: dict
+    ) -> dict:
+        """
+        Enforces that an execution role arn is provided (or could be provided by a
+        runtime task definition) when configuring logging.
+        """
+        if values.get("cloudwatch_logs_options") and not values.get(
+            "configure_cloudwatch_logs"
+        ):
+            raise ValueError(
+                "`configure_cloudwatch_log` must be enabled to use "
+                "`cloudwatch_logs_options`."
             )
         return values
 
@@ -848,6 +874,7 @@ class ECSTask(Infrastructure):
                     "awslogs-group": "prefect",
                     "awslogs-region": region,
                     "awslogs-stream-prefix": self.name or "prefect",
+                    **self.cloudwatch_logs_options,
                 },
             }
 
