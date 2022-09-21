@@ -212,13 +212,13 @@ class ECSTask(Infrastructure):
             "unless `stream_output` is set. "
         ),
     )
-    cloudwatch_logs_options: Optional[Dict[str, str]] = Field(
-        default=None,
+    cloudwatch_logs_options: Dict[str, str] = Field(
+        default_factory=dict,
         description=(
-            "When `configure_cloudwatch_logs`, this setting may be used to pass "
-            "additional options to the CloudWatch logs configuration or override "
-            "the default options. See [the AWS documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options) "  # noqa
-            "for available options."
+            "When `configure_cloudwatch_logs` is enabled, this setting may be used to "
+            "pass additional options to the CloudWatch logs configuration or override "
+            "the default options. See the AWS documentation for available options. "
+            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options"  # noqa
         ),
     )
     stream_output: bool = Field(
@@ -874,7 +874,7 @@ class ECSTask(Infrastructure):
                     "awslogs-group": "prefect",
                     "awslogs-region": region,
                     "awslogs-stream-prefix": self.name or "prefect",
-                    **(self.cloudwatch_logs_options or {}),
+                    **self.cloudwatch_logs_options,
                 },
             }
 
