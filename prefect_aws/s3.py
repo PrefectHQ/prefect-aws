@@ -9,7 +9,7 @@ import boto3
 from botocore.paginate import PageIterator
 from prefect import get_run_logger, task
 from prefect.filesystems import ReadableFileSystem, WritableFileSystem
-from prefect.utilities.asyncutils import run_sync_in_worker_thread
+from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from pydantic import root_validator, validator
 
 from prefect_aws import AwsCredentials, MinIOCredentials
@@ -340,6 +340,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         return s3_client
 
+    @sync_compatible
     async def read_path(self, path: str) -> bytes:
 
         """
@@ -388,6 +389,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             output = stream.read()
             return output
 
+    @sync_compatible
     async def write_path(self, path: str, content: bytes) -> str:
 
         """
