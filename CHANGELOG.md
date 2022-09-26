@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix configuration to submit doc edits via GitHub - [#110](https://github.com/PrefectHQ/prefect-aws/pull/110)
 - Add `ECSTask.cloudwatch_logs_options` for customization of CloudWatch logging — [#116](https://github.com/PrefectHQ/prefect-aws/pull/116)
+- Added `config` parameter to AwsClientParameters to support advanced configuration (e.g. accessing public S3 buckets) [#104](https://github.com/PrefectHQ/prefect-aws/pull/117)
 
 ### Added
 
