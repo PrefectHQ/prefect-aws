@@ -52,10 +52,12 @@ def s3_bucket(s3, request, aws_creds_block, minio_creds_block):
 
     return fs
 
+
 @pytest.fixture
 def s3_bucket_with_file(s3_bucket):
     key = s3_bucket.write_path("test.txt", content=b"hello")
     return s3_bucket, key
+
 
 async def test_read_write_roundtrip(s3_bucket):
 
@@ -131,15 +133,16 @@ async def test_too_few_credentials_arguments(s3_bucket, aws_creds_block):
             basepath="subfolder",
         )
 
+
 def test_read_path_in_sync_context(s3_bucket_with_file):
     """Test that read path works in a sync context."""
     s3_bucket, key = s3_bucket_with_file
     content = s3_bucket.read_path(key)
     assert content == b"hello"
 
+
 def test_write_path_in_sync_context(s3_bucket):
     """Test that write path works in a sync context."""
     key = s3_bucket.write_path("test.txt", content=b"hello")
     content = s3_bucket.read_path(key)
     assert content == b"hello"
-    
