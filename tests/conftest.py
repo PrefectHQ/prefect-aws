@@ -3,6 +3,15 @@ from prefect.testing.utilities import prefect_test_harness
 
 from prefect_aws import AwsCredentials
 from prefect_aws.client_parameters import AwsClientParameters
+from botocore import UNSIGNED
+from botocore.client import Config
+
+
+# added to eliminate warnings
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "is_public: mark test as using public S3 bucket or not"
+    )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -28,3 +37,8 @@ def aws_client_parameters_custom_endpoint():
 @pytest.fixture
 def aws_client_parameters_empty():
     return AwsClientParameters()
+
+
+@pytest.fixture
+def aws_client_parameters_public_bucket():
+    return AwsClientParameters(config=Config(signature_version=UNSIGNED))

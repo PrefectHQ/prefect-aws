@@ -29,6 +29,20 @@ from prefect_aws.client_parameters import AwsClientParameters
             AwsClientParameters(api_version="1.0.0"),
             {"api_version": "1.0.0"},
         ),
+        # would need to implement a custom equality function or class matcher,
+        # but this is too trivial of a test
+        # (
+        #     AwsClientParameters(config=botocore.client.Config(
+        #         region_name="eu_west_1",
+        #         retries={"max_attempts": 10, "mode": "standard"}
+        #     )),
+        #     {
+        #         "config": {
+        #             "region_name": "eu_west_1",
+        #             "retries": {"max_attempts": 10, "mode": "standard"},
+        #         }
+        #     },
+        # ),
     ],
 )
 def test_empty_AwsClientParameter_return_empty_dict(
