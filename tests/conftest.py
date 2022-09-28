@@ -1,10 +1,10 @@
 import pytest
+from botocore import UNSIGNED
+from botocore.client import Config
 from prefect.testing.utilities import prefect_test_harness
 
 from prefect_aws import AwsCredentials
 from prefect_aws.client_parameters import AwsClientParameters
-from botocore import UNSIGNED
-from botocore.client import Config
 
 
 # added to eliminate warnings

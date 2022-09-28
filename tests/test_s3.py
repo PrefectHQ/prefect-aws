@@ -37,7 +37,7 @@ def bucket(s3_mock, request):
     bucket = s3.Bucket("bucket")
     marker = request.node.get_closest_marker("is_public", None)
     if marker and marker.args[0]:
-        bucket.create(ACL='public-read')
+        bucket.create(ACL="public-read")
     else:
         bucket.create()
     return bucket
@@ -98,19 +98,33 @@ async def test_s3_download_failed_with_wrong_endpoint_setup(
 @pytest.mark.parametrize(
     "client_parameters",
     [
-        pytest.param(lazy_fixture("aws_client_parameters_custom_endpoint"),
-                     marks=pytest.mark.is_public(False)),
-        pytest.param(lazy_fixture("aws_client_parameters_custom_endpoint"),
-                     marks=pytest.mark.is_public(True)),
-        pytest.param(lazy_fixture("aws_client_parameters_empty"),
-                     marks=pytest.mark.is_public(False)),
-        pytest.param(lazy_fixture("aws_client_parameters_empty"),
-                     marks=pytest.mark.is_public(True)),
-        pytest.param(lazy_fixture("aws_client_parameters_public_bucket"),
-                     marks=[pytest.mark.is_public(False),
-                            pytest.mark.xfail(reason="Bucket is not a public one")]),
-        pytest.param(lazy_fixture("aws_client_parameters_public_bucket"),
-                     marks=pytest.mark.is_public(True)),
+        pytest.param(
+            lazy_fixture("aws_client_parameters_custom_endpoint"),
+            marks=pytest.mark.is_public(False),
+        ),
+        pytest.param(
+            lazy_fixture("aws_client_parameters_custom_endpoint"),
+            marks=pytest.mark.is_public(True),
+        ),
+        pytest.param(
+            lazy_fixture("aws_client_parameters_empty"),
+            marks=pytest.mark.is_public(False),
+        ),
+        pytest.param(
+            lazy_fixture("aws_client_parameters_empty"),
+            marks=pytest.mark.is_public(True),
+        ),
+        pytest.param(
+            lazy_fixture("aws_client_parameters_public_bucket"),
+            marks=[
+                pytest.mark.is_public(False),
+                pytest.mark.xfail(reason="Bucket is not a public one"),
+            ],
+        ),
+        pytest.param(
+            lazy_fixture("aws_client_parameters_public_bucket"),
+            marks=pytest.mark.is_public(True),
+        ),
     ],
     indirect=True,
 )
