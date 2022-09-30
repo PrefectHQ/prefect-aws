@@ -63,7 +63,7 @@ Examples:
     ECSTask(command=["echo", "hello world"], cluster="my-cluster-name")
     ```
 
-    Run a task with custom subnets
+    Run a task with custom VPC subnets
     ```python
     ECSTask(
         command=["echo", "hello world"],
@@ -77,15 +77,16 @@ Examples:
     )
     ```
 
-    Run a task with custom VPC subnets
+    Run a task without a public IP assigned
     ```python
     ECSTask(
         command=["echo", "hello world"],
+        vpc_id="vpc-01abcdf123456789a",
         task_customizations=[
             {
-                "op": "add",
-                "path": "/networkConfiguration/awsvpcConfiguration/subnets",
-                "value": ["subnet-80b6fbcd", "subnet-42a6fdgd"],
+                "op": "replace",
+                "path": "/networkConfiguration/awsvpcConfiguration/assignPublicIp",
+                "value": "DISABLED",
             },
         ]
     )
