@@ -62,12 +62,55 @@ Examples:
     ```python
     ECSTask(command=["echo", "hello world"], cluster="my-cluster-name")
     ```
+
+    Run a task with custom subnets
+    ```python
+    ECSTask(
+        command=["echo", "hello world"],
+        task_customizations=[
+            {
+                "op": "add",
+                "path": "/networkConfiguration/awsvpcConfiguration/subnets",
+                "value": ["subnet-80b6fbcd", "subnet-42a6fdgd"],
+            },
+        ]
+    )
+    ```
+
+    Run a task with custom VPC subnets
+    ```python
+    ECSTask(
+        command=["echo", "hello world"],
+        task_customizations=[
+            {
+                "op": "add",
+                "path": "/networkConfiguration/awsvpcConfiguration/subnets",
+                "value": ["subnet-80b6fbcd", "subnet-42a6fdgd"],
+            },
+        ]
+    )
+    ```
+
+    Run a task with custom VPC security groups
+    ```python
+    ECSTask(
+        command=["echo", "hello world"],
+        vpc_id="vpc-01abcdf123456789a",
+        task_customizations=[
+            {
+                "op": "add",
+                "path": "/networkConfiguration/awsvpcConfiguration/securityGroups",
+                "value": ["sg-d72e9599956a084f5"],
+            },
+        ],
+    )
+    ```
 """
 import copy
 import sys
 import time
 import warnings
-from typing import Any, Dict, Generator, List, Optional, Tuple
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import boto3
 import yaml
@@ -75,7 +118,8 @@ from anyio.abc import TaskStatus
 from prefect.docker import get_prefect_image_name
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
-from pydantic import Field, root_validator
+from prefect.utilities.pydantic import JsonPatch
+from pydantic import Field, root_validator, validator
 from typing_extensions import Literal
 
 from prefect_aws import AwsCredentials
@@ -277,6 +321,10 @@ class ECSTask(Infrastructure):
             "task while it is running."
         ),
     )
+    task_customizations: JsonPatch = Field(
+        default_factory=lambda: JsonPatch([]),
+        description="A list of JSON 6902 patches to apply to the task run request.",
+    )
 
     # Execution settings
     task_start_timeout_seconds: int = Field(
@@ -370,6 +418,25 @@ class ECSTask(Infrastructure):
                 "present for the Prefect container definition a given task definition."
             )
         return values
+
+    @validator("task_customizations", pre=True)
+    def cast_customizations_to_a_json_patch(
+        cls, value: Union[List[Dict], JsonPatch]
+    ) -> JsonPatch:
+        if isinstance(value, list):
+            return JsonPatch(value)
+        return value
+
+    class Config:
+        # Support serialization of the 'JsonPatch' type
+        arbitrary_types_allowed = True
+        json_encoders = {JsonPatch: lambda p: p.patch}
+
+    def dict(self, *args, **kwargs) -> Dict:
+        # Support serialization of the 'JsonPatch' type
+        d = super().dict(*args, **kwargs)
+        d["task_customizations"] = self.task_customizations.patch
+        return d
 
     @sync_compatible
     async def run(self, task_status: Optional[TaskStatus] = None) -> ECSTaskResult:
@@ -552,7 +619,12 @@ class ECSTask(Infrastructure):
 
         if task_definition and task_definition.get("networkMode") == "awsvpc":
             vpc = "the default VPC" if not self.vpc_id else self.vpc_id
-            network_config = {"awsvpcConfiguration": f"<loaded from {vpc} at runtime>"}
+            network_config = {
+                "awsvpcConfiguration": {
+                    "subnets": f"<loaded from {vpc} at runtime>",
+                    "assignPublicIp": "ENABLED",
+                }
+            }
         else:
             network_config = None
 
@@ -1042,6 +1114,7 @@ class ECSTask(Infrastructure):
         if network_config:
             task_run["networkConfiguration"] = network_config
 
+        task_run = self.task_customizations.apply(task_run)
         return task_run
 
     def _run_task(self, ecs_client: _ECSClient, task_run: dict):
