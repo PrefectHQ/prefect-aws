@@ -4,7 +4,7 @@ from typing import Optional
 
 import boto3
 from prefect.blocks.core import Block
-from pydantic import SecretStr, Field
+from pydantic import Field, SecretStr
 
 
 class AwsCredentials(Block):
