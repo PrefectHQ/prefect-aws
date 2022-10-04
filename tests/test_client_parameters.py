@@ -1,7 +1,7 @@
 from typing import Any, Dict
-from botocore.client import Config
 
 import pytest
+from botocore.client import Config
 
 from prefect_aws.client_parameters import AwsClientParameters
 
@@ -30,11 +30,22 @@ from prefect_aws.client_parameters import AwsClientParameters
             AwsClientParameters(api_version="1.0.0"),
             {"api_version": "1.0.0"},
         ),
-        pytest.param(
+    ],
+)
+def test_empty_AwsClientParameter_return_empty_dict(
+    params: AwsClientParameters, result: Dict[str, Any]
+):
+    assert result == params.get_params_override()
+
+
+@pytest.mark.parametrize(
+    "params,result",
+    [
+        (
             AwsClientParameters(
                 config=Config(
                     region_name="eu_west_1",
-                    retries={"max_attempts": 10, "mode": "standard"}
+                    retries={"max_attempts": 10, "mode": "standard"},
                 )
             ),
             {
@@ -43,11 +54,14 @@ from prefect_aws.client_parameters import AwsClientParameters
                     "retries": {"max_attempts": 10, "mode": "standard"},
                 },
             },
-            marks=pytest.mark.xfail(reason="boto3 Config not directly equivalent to a dict"),
         ),
     ],
 )
-def test_empty_AwsClientParameter_return_empty_dict(
+def test_AwsClientParameter_with_custom_config(
     params: AwsClientParameters, result: Dict[str, Any]
 ):
-    assert result == params.get_params_override()
+    assert (
+        result["config"]["region_name"]
+        == params.get_params_override()["config"].region_name
+    )
+    assert result["config"]["retries"] == params.get_params_override()["config"].retries
