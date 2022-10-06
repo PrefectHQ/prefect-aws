@@ -943,11 +943,28 @@ async def test_network_config_from_vpc_with_no_subnets(aws_credentials):
 
 @pytest.mark.usefixtures("ecs_mocks")
 async def test_logging_requires_execution_role_arn(aws_credentials):
-    with pytest.raises(ValidationError, match="`execution_role_arn` must be provided"):
+    with pytest.raises(
+        ValidationError,
+        match="`execution_role_arn` must be provided",
+    ):
         ECSTask(
             aws_credentials=aws_credentials,
             command=["prefect", "version"],
             configure_cloudwatch_logs=True,
+        )
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_log_options_requires_logging(aws_credentials):
+    with pytest.raises(
+        ValidationError,
+        match="`configure_cloudwatch_log` must be enabled to use `cloudwatch_logs_options`",  # noqa
+    ):
+        ECSTask(
+            aws_credentials=aws_credentials,
+            command=["prefect", "version"],
+            configure_cloudwatch_logs=False,
+            cloudwatch_logs_options={"foo": " bar"},
         )
 
 
@@ -1005,6 +1022,47 @@ async def test_configure_cloudwatch_logging(aws_credentials):
                     "awslogs-group": "prefect",
                     "awslogs-region": "us-east-1",
                     "awslogs-stream-prefix": "prefect",
+                },
+            }
+        else:
+            # Other containers should not be modifed
+            assert "logConfiguration" not in container
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_cloudwatch_log_options(aws_credentials):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    with mock_logs():
+        task = ECSTask(
+            aws_credentials=aws_credentials,
+            auto_deregister_task_definition=False,
+            command=["prefect", "version"],
+            configure_cloudwatch_logs=True,
+            execution_role_arn="test",
+            cloudwatch_logs_options={
+                "awslogs-stream-prefix": "override-prefix",
+                "max-buffer-size": "2m",
+            },
+        )
+
+    task_arn = await run_then_stop_task(task)
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    for container in task_definition["containerDefinitions"]:
+        if container["name"] == "prefect":
+            # Assert that the 'prefect' container has logging configured with user
+            # provided options
+            assert container["logConfiguration"] == {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "prefect",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "override-prefix",
+                    "max-buffer-size": "2m",
                 },
             }
         else:
@@ -1195,3 +1253,129 @@ async def test_deregister_task_definition_does_not_apply_to_linked_arn(aws_crede
     task = describe_task(ecs_client, task_arn)
     # The task definition can be retrieved still
     assert describe_task_definition(ecs_client, task)
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_adding_security_groups_to_network_config(aws_credentials):
+    session = aws_credentials.get_boto3_session()
+    ec2_resource = session.resource("ec2")
+    vpc = ec2_resource.create_vpc(CidrBlock="10.0.0.0/16")
+    subnet = ec2_resource.create_subnet(CidrBlock="10.0.2.0/24", VpcId=vpc.id)
+    ec2_client = session.client("ec2")
+    security_group_id = ec2_client.create_security_group(
+        GroupName="test", Description="testing"
+    )["GroupId"]
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        vpc_id=vpc.id,
+        task_customizations=[
+            {
+                "op": "add",
+                "path": "/networkConfiguration/awsvpcConfiguration/securityGroups",
+                "value": [security_group_id],
+            },
+        ],
+    )
+
+    # Capture the task run call because moto does not track 'networkConfiguration'
+    original_run_task = task._run_task
+    mock_run_task = MagicMock(side_effect=original_run_task)
+    task._run_task = mock_run_task
+
+    print(task.preview())
+
+    await run_then_stop_task(task)
+
+    network_configuration = mock_run_task.call_args[0][1].get("networkConfiguration")
+
+    # Subnet ids are copied from the vpc
+    assert network_configuration == {
+        "awsvpcConfiguration": {
+            "subnets": [subnet.id],
+            "securityGroups": [security_group_id],
+            "assignPublicIp": "ENABLED",
+        }
+    }
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_disable_public_ip_in_network_config(aws_credentials):
+    session = aws_credentials.get_boto3_session()
+    ec2_resource = session.resource("ec2")
+    vpc = ec2_resource.create_vpc(CidrBlock="10.0.0.0/16")
+    subnet = ec2_resource.create_subnet(CidrBlock="10.0.2.0/24", VpcId=vpc.id)
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        vpc_id=vpc.id,
+        task_customizations=[
+            {
+                "op": "replace",
+                "path": "/networkConfiguration/awsvpcConfiguration/assignPublicIp",
+                "value": "DISABLED",
+            },
+        ],
+    )
+
+    # Capture the task run call because moto does not track 'networkConfiguration'
+    original_run_task = task._run_task
+    mock_run_task = MagicMock(side_effect=original_run_task)
+    task._run_task = mock_run_task
+
+    print(task.preview())
+
+    await run_then_stop_task(task)
+
+    network_configuration = mock_run_task.call_args[0][1].get("networkConfiguration")
+
+    # Subnet ids are copied from the vpc
+    assert network_configuration == {
+        "awsvpcConfiguration": {
+            "subnets": [subnet.id],
+            "assignPublicIp": "DISABLED",
+        }
+    }
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_custom_subnets_in_the_network_configuration(aws_credentials):
+    session = aws_credentials.get_boto3_session()
+    ec2_resource = session.resource("ec2")
+    vpc = ec2_resource.create_vpc(CidrBlock="10.0.0.0/16")
+    subnet = ec2_resource.create_subnet(CidrBlock="10.0.2.0/24", VpcId=vpc.id)
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        task_customizations=[
+            {
+                "op": "add",
+                "path": "/networkConfiguration/awsvpcConfiguration/subnets",
+                "value": [subnet.id],
+            },
+            {
+                "op": "add",
+                "path": "/networkConfiguration/awsvpcConfiguration/assignPublicIp",
+                "value": "DISABLED",
+            },
+        ],
+    )
+
+    # Capture the task run call because moto does not track 'networkConfiguration'
+    original_run_task = task._run_task
+    mock_run_task = MagicMock(side_effect=original_run_task)
+    task._run_task = mock_run_task
+
+    print(task.preview())
+
+    await run_then_stop_task(task)
+
+    network_configuration = mock_run_task.call_args[0][1].get("networkConfiguration")
+
+    # Subnet ids are copied from the vpc
+    assert network_configuration == {
+        "awsvpcConfiguration": {
+            "subnets": [subnet.id],
+            "assignPublicIp": "DISABLED",
+        }
+    }
