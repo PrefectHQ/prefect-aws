@@ -4,12 +4,14 @@ import dataclasses
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union
 
+from botocore.client import Config
+
 
 @dataclass(frozen=True)
 class AwsClientParameters:
     """
     Dataclass used to manage extra parameters that you can pass when you initialize the Client. If you
-    want find more information
+    want to find more information, see
     [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html)
     for more info about the possible client configurations.
 
@@ -38,12 +40,17 @@ class AwsClientParameters:
             can specify a complete URL (including the "http/https" scheme)
             to override this behavior. If this value is provided,
             then ``use_ssl`` is ignored.
+
+        config: Advanced configuration for Botocore clients. See
+            [botocore docs](https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html)
+            for more details.
     """  # noqa E501
 
     api_version: Optional[str] = None
     use_ssl: Optional[bool] = None
     verify: Optional[Union[bool, str]] = None
     endpoint_url: Optional[str] = None
+    config: Optional[Config] = None
 
     def get_params_override(self) -> Dict[str, Any]:
         """

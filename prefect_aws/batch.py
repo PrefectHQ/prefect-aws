@@ -15,7 +15,7 @@ async def batch_submit(
     job_definition: str,
     aws_credentials: AwsCredentials,
     **batch_kwargs: Optional[Dict[str, Any]],
-):
+) -> str:
     """
     Submit a job to the AWS Batch job service.
 
