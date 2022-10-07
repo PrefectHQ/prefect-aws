@@ -4,7 +4,7 @@ from typing import Optional
 
 import boto3
 from prefect.blocks.core import Block
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 
 
 class AwsCredentials(Block):
@@ -13,14 +13,6 @@ class AwsCredentials(Block):
     handled via the `boto3` module. Refer to the
     [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
     for more info about the possible credential configurations.
-
-    Args:
-        aws_access_key_id: A specific AWS access key ID.
-        aws_secret_access_key: A specific AWS secret access key.
-        aws_session_token: The session key for your AWS account.
-            This is only needed when you are using temporary credentials.
-        profile_name: The profile to use when creating your session.
-        region_name: The AWS Region where you want to create new connections.
 
     Example:
         Load stored AWS credentials:
@@ -34,11 +26,26 @@ class AwsCredentials(Block):
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _block_type_name = "AWS Credentials"
 
-    aws_access_key_id: Optional[str] = None
-    aws_secret_access_key: Optional[SecretStr] = None
-    aws_session_token: Optional[str] = None
-    profile_name: Optional[str] = None
-    region_name: Optional[str] = None
+    aws_access_key_id: Optional[str] = Field(
+        default=None, description="A specific AWS access key ID."
+    )
+    aws_secret_access_key: Optional[SecretStr] = Field(
+        default=None, description="A specific AWS secret access key."
+    )
+    aws_session_token: Optional[str] = Field(
+        default=None,
+        description=(
+            "The session key for your AWS account. "
+            "This is only needed when you are using temporary credentials."
+        ),
+    )
+    profile_name: Optional[str] = Field(
+        default=None, description="The profile to use when creating your session."
+    )
+    region_name: Optional[str] = Field(
+        default=None,
+        description="The AWS Region where you want to create new connections.",
+    )
 
     def get_boto3_session(self) -> boto3.Session:
         """
