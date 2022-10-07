@@ -6,12 +6,14 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
+        <meta name="description" content="Integrations with the Amazon Elastic Container Service.">
+      
       
       
         <link rel="canonical" href="https://prefecthq.github.io/prefect-aws/ecs/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.5.0">
+      <meta name="generator" content="mkdocs-1.4.0, mkdocs-material-8.5.6">
     
     
       
@@ -19,7 +21,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.2e8b5541.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.20d9efc8.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
@@ -228,53 +230,38 @@
   
   
     <li class="md-nav__item">
-      <a href="../credentials/" class="md-nav__link">
-        Credentials
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../s3/" class="md-nav__link">
-        S3
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../secrets_manager/" class="md-nav__link">
-        Secrets Manager
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../batch/" class="md-nav__link">
         Batch
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../client_waiter/" class="md-nav__link">
+        Client Waiter
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../credentials/" class="md-nav__link">
+        Credentials
       </a>
     </li>
   
@@ -322,11 +309,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#prefect_aws.ecs-classes" class="md-nav__link">
+    Classes
+  </a>
+  
+    <nav class="md-nav" aria-label="Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask" class="md-nav__link">
     ECSTask
   </a>
   
     <nav class="md-nav" aria-label="ECSTask">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -339,6 +342,13 @@
           <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.aws_credentials" class="md-nav__link">
     aws_credentials
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.cloudwatch_logs_options" class="md-nav__link">
+    cloudwatch_logs_options
   </a>
   
 </li>
@@ -400,6 +410,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.task_customizations" class="md-nav__link">
+    task_customizations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.task_definition" class="md-nav__link">
     task_definition
   </a>
@@ -441,9 +458,43 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask-methods" class="md-nav__link">
+    Methods
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.__json_encoder__" class="md-nav__link">
+    __json_encoder__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.cloudwatch_logs_options_requires_configure_cloudwatch_logs" class="md-nav__link">
+    cloudwatch_logs_options_requires_configure_cloudwatch_logs()
+  </a>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.configure_cloudwatch_logs_requires_execution_role_arn" class="md-nav__link">
     configure_cloudwatch_logs_requires_execution_role_arn()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.dict" class="md-nav__link">
+    dict()
   </a>
   
 </li>
@@ -480,25 +531,48 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTaskResult" class="md-nav__link">
     ECSTaskResult
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
+  <a href="#prefect_aws.ecs-functions" class="md-nav__link">
+    Functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.get_container" class="md-nav__link">
     get_container()
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.get_prefect_container" class="md-nav__link">
     get_prefect_container()
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -518,8 +592,23 @@
   
   
     <li class="md-nav__item">
-      <a href="../client_waiter/" class="md-nav__link">
-        Client Waiter
+      <a href="../s3/" class="md-nav__link">
+        S3
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secrets_manager/" class="md-nav__link">
+        Secrets Manager
       </a>
     </li>
   
@@ -552,11 +641,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#prefect_aws.ecs-classes" class="md-nav__link">
+    Classes
+  </a>
+  
+    <nav class="md-nav" aria-label="Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask" class="md-nav__link">
     ECSTask
   </a>
   
     <nav class="md-nav" aria-label="ECSTask">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask-attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -569,6 +674,13 @@
           <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.aws_credentials" class="md-nav__link">
     aws_credentials
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.cloudwatch_logs_options" class="md-nav__link">
+    cloudwatch_logs_options
   </a>
   
 </li>
@@ -630,6 +742,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.task_customizations" class="md-nav__link">
+    task_customizations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.task_definition" class="md-nav__link">
     task_definition
   </a>
@@ -671,9 +790,43 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask-methods" class="md-nav__link">
+    Methods
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.__json_encoder__" class="md-nav__link">
+    __json_encoder__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.cloudwatch_logs_options_requires_configure_cloudwatch_logs" class="md-nav__link">
+    cloudwatch_logs_options_requires_configure_cloudwatch_logs()
+  </a>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.configure_cloudwatch_logs_requires_execution_role_arn" class="md-nav__link">
     configure_cloudwatch_logs_requires_execution_role_arn()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.dict" class="md-nav__link">
+    dict()
   </a>
   
 </li>
@@ -710,25 +863,48 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTaskResult" class="md-nav__link">
     ECSTaskResult
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
+  <a href="#prefect_aws.ecs-functions" class="md-nav__link">
+    Functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.get_container" class="md-nav__link">
     get_container()
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.get_prefect_container" class="md-nav__link">
     get_prefect_container()
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -746,7 +922,7 @@
                 
                   
 
-  <a href="https://github.com/edit/main/docs/ecs.md" title="Edit this page" class="md-content__button md-icon">
+  <a href="https://github.com/prefecthq/prefect-aws/edit/main/docs/ecs.md" title="Edit this page" class="md-content__button md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
   </a>
@@ -806,6 +982,44 @@ logs:CreateLogGroup, and logs:PutLogEvents.
 <p>Run a task in a specific ECS cluster
 <div class="highlight"><pre><span></span><code><span class="n">ECSTask</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;echo&quot;</span><span class="p">,</span> <span class="s2">&quot;hello world&quot;</span><span class="p">],</span> <span class="n">cluster</span><span class="o">=</span><span class="s2">&quot;my-cluster-name&quot;</span><span class="p">)</span>
 </code></pre></div></p>
+<p>Run a task with custom VPC subnets
+<div class="highlight"><pre><span></span><code><span class="n">ECSTask</span><span class="p">(</span>
+    <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;echo&quot;</span><span class="p">,</span> <span class="s2">&quot;hello world&quot;</span><span class="p">],</span>
+    <span class="n">task_customizations</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;op&quot;</span><span class="p">:</span> <span class="s2">&quot;add&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/networkConfiguration/awsvpcConfiguration/subnets&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;subnet-80b6fbcd&quot;</span><span class="p">,</span> <span class="s2">&quot;subnet-42a6fdgd&quot;</span><span class="p">],</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div></p>
+<p>Run a task without a public IP assigned
+<div class="highlight"><pre><span></span><code><span class="n">ECSTask</span><span class="p">(</span>
+    <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;echo&quot;</span><span class="p">,</span> <span class="s2">&quot;hello world&quot;</span><span class="p">],</span>
+    <span class="n">vpc_id</span><span class="o">=</span><span class="s2">&quot;vpc-01abcdf123456789a&quot;</span><span class="p">,</span>
+    <span class="n">task_customizations</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;op&quot;</span><span class="p">:</span> <span class="s2">&quot;replace&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/networkConfiguration/awsvpcConfiguration/assignPublicIp&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;DISABLED&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div></p>
+<p>Run a task with custom VPC security groups
+<div class="highlight"><pre><span></span><code><span class="n">ECSTask</span><span class="p">(</span>
+    <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;echo&quot;</span><span class="p">,</span> <span class="s2">&quot;hello world&quot;</span><span class="p">],</span>
+    <span class="n">vpc_id</span><span class="o">=</span><span class="s2">&quot;vpc-01abcdf123456789a&quot;</span><span class="p">,</span>
+    <span class="n">task_customizations</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;op&quot;</span><span class="p">:</span> <span class="s2">&quot;add&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/networkConfiguration/awsvpcConfiguration/securityGroups&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;sg-d72e9599956a084f5&quot;</span><span class="p">],</span>
+        <span class="p">},</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+</code></pre></div></p>
 
 
 
@@ -818,22 +1032,23 @@ logs:CreateLogGroup, and logs:PutLogEvents.
 
 
 
-
+<h2 id="prefect_aws.ecs-classes">Classes</h2>
 
   <div class="doc doc-object doc-class">
 
 
 
-<h2 id="prefect_aws.ecs.ECSTask" class="doc doc-heading">
+<h3 id="prefect_aws.ecs.ECSTask" class="doc doc-heading">
         <code>
-ECSTask        </code>
+ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Infrastructure</span>)
+        </code>
 
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
   </span>
 
-</h2>
+</h3>
 
     <div class="doc doc-contents ">
 
@@ -943,6 +1158,15 @@ ECSTask        </code>
             <span class="s2">&quot;unless `stream_output` is set. &quot;</span>
         <span class="p">),</span>
     <span class="p">)</span>
+    <span class="n">cloudwatch_logs_options</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;When `configure_cloudwatch_logs` is enabled, this setting may be used to &quot;</span>
+            <span class="s2">&quot;pass additional options to the CloudWatch logs configuration or override &quot;</span>
+            <span class="s2">&quot;the default options. See the AWS documentation for available options. &quot;</span>
+            <span class="s2">&quot;https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options&quot;</span>  <span class="c1"># noqa</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
     <span class="n">stream_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="p">(</span>
@@ -999,6 +1223,10 @@ ECSTask        </code>
             <span class="s2">&quot;task while it is running.&quot;</span>
         <span class="p">),</span>
     <span class="p">)</span>
+    <span class="n">task_customizations</span><span class="p">:</span> <span class="n">JsonPatch</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">JsonPatch</span><span class="p">([]),</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;A list of JSON 6902 patches to apply to the task run request.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="c1"># Execution settings</span>
     <span class="n">task_start_timeout_seconds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1053,6 +1281,23 @@ ECSTask        </code>
         <span class="k">return</span> <span class="n">values</span>
 
     <span class="nd">@root_validator</span>
+    <span class="k">def</span> <span class="nf">cloudwatch_logs_options_requires_configure_cloudwatch_logs</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Enforces that an execution role arn is provided (or could be provided by a</span>
+<span class="sd">        runtime task definition) when configuring logging.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cloudwatch_logs_options&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;configure_cloudwatch_logs&quot;</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;`configure_cloudwatch_log` must be enabled to use &quot;</span>
+                <span class="s2">&quot;`cloudwatch_logs_options`.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="nd">@root_validator</span>
     <span class="k">def</span> <span class="nf">image_is_required</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Enforces that an image is available if the user sets it to `None`.</span>
@@ -1075,6 +1320,25 @@ ECSTask        </code>
                 <span class="s2">&quot;present for the Prefect container definition a given task definition.&quot;</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">values</span>
+
+    <span class="nd">@validator</span><span class="p">(</span><span class="s2">&quot;task_customizations&quot;</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">cast_customizations_to_a_json_patch</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">JsonPatch</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonPatch</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">JsonPatch</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
+        <span class="n">arbitrary_types_allowed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">json_encoders</span> <span class="o">=</span> <span class="p">{</span><span class="n">JsonPatch</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">patch</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;task_customizations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span><span class="o">.</span><span class="n">patch</span>
+        <span class="k">return</span> <span class="n">d</span>
 
     <span class="nd">@sync_compatible</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TaskStatus</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ECSTaskResult</span><span class="p">:</span>
@@ -1257,7 +1521,12 @@ ECSTask        </code>
 
         <span class="k">if</span> <span class="n">task_definition</span> <span class="ow">and</span> <span class="n">task_definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;networkMode&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;awsvpc&quot;</span><span class="p">:</span>
             <span class="n">vpc</span> <span class="o">=</span> <span class="s2">&quot;the default VPC&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vpc_id</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">vpc_id</span>
-            <span class="n">network_config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;awsvpcConfiguration&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&lt;loaded from </span><span class="si">{</span><span class="n">vpc</span><span class="si">}</span><span class="s2"> at runtime&gt;&quot;</span><span class="p">}</span>
+            <span class="n">network_config</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;awsvpcConfiguration&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;subnets&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&lt;loaded from </span><span class="si">{</span><span class="n">vpc</span><span class="si">}</span><span class="s2"> at runtime&gt;&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;assignPublicIp&quot;</span><span class="p">:</span> <span class="s2">&quot;ENABLED&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">network_config</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1579,6 +1848,7 @@ ECSTask        </code>
                     <span class="s2">&quot;awslogs-group&quot;</span><span class="p">:</span> <span class="s2">&quot;prefect&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;awslogs-region&quot;</span><span class="p">:</span> <span class="n">region</span><span class="p">,</span>
                     <span class="s2">&quot;awslogs-stream-prefix&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="s2">&quot;prefect&quot;</span><span class="p">,</span>
+                    <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudwatch_logs_options</span><span class="p">,</span>
                 <span class="p">},</span>
             <span class="p">}</span>
 
@@ -1746,6 +2016,7 @@ ECSTask        </code>
         <span class="k">if</span> <span class="n">network_config</span><span class="p">:</span>
             <span class="n">task_run</span><span class="p">[</span><span class="s2">&quot;networkConfiguration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">network_config</span>
 
+        <span class="n">task_run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">task_run</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">task_run</span>
 
     <span class="k">def</span> <span class="nf">_run_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span> <span class="n">task_run</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
@@ -1765,21 +2036,21 @@ ECSTask        </code>
 
 
 
-
+<h4 id="prefect_aws.ecs.ECSTask-attributes">Attributes</h4>
 
 
   <div class="doc doc-object doc-attribute">
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.auto_deregister_task_definition" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.auto_deregister_task_definition" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">auto_deregister_task_definition</span><span class="p">:</span> <span class="nb">bool</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1794,14 +2065,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.aws_credentials" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.aws_credentials" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">aws_credentials</span><span class="p">:</span> <span class="n">AwsCredentials</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1816,14 +2087,36 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.cluster" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.cloudwatch_logs_options" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">cloudwatch_logs_options</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>When <code>configure_cloudwatch_logs</code> is enabled, this setting may be used to pass additional options to the CloudWatch logs configuration or override the default options. See the AWS documentation for available options. https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="prefect_aws.ecs.ECSTask.cluster" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">cluster</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1838,14 +2131,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.configure_cloudwatch_logs" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.configure_cloudwatch_logs" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">configure_cloudwatch_logs</span><span class="p">:</span> <span class="nb">bool</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1860,14 +2153,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.cpu" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.cpu" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">cpu</span><span class="p">:</span> <span class="nb">int</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1882,14 +2175,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.execution_role_arn" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.execution_role_arn" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">execution_role_arn</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1904,14 +2197,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.image" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.image" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">image</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1926,14 +2219,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.launch_type" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.launch_type" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">launch_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;FARGATE&#39;</span><span class="p">,</span> <span class="s1">&#39;EC2&#39;</span><span class="p">,</span> <span class="s1">&#39;EXTERNAL&#39;</span><span class="p">,</span> <span class="s1">&#39;FARGATE_SPOT&#39;</span><span class="p">]</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1948,14 +2241,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.memory" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.memory" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">memory</span><span class="p">:</span> <span class="nb">int</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1970,14 +2263,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.stream_output" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.stream_output" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">stream_output</span><span class="p">:</span> <span class="nb">bool</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -1992,14 +2285,36 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.task_definition" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.task_customizations" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">task_customizations</span><span class="p">:</span> <span class="n">JsonPatch</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>A list of JSON 6902 patches to apply to the task run request.</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="prefect_aws.ecs.ECSTask.task_definition" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">task_definition</span><span class="p">:</span> <span class="nb">dict</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2014,14 +2329,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.task_definition_arn" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.task_definition_arn" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">task_definition_arn</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2036,14 +2351,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.task_role_arn" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.task_role_arn" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">task_role_arn</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2058,14 +2373,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.task_start_timeout_seconds" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.task_start_timeout_seconds" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">task_start_timeout_seconds</span><span class="p">:</span> <span class="nb">int</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2080,14 +2395,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.task_watch_poll_interval" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.task_watch_poll_interval" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">task_watch_poll_interval</span><span class="p">:</span> <span class="nb">float</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2102,14 +2417,14 @@ ECSTask        </code>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.vpc_id" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.vpc_id" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">vpc_id</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2123,20 +2438,90 @@ ECSTask        </code>
 
 
 
+<h4 id="prefect_aws.ecs.ECSTask-methods">Methods</h4>
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h5 id="prefect_aws.ecs.ECSTask.__json_encoder__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__json_encoder__</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>partial(func, <em>args, </em>*keywords) - new function with partial application
+of the given arguments and keywords.</p>
+
+    </div>
+
+  </div>
+
+
 
 
   <div class="doc doc-object doc-method">
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.configure_cloudwatch_logs_requires_execution_role_arn" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.cloudwatch_logs_options_requires_configure_cloudwatch_logs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">cloudwatch_logs_options_requires_configure_cloudwatch_logs</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>Enforces that an execution role arn is provided (or could be provided by a
+runtime task definition) when configuring logging.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@root_validator</span>
+<span class="k">def</span> <span class="nf">cloudwatch_logs_options_requires_configure_cloudwatch_logs</span><span class="p">(</span>
+    <span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enforces that an execution role arn is provided (or could be provided by a</span>
+<span class="sd">    runtime task definition) when configuring logging.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cloudwatch_logs_options&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;configure_cloudwatch_logs&quot;</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;`configure_cloudwatch_log` must be enabled to use &quot;</span>
+            <span class="s2">&quot;`cloudwatch_logs_options`.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">values</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h5 id="prefect_aws.ecs.ECSTask.configure_cloudwatch_logs_requires_execution_role_arn" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">configure_cloudwatch_logs_requires_execution_role_arn</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2178,14 +2563,43 @@ runtime task definition) when configuring logging.</p>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.image_is_required" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.dict" class="doc doc-heading">
+<code class="highlight language-python"><span class="nb">dict</span></code>
+
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">d</span><span class="p">[</span><span class="s2">&quot;task_customizations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span><span class="o">.</span><span class="n">patch</span>
+    <span class="k">return</span> <span class="n">d</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h5 id="prefect_aws.ecs.ECSTask.image_is_required" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">image_is_required</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2228,11 +2642,11 @@ runtime task definition) when configuring logging.</p>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.preview" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.preview" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">preview</span></code>
 
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2262,7 +2676,12 @@ runtime task definition) when configuring logging.</p>
 
     <span class="k">if</span> <span class="n">task_definition</span> <span class="ow">and</span> <span class="n">task_definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;networkMode&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;awsvpc&quot;</span><span class="p">:</span>
         <span class="n">vpc</span> <span class="o">=</span> <span class="s2">&quot;the default VPC&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vpc_id</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">vpc_id</span>
-        <span class="n">network_config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;awsvpcConfiguration&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&lt;loaded from </span><span class="si">{</span><span class="n">vpc</span><span class="si">}</span><span class="s2"> at runtime&gt;&quot;</span><span class="p">}</span>
+        <span class="n">network_config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;awsvpcConfiguration&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;subnets&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&lt;loaded from </span><span class="si">{</span><span class="n">vpc</span><span class="si">}</span><span class="s2"> at runtime&gt;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;assignPublicIp&quot;</span><span class="p">:</span> <span class="s2">&quot;ENABLED&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">network_config</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -2283,14 +2702,14 @@ runtime task definition) when configuring logging.</p>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.run" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.run" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">run</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-async"><code>async</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2356,14 +2775,14 @@ runtime task definition) when configuring logging.</p>
 
 
 
-<h3 id="prefect_aws.ecs.ECSTask.set_default_configure_cloudwatch_logs" class="doc doc-heading">
+<h5 id="prefect_aws.ecs.ECSTask.set_default_configure_cloudwatch_logs" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">set_default_configure_cloudwatch_logs</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
   </span>
 
-</h3>
+</h5>
 
     <div class="doc doc-contents ">
 
@@ -2407,16 +2826,17 @@ defaults to matching the value of <code>stream_output</code>.</p>
 
 
 
-<h2 id="prefect_aws.ecs.ECSTaskResult" class="doc doc-heading">
+<h3 id="prefect_aws.ecs.ECSTaskResult" class="doc doc-heading">
         <code>
-ECSTaskResult        </code>
+ECSTaskResult            (<span title="prefect.infrastructure.base.InfrastructureResult">InfrastructureResult</span>)
+        </code>
 
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
   </span>
 
-</h2>
+</h3>
 
     <div class="doc doc-contents ">
 
@@ -2453,28 +2873,28 @@ ECSTaskResult        </code>
   </div>
 
 
-
+<h2 id="prefect_aws.ecs-functions">Functions</h2>
 
   <div class="doc doc-object doc-function">
 
 
 
-<h2 id="prefect_aws.ecs.get_container" class="doc doc-heading">
+<h3 id="prefect_aws.ecs.get_container" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">get_container</span></code>
 
 
-</h2>
+</h3>
 
     <div class="doc doc-contents ">
 
-      <p>Extract the a container from a list of containers or container definitions
+      <p>Extract a container from a list of containers or container definitions.
 If not found, <code>None</code> is returned.</p>
 
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_container</span><span class="p">(</span><span class="n">containers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extract the a container from a list of containers or container definitions</span>
+<span class="sd">    Extract a container from a list of containers or container definitions.</span>
 <span class="sd">    If not found, `None` is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">:</span>
@@ -2493,22 +2913,22 @@ If not found, <code>None</code> is returned.</p>
 
 
 
-<h2 id="prefect_aws.ecs.get_prefect_container" class="doc doc-heading">
+<h3 id="prefect_aws.ecs.get_prefect_container" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">get_prefect_container</span></code>
 
 
-</h2>
+</h3>
 
     <div class="doc doc-contents ">
 
-      <p>Extract the Prefect container from a list of containers or container definitions
+      <p>Extract the Prefect container from a list of containers or container definitions.
 If not found, <code>None</code> is returned.</p>
 
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_prefect_container</span><span class="p">(</span><span class="n">containers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extract the Prefect container from a list of containers or container definitions</span>
+<span class="sd">    Extract the Prefect container from a list of containers or container definitions.</span>
 <span class="sd">    If not found, `None` is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">get_container</span><span class="p">(</span><span class="n">containers</span><span class="p">,</span> <span class="n">PREFECT_ECS_CONTAINER_NAME</span><span class="p">)</span>
@@ -2548,7 +2968,7 @@ If not found, <code>None</code> is returned.</p>
     <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href="../batch/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Batch" rel="prev">
+        <a href="../credentials/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Credentials" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -2557,20 +2977,20 @@ If not found, <code>None</code> is returned.</p>
               <span class="md-footer__direction">
                 Previous
               </span>
-              Batch
+              Credentials
             </div>
           </div>
         </a>
       
       
         
-        <a href="../client_waiter/" class="md-footer__link md-footer__link--next" aria-label="Next: Client Waiter" rel="next">
+        <a href="../s3/" class="md-footer__link md-footer__link--next" aria-label="Next: S3" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Client Waiter
+              S3
             </div>
           </div>
           <div class="md-footer__button md-icon">
@@ -2601,10 +3021,10 @@ If not found, <code>None</code> is returned.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.ecf98df9.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.5bf1dace.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.48f2be22.min.js"></script>
+      <script src="../assets/javascripts/bundle.078830c0.min.js"></script>
       
     
   </body>
