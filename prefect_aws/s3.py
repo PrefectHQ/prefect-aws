@@ -21,7 +21,7 @@ async def s3_download(
     bucket: str,
     key: str,
     aws_credentials: AwsCredentials,
-    aws_client_parameters: AwsClientParameters = AwsClientParameters(),
+    aws_client_parameters: Optional[AwsClientParameters] = None,
 ) -> bytes:
     """
     Downloads an object with a given key from a given S3 bucket.
@@ -83,7 +83,7 @@ async def s3_upload(
     data: bytes,
     bucket: str,
     aws_credentials: AwsCredentials,
-    aws_client_parameters: AwsClientParameters = AwsClientParameters(),
+    aws_client_parameters: Optional[AwsClientParameters] = None,
     key: Optional[str] = None,
 ) -> str:
     """
@@ -160,7 +160,7 @@ def _list_objects_sync(page_iterator: PageIterator):
 async def s3_list_objects(
     bucket: str,
     aws_credentials: AwsCredentials,
-    aws_client_parameters: AwsClientParameters = AwsClientParameters(),
+    aws_client_parameters: Optional[AwsClientParameters] = None,
     prefix: str = "",
     delimiter: str = "",
     page_size: Optional[int] = None,
@@ -258,10 +258,11 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
     _block_type_name = "S3 Bucket"
 
     bucket_name: str
-    minio_credentials: Optional[MinIOCredentials]
-    aws_credentials: Optional[AwsCredentials]
-    basepath: Optional[Path]
-    endpoint_url: Optional[str]
+    minio_credentials: Optional[MinIOCredentials] = None
+    aws_credentials: Optional[AwsCredentials] = None
+    basepath: Optional[Path] = None
+    endpoint_url: Optional[str] = None
+    aws_client_parameters: Optional[AwsClientParameters] = None
 
     @validator("basepath", pre=True)
     def cast_pathlib(cls, value):
@@ -330,12 +331,12 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
 
         if self.minio_credentials:
             s3_client = self.minio_credentials.get_boto3_session().client(
-                service_name="s3", endpoint_url=self.endpoint_url
+                service_name="s3", endpoint_url=self.endpoint_url, **self.aws_client_parameters.get_params_override()
             )
 
         elif self.aws_credentials:
             s3_client = self.aws_credentials.get_boto3_session().client(
-                service_name="s3"
+                service_name="s3", **self.aws_client_parameters.get_params_override()
             )
 
         return s3_client
