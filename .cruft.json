@@ -1,0 +1,20 @@
+{
+  "template": "https://github.com/PrefectHQ/prefect-collection-template",
+  "commit": "be43f39886f1e2a4331697d1ea037187072588df",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "full_name": "Prefect Technologies, Inc.",
+      "email": "help@prefect.io",
+      "github_organization": "PrefectHQ",
+      "collection_name": "prefect-aws",
+      "collection_slug": "prefect_aws",
+      "collection_short_description": "Prefect integrations for interacting with AWS.",
+      "_copy_without_render": [
+        ".github/workflows/*.yml"
+      ],
+      "_template": "https://github.com/PrefectHQ/prefect-collection-template"
+    }
+  },
+  "directory": null
+}
