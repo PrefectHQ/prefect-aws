@@ -7,13 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-- Fix configuration to submit doc edits via GitHub - [#110](https://github.com/PrefectHQ/prefect-aws/pull/110)
-- Add `ECSTask.cloudwatch_logs_options` for customization of CloudWatch logging — [#116](https://github.com/PrefectHQ/prefect-aws/pull/116)
-- Added `config` parameter to AwsClientParameters to support advanced configuration (e.g. accessing public S3 buckets) [#117](https://github.com/PrefectHQ/prefect-aws/pull/117)
-- Add `@sync_compatible` to `S3Bucket` methods to allow calling them in sync contexts - [#119](https://github.com/PrefectHQ/prefect-aws/pull/119).
-- Add `ECSTask.task_customizations` for customization of arbitary fields in the run task payload — [#120](https://github.com/PrefectHQ/prefect-aws/pull/120)
-- Removed invalid ecs task register fields - [#126](https://github.com/PrefectHQ/prefect-aws/issues/126)
-
 ### Added
 
 ### Changed
@@ -25,6 +18,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 0.1.5
+
+Released on October 14th, 2022.
+
+### Added
+
+- Add `ECSTask.cloudwatch_logs_options` for customization of CloudWatch logging — [#116](https://github.com/PrefectHQ/prefect-aws/pull/116)
+- Added `config` parameter to AwsClientParameters to support advanced configuration (e.g. accessing public S3 buckets) [#117](https://github.com/PrefectHQ/prefect-aws/pull/117)
+- Add `@sync_compatible` to `S3Bucket` methods to allow calling them in sync contexts - [#119](https://github.com/PrefectHQ/prefect-aws/pull/119).
+- Add `ECSTask.task_customizations` for customization of arbitary fields in the run task payload — [#120](https://github.com/PrefectHQ/prefect-aws/pull/120)
+
+### Fixed
+
+- Fix configuration to submit doc edits via GitHub - [#110](https://github.com/PrefectHQ/prefect-aws/pull/110)
+- Removed invalid ecs task register fields - [#126](https://github.com/PrefectHQ/prefect-aws/issues/126)
 
 ## 0.1.4
 
