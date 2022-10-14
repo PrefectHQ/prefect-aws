@@ -913,6 +913,9 @@ class ECSTask(Infrastructure):
             task_definition_request.pop("taskDefinitionArn", None)
             task_definition_request.pop("revision", None)
             task_definition_request.pop("status", None)
+            task_definition_request.pop("requiresAttributes", None)
+            task_definition_request.pop("registeredAt", None)
+            task_definition_request.pop("registeredBy", None)
 
         response = ecs_client.register_task_definition(**task_definition_request)
         return response["taskDefinition"]["taskDefinitionArn"]
