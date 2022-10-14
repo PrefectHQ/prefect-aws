@@ -46,7 +46,7 @@ pip install -e ".[dev]"
 pre-commit install
 ```
 
-To verify the set up was successful you can run the following:
+To verify the setup was successful you can run the following:
 
 - Run the tests for tasks and flows in the collection:
   ```bash
@@ -69,23 +69,29 @@ This collection has been setup to with [mkdocs](https://www.mkdocs.org/) for aut
 
 ### CI Pipeline
 
-This collection comes with [GitHub Actions](https://docs.github.com/en/actions) for testing and linting. To add additional actions, you can add jobs in the `.github/workflows` folder. On pull request, the pipeline will run linting via [`black`](https://black.readthedocs.io/en/stable/), [`flake8`](https://flake8.pycqa.org/en/latest/), [`interrogate`](https://interrogate.readthedocs.io/en/latest/), and unit tests via `pytest` alongside `coverage`.
+This collection comes with [GitHub Actions](https://docs.github.com/en/actions) for testing and linting. To add additional actions, you can add jobs in the `.github/workflows` folder. Upon a pull request, the pipeline will run linting via [`black`](https://black.readthedocs.io/en/stable/), [`flake8`](https://flake8.pycqa.org/en/latest/), [`interrogate`](https://interrogate.readthedocs.io/en/latest/), and unit tests via `pytest` alongside `coverage`.
 
 `interrogate` will tell you which methods, functions, classes, and modules have docstrings, and which do not--the job has a fail threshold of 95%, meaning that it will fail if more than 5% of the codebase is undocumented. We recommend following the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) for docstring format.
 
 Simiarly, `coverage` ensures that the codebase includes tests--the job has a fail threshold of 80%, meaning that it will fail if more than 20% of the codebase is missing tests.
 
+### Track Issues on Project Board
+
+To automatically add issues to a GitHub Project Board, you'll need a [secret added](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-an-environment) to the repository. Specifically, a secret named `ADD_TO_PROJECT_URL`, formatted like `https://github.com/orgs/<GITHUB_ORGANIZATION>/projects/<PROJECT_NUMBER>`.
+
 ### Package and Publish
 
 GitHub actions will handle packaging and publishing of your collection to [PyPI](https://pypi.org/) so other Prefect users can your collection in their flows.
 
-In order to publish to PyPI, you'll need a PyPI account and generate an API token to authenticate with PyPI when publishing new versions of your collection. The [PyPI documentation](https://pypi.org/help/#apitoken) outlines the steps needed to get an API token.
+To publish to PyPI, you'll need a PyPI account and to generate an API token to authenticate with PyPI when publishing new versions of your collection. The [PyPI documentation](https://pypi.org/help/#apitoken) outlines the steps needed to get an API token.
 
 Once you've obtained a PyPI API token, [create a GitHub secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) named `PYPI_API_TOKEN`.
 
-To create publish a new version of your collection, [create a new GitHub release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#creating-a-release) and tag it with the version that you want to deploy (e.g. v0.3.2). This will trigger workflow to publish the new version on PyPI and deploy the updated docs to GitHub pages.
+To publish a new version of your collection, [create a new GitHub release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#creating-a-release) and tag it with the version that you want to deploy (e.g. v0.3.2). This will trigger a workflow to publish the new version on PyPI and deploy the updated docs to GitHub pages.
 
-Upon publishing, a `docs` branch is automatically created. To hook this up to GitHub Pages, simply head over to https://github.com/PrefectHQ/prefect-aws/settings/pages, select `docs` under the dropdown menu, keep the default `/root` folder, `Save`, and upon refresh, you should see a prompt stating "Your site is published at https://<username>.github.io/<repository>".
+Upon publishing, a `docs` branch is automatically created. To hook this up to GitHub Pages, simply head over to https://github.com/PrefectHQ/prefect-aws/settings/pages, select `docs` under the dropdown menu, keep the default `/root` folder, `Save`, and upon refresh, you should see a prompt stating "Your site is published at https://PrefectHQ.github.io/prefect-aws". Don't forget to add this link to the repo's "About" section, under "Website" so users can access the docs easily.
+
+Feel free to [submit your collection](https://orion-docs.prefect.io/collections/overview/#listing-in-the-collections-catalog) to the Prefect [Collections Catalog](https://orion-docs.prefect.io/collections/catalog/)!
 
 ## Further guidance
 

@@ -37,6 +37,13 @@ Install `prefect-aws`
 ```bash
 pip install prefect-aws
 ```
+Then, register to [view the block](https://orion-docs.prefect.io/ui/blocks/) on Prefect Cloud:
+
+```bash
+prefect block register -m prefect_aws.credentials
+```
+
+Note, to use the `load` method on Blocks, you must already have a block document [saved through code](https://orion-docs.prefect.io/concepts/blocks/#saving-blocks) or [saved through the UI](https://orion-docs.prefect.io/ui/blocks/).
 
 ### AWS Authentication
 
@@ -130,6 +137,8 @@ Refer to the API documentation in the side menu to explore all the capabilities 
 If you encounter and bugs while using `prefect-aws`, feel free to open an issue in the [prefect-aws](https://github.com/PrefectHQ/prefect-aws) repository.
 
 If you have any questions or issues while using `prefect-aws`, you can find help in either the [Prefect Discourse forum](https://discourse.prefect.io/) or the [Prefect Slack community](https://prefect.io/slack)
+
+Feel free to ⭐️ or watch [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) for updates too!
 
 ## Development
 

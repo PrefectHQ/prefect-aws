@@ -1,6 +1,6 @@
 site_name: prefect-aws
-site_url: https://prefecthq.github.io/prefect-aws
-repo_url: https://github.com/prefecthq/prefect-aws
+site_url: https://PrefectHQ.github.io/prefect-aws
+repo_url: https://github.com/PrefectHQ/prefect-aws
 edit_uri: edit/main/docs/
 theme:
   name: material
@@ -10,7 +10,8 @@ theme:
     accent: blue
   icon:
     repo: fontawesome/brands/github
-  logo: img/prefect-logo-white.png
+  logo:
+    img/prefect-logo-mark-solid-white-500.png
   font:
     text: Inter
     code: Source Code Pro
