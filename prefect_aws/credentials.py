@@ -83,7 +83,7 @@ class MinIOCredentials(Block):
     [MinIO docs](https://docs.min.io/docs/minio-server-configuration-guide.html)
     for more info about the possible credential configurations.
 
-    Args:
+    Attributes:
         minio_root_user: Admin or root user.
         minio_root_password: Admin or root password.
         region_name: Location of server, e.g. "us-east-1".
