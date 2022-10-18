@@ -406,6 +406,8 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
 
         if local_path is None:
             local_path = str(Path(".").absolute())
+        else:
+            local_path = str(Path(local_path).expanduser())
 
         bucket = self._get_bucket_resource()
         for obj in bucket.objects.filter(Prefix=from_path):
