@@ -1,5 +1,6 @@
 """Tasks for interacting with AWS S3"""
 import io
+import os
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -8,9 +9,10 @@ from uuid import uuid4
 import boto3
 from botocore.paginate import PageIterator
 from prefect import get_run_logger, task
-from prefect.filesystems import ReadableFileSystem, WritableFileSystem
+from prefect.filesystems import WritableDeploymentStorage, WritableFileSystem
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
-from pydantic import root_validator, validator
+from prefect.utilities.filesystem import filter_files
+from pydantic import Field, root_validator, validator
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.client_parameters import AwsClientParameters
@@ -32,7 +34,7 @@ async def s3_download(
         key: Key of object to download. Required if a default value was not supplied
             when creating the task.
         aws_credentials: Credentials to use for authentication with AWS.
-        aws_client_parameters: Custom parameter for the boto3 client initialization..
+        aws_client_parameters: Custom parameter for the boto3 client initialization.
 
 
     Returns:
@@ -229,12 +231,12 @@ async def s3_list_objects(
     return await run_sync_in_worker_thread(_list_objects_sync, page_iterator)
 
 
-class S3Bucket(ReadableFileSystem, WritableFileSystem):
+class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
 
     """
     Block used to store data using AWS S3 or S3-compatible object storage like MinIO.
 
-    Args:
+    Attributes:
         bucket_name: Name of your bucket.
         aws_credentials: A block containing your credentials (choose this
             or minio_credentials).
@@ -253,15 +255,30 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
         ```
     """
 
-    # change
-    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/uPezmBzEv4moXKdQJ3YyL/a1f029b423cf67f474d1eee33c1463d7/pngwing.com.png?h=250"  # noqa
+    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _block_type_name = "S3 Bucket"
 
-    bucket_name: str
-    minio_credentials: Optional[MinIOCredentials]
-    aws_credentials: Optional[AwsCredentials]
-    basepath: Optional[Path]
-    endpoint_url: Optional[str]
+    bucket_name: str = Field(default=..., description="Name of your bucket")
+    minio_credentials: Optional[MinIOCredentials] = Field(
+        default=None,
+        description="A block containing your credentials (choose this or "
+        "MinIO Credentials)",
+    )
+    aws_credentials: Optional[AwsCredentials] = Field(
+        default=None,
+        description="A block containing your credentials (choose this or "
+        "AWS Credentials).",
+    )
+    basepath: Optional[Path] = Field(
+        default=None,
+        description="Location to write to and read from in the S3 bucket. Defaults to "
+        "the root of the bucket.",
+    )
+    endpoint_url: Optional[str] = Field(
+        default=None,
+        description="URL endpoint to use for S3 compatible storage. Defaults to "
+        "standard AWS S3 endpoint.",
+    )
 
     @validator("basepath", pre=True)
     def cast_pathlib(cls, value):
@@ -301,7 +318,7 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             )
         return values
 
-    def _resolve_path(self, path: str) -> Path:
+    def _resolve_path(self, path: str) -> str:
 
         """
         A helper function used in write_path to join `self.basepath` and `path`.
@@ -337,8 +354,123 @@ class S3Bucket(ReadableFileSystem, WritableFileSystem):
             s3_client = self.aws_credentials.get_boto3_session().client(
                 service_name="s3"
             )
-
+        else:
+            raise ValueError(
+                "S3 Bucket requires either a minio_credentials"
+                "field or an aws_credentials field."
+            )
         return s3_client
+
+    def _get_bucket_resource(self) -> boto3.resource:
+        """
+        Retrieves boto3 resource object for the configured bucket
+        """
+        if self.minio_credentials:
+            bucket = (
+                self.minio_credentials.get_boto3_session()
+                .resource("s3", endpoint_url=self.endpoint_url)
+                .Bucket(self.bucket_name)
+            )
+
+        elif self.aws_credentials:
+            bucket = (
+                self.aws_credentials.get_boto3_session()
+                .resource("s3")
+                .Bucket(self.bucket_name)
+            )
+        else:
+            raise ValueError(
+                "S3 Bucket requires either a minio_credentials"
+                "field or an aws_credentials field."
+            )
+        return bucket
+
+    @sync_compatible
+    async def get_directory(
+        self, from_path: Optional[str] = None, local_path: Optional[str] = None
+    ) -> None:
+        """
+        Copies a folder from the configured S3 bucket to a local directory.
+
+        Defaults to copying the entire contents of the block's basepath to the current
+        working directory.
+
+        Args:
+            from_path: Path in S3 bucket to download from. Defaults to the block's
+                configured basepath.
+            local_path: Local path to download S3 contents to. Defaults to the current
+                working directory.
+        """
+        if from_path is None:
+            from_path = str(self.basepath) if self.basepath else ""
+
+        if local_path is None:
+            local_path = str(Path(".").absolute())
+        else:
+            local_path = str(Path(local_path).expanduser())
+
+        bucket = self._get_bucket_resource()
+        for obj in bucket.objects.filter(Prefix=from_path):
+            if obj.key[-1] == "/":
+                # object is a folder and will be created if it contains any objects
+                continue
+            target = os.path.join(
+                local_path,
+                os.path.relpath(obj.key, from_path),
+            )
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            bucket.download_file(obj.key, target)
+
+    @sync_compatible
+    async def put_directory(
+        self,
+        local_path: Optional[str] = None,
+        to_path: Optional[str] = None,
+        ignore_file: Optional[str] = None,
+    ) -> int:
+        """
+        Uploads a directory from a given local path to the configured S3 bucket in a
+        given folder.
+
+        Defaults to uploading the entire contents the current working directory to the
+        block's basepath.
+
+        Args:
+            local_path: Path to local directory to upload from.
+            to_path: Path in S3 bucket to upload to. Defaults to block's configured
+                basepath.
+            ignore_file: Path to file containing gitignore style expressions for
+                filepaths to ignore.
+
+        """
+        if to_path is None:
+            to_path = str(self.basepath) if self.basepath is not None else ""
+
+        if local_path is None:
+            local_path = "."
+
+        included_files = None
+        if ignore_file:
+            with open(ignore_file, "r") as f:
+                ignore_patterns = f.readlines()
+
+            included_files = filter_files(local_path, ignore_patterns)
+
+        uploaded_file_count = 0
+        for local_file_path in Path(local_path).expanduser().rglob("*"):
+            if included_files is not None and local_file_path not in included_files:
+                continue
+            elif not local_file_path.is_dir():
+                remote_file_path = Path(to_path) / local_file_path.relative_to(
+                    local_path
+                )
+                with open(local_file_path, "rb") as local_file:
+                    local_file_content = local_file.read()
+
+                await self.write_path(str(remote_file_path), content=local_file_content)
+                uploaded_file_count += 1
+
+        return uploaded_file_count
 
     @sync_compatible
     async def read_path(self, path: str) -> bytes:
