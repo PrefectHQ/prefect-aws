@@ -255,7 +255,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
         ```
     """
 
-    # change
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _block_type_name = "S3 Bucket"
 
@@ -456,7 +455,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
             included_files = filter_files(local_path, ignore_patterns)
 
         uploaded_file_count = 0
-        for local_file_path in Path(local_path).rglob("*"):
+        for local_file_path in Path(local_path).expanduser().rglob("*"):
             if included_files is not None and local_file_path not in included_files:
                 continue
             elif not local_file_path.is_dir():
