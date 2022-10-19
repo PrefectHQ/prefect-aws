@@ -25,7 +25,7 @@ Released on Obtober 19th, 2022.
 
 ### Added
 
-- 'get_directory` and `put_directory` methods on `S3Bucket`. The `S3Bucket` block is now usable for remote flow storage with deployments. - [#82](https://github.com/PrefectHQ/prefect-aws/pull/82)
+- `get_directory` and `put_directory` methods on `S3Bucket`. The `S3Bucket` block is now usable for remote flow storage with deployments. - [#82](https://github.com/PrefectHQ/prefect-aws/pull/82)
 
 ## 0.1.5
 
