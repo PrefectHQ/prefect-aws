@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- 'get_directory` and `put_directory` on `S3Bucket` - [#82](https://github.com/PrefectHQ/prefect-aws/pull/82)
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 0.1.6
+
+Released on Obtober 19th, 2022.
+
+### Added
+
+- 'get_directory` and `put_directory` methods on `S3Bucket`. The `S3Bucket` block is now compatible with deployments. - [#82](https://github.com/PrefectHQ/prefect-aws/pull/82)
 
 ## 0.1.5
 
