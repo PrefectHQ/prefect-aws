@@ -1,9 +1,5 @@
 """
-<span class="badge-api experimental"/>
-
 Integrations with the Amazon Elastic Container Service.
-
-Note this module is experimental. The intefaces within may change without notice.
 
 Examples:
 
@@ -159,17 +155,13 @@ def get_container(containers: List[dict], name: str) -> Optional[dict]:
 
 class ECSTask(Infrastructure):
     """
-    <span class="badge-api experimental"/>
-
     Run a command as an ECS task.
-
-    Note this block is experimental. The interface may change without notice.
     """
 
     _block_type_slug = "ecs-task"
     _block_type_name = "ECS Task"
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
-    _description = "Run a command as an ECS task. Note this block is experimental. The interface may change without notice."  # noqa
+    _description = "Run a command as an ECS task."  # noqa
 
     type: Literal["ecs-task"] = Field(
         "ecs-task", description="The slug for this task type."
