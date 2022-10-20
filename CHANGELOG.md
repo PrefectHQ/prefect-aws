@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Remove the experimental badge from the `ECSTask` block — [#137](https://github.com/PrefectHQ/prefect-aws/pull/137)
+
+
 ### Added
 
 ### Changed
