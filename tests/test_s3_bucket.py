@@ -230,6 +230,34 @@ async def test_put_directory_respects_basepath(
     ).exists()
 
 
+async def test_put_directory_with_ignore_file(
+    s3_bucket: S3Bucket, tmp_path: Path, aws_creds_block
+):
+    (tmp_path / "file1.txt").write_text("FILE 1")
+    (tmp_path / "file2.txt").write_text("FILE 2")
+    (tmp_path / "folder1").mkdir()
+    (tmp_path / "folder1" / "file3.txt").write_text("FILE 3")
+    (tmp_path / "folder1" / "file4.txt").write_text("FILE 4")
+    (tmp_path / "folder1" / "folder2").mkdir()
+    (tmp_path / "folder1" / "folder2" / "file5.txt").write_text("FILE 5")
+    (tmp_path / ".prefectignore").write_text("folder2/*")
+
+    uploaded_file_count = await s3_bucket.put_directory(
+        local_path=str(tmp_path / "folder1"),
+        ignore_file=str(tmp_path / ".prefectignore"),
+    )
+    assert uploaded_file_count == 2
+
+    (tmp_path / "downloaded_files").mkdir()
+
+    await s3_bucket.get_directory(local_path=str(tmp_path / "downloaded_files"))
+
+    assert (tmp_path / "downloaded_files" / "file3.txt").exists()
+    assert (tmp_path / "downloaded_files" / "file4.txt").exists()
+    assert not (tmp_path / "downloaded_files" / "folder2").exists()
+    assert not (tmp_path / "downloaded_files" / "folder2" / "file5.txt").exists()
+
+
 async def test_put_directory_respects_local_path(
     s3_bucket: S3Bucket, tmp_path: Path, aws_creds_block
 ):
