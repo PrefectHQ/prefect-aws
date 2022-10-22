@@ -458,7 +458,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
 
         uploaded_file_count = 0
         for local_file_path in Path(local_path).expanduser().rglob("*"):
-            if included_files is not None and local_file_path not in included_files:
+            if (
+                included_files is not None
+                and str(local_file_path.relative_to(local_path)) not in included_files
+            ):
                 continue
             elif not local_file_path.is_dir():
                 remote_file_path = Path(to_path) / local_file_path.relative_to(
