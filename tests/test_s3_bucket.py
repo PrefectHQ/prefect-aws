@@ -122,7 +122,7 @@ async def test_aws_basepath(s3_bucket, aws_creds_block):
     )
 
     key = await s3_bucket_block.write_path("test.txt", content=b"hello")
-    assert await s3_bucket_block.read_path(key) == b"hello"
+    assert await s3_bucket_block.read_path("test.txt") == b"hello"
     assert key == "subfolder/test.txt"
 
 
@@ -212,21 +212,12 @@ async def test_put_directory_respects_basepath(
 
     await s3_bucket_block.get_directory(local_path=str(tmp_path / "downloaded_files"))
 
-    assert (tmp_path / "downloaded_files" / "subfolder" / "file1.txt").exists()
-    assert (tmp_path / "downloaded_files" / "subfolder" / "file2.txt").exists()
+    assert (tmp_path / "downloaded_files" / "file1.txt").exists()
+    assert (tmp_path / "downloaded_files" / "file2.txt").exists()
+    assert (tmp_path / "downloaded_files" / "folder1" / "file3.txt").exists()
+    assert (tmp_path / "downloaded_files" / "folder1" / "file4.txt").exists()
     assert (
-        tmp_path / "downloaded_files" / "subfolder" / "folder1" / "file3.txt"
-    ).exists()
-    assert (
-        tmp_path / "downloaded_files" / "subfolder" / "folder1" / "file4.txt"
-    ).exists()
-    assert (
-        tmp_path
-        / "downloaded_files"
-        / "subfolder"
-        / "folder1"
-        / "folder2"
-        / "file5.txt"
+        tmp_path / "downloaded_files" / "folder1" / "folder2" / "file5.txt"
     ).exists()
 
 

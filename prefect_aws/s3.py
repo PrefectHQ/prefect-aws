@@ -425,7 +425,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
     async def put_directory(
         self,
         local_path: Optional[str] = None,
-        to_path: Optional[str] = None,
+        to_path: str = "",
         ignore_file: Optional[str] = None,
     ) -> int:
         """
@@ -443,8 +443,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
                 filepaths to ignore.
 
         """
-        if to_path is None:
-            to_path = str(self.basepath) if self.basepath is not None else ""
 
         if local_path is None:
             local_path = "."
@@ -505,6 +503,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
             key_contents = s3_bucket_block.read_path(path="subfolder/file1")
             ```
         """
+        path = self._resolve_path(path)
 
         return await run_sync_in_worker_thread(self._read_sync, path)
 
