@@ -443,8 +443,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
                 filepaths to ignore.
 
         """
-        if to_path is None:
-            to_path = str(self.basepath) if self.basepath is not None else ""
+        to_path = "" if to_path is None else to_path
 
         if local_path is None:
             local_path = "."
@@ -505,6 +504,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
             key_contents = s3_bucket_block.read_path(path="subfolder/file1")
             ```
         """
+        path = self._resolve_path(path)
 
         return await run_sync_in_worker_thread(self._read_sync, path)
 
