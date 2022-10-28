@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Released on October 28th, 2022.
 
+### Changed
+
+-`ECSTask` is no longer experimental — [#137](https://github.com/PrefectHQ/prefect-aws/pull/137)
+
 ### Fixed
 - Fix ignore_file option in `S3Bucket` skipping files which should be included — [#139](https://github.com/PrefectHQ/prefect-aws/pull/139)
 - Fixed bug where `basepath` is used twice in the path when using `S3Bucket.put_directory` - [#143](https://github.com/PrefectHQ/prefect-aws/pull/143)
