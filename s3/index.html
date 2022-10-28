@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/s3/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.6">
+      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.7">
     
     
       
@@ -1024,8 +1024,7 @@ defaults to AWS.</p></td>
 <span class="sd">                filepaths to ignore.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">to_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">to_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">basepath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">to_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">to_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">to_path</span>
 
         <span class="k">if</span> <span class="n">local_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">local_path</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
@@ -1039,7 +1038,10 @@ defaults to AWS.</p></td>
 
         <span class="n">uploaded_file_count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">local_file_path</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">included_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">local_file_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">included_files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">included_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">local_file_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">local_path</span><span class="p">))</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">included_files</span>
+            <span class="p">):</span>
                 <span class="k">continue</span>
             <span class="k">elif</span> <span class="ow">not</span> <span class="n">local_file_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
                 <span class="n">remote_file_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">to_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">local_file_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span>
@@ -1083,6 +1085,7 @@ defaults to AWS.</p></td>
 <span class="sd">            key_contents = s3_bucket_block.read_path(path=&quot;subfolder/file1&quot;)</span>
 <span class="sd">            ```</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_sync</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
@@ -1544,8 +1547,7 @@ filepaths to ignore.</p></td>
 <span class="sd">            filepaths to ignore.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">to_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">to_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">basepath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">to_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">to_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">to_path</span>
 
     <span class="k">if</span> <span class="n">local_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">local_path</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
@@ -1559,7 +1561,10 @@ filepaths to ignore.</p></td>
 
     <span class="n">uploaded_file_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">local_file_path</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">included_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">local_file_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">included_files</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">included_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">local_file_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">local_path</span><span class="p">))</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">included_files</span>
+        <span class="p">):</span>
             <span class="k">continue</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">local_file_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
             <span class="n">remote_file_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">to_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">local_file_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span>
@@ -1668,6 +1673,7 @@ path to the key in S3.</p>
 <span class="sd">        key_contents = s3_bucket_block.read_path(path=&quot;subfolder/file1&quot;)</span>
 <span class="sd">        ```</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_sync</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 </code></pre></div>
@@ -2416,10 +2422,10 @@ supplied when creating the task.</p></td>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.5bf1dace.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.078830c0.min.js"></script>
+      <script src="../assets/javascripts/bundle.8492ddcf.min.js"></script>
       
     
   </body>

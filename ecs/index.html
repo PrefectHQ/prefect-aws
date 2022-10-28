@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/ecs/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.6">
+      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.7">
     
     
       
@@ -941,9 +941,7 @@
 
     <div class="doc doc-contents first">
 
-      <p><span class="badge-api experimental"/></p>
-<p>Integrations with the Amazon Elastic Container Service.</p>
-<p>Note this module is experimental. The intefaces within may change without notice.</p>
+      <p>Integrations with the Amazon Elastic Container Service.</p>
 
 <p><strong>Examples:</strong></p>
     <p>Run a task using ECS Fargate
@@ -1052,25 +1050,19 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
     <div class="doc doc-contents ">
 
-      <p><span class="badge-api experimental"/></p>
-<p>Run a command as an ECS task.</p>
-<p>Note this block is experimental. The interface may change without notice.</p>
+      <p>Run a command as an ECS task.</p>
 
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ECSTask</span><span class="p">(</span><span class="n">Infrastructure</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &lt;span class=&quot;badge-api experimental&quot;/&gt;</span>
-
 <span class="sd">    Run a command as an ECS task.</span>
-
-<span class="sd">    Note this block is experimental. The interface may change without notice.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_block_type_slug</span> <span class="o">=</span> <span class="s2">&quot;ecs-task&quot;</span>
     <span class="n">_block_type_name</span> <span class="o">=</span> <span class="s2">&quot;ECS Task&quot;</span>
     <span class="n">_logo_url</span> <span class="o">=</span> <span class="s2">&quot;https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250&quot;</span>  <span class="c1"># noqa</span>
-    <span class="n">_description</span> <span class="o">=</span> <span class="s2">&quot;Run a command as an ECS task. Note this block is experimental. The interface may change without notice.&quot;</span>  <span class="c1"># noqa</span>
+    <span class="n">_description</span> <span class="o">=</span> <span class="s2">&quot;Run a command as an ECS task.&quot;</span>  <span class="c1"># noqa</span>
 
     <span class="nb">type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;ecs-task&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="s2">&quot;ecs-task&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The slug for this task type.&quot;</span>
@@ -3024,10 +3016,10 @@ If not found, <code>None</code> is returned.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.5bf1dace.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.078830c0.min.js"></script>
+      <script src="../assets/javascripts/bundle.8492ddcf.min.js"></script>
       
     
   </body>
