@@ -25,7 +25,7 @@ Released on October 28th, 2022.
 
 ### Changed
 
--`ECSTask` is no longer experimental — [#137](https://github.com/PrefectHQ/prefect-aws/pull/137)
+- `ECSTask` is no longer experimental — [#137](https://github.com/PrefectHQ/prefect-aws/pull/137)
 
 ### Fixed
 - Fix ignore_file option in `S3Bucket` skipping files which should be included — [#139](https://github.com/PrefectHQ/prefect-aws/pull/139)
