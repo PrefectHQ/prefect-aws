@@ -117,6 +117,7 @@ from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.pydantic import JsonPatch
 from pydantic import Field, root_validator, validator
+from slugify import slugify
 from typing_extensions import Literal
 
 from prefect_aws import AwsCredentials
@@ -946,7 +947,16 @@ class ECSTask(Infrastructure):
                 },
             }
 
-        task_definition.setdefault("family", "prefect")
+        default_family = "prefect"
+        if "prefect.io/flow-name" in self.labels:
+            default_family += "_" + self.labels["prefect.io/flow-name"]
+        if "prefect.io/deployment-name" in self.labels:
+            default_family += "_" + self.labels["prefect.io/deployment-name"]
+
+        task_definition.setdefault(
+            "family",
+            slugify(default_family, max_length=255, regex_pattern=r"[^a-zA-Z0-9-_]+"),
+        )
 
         # CPU and memory are required in some cases, retrieve the value to use
         cpu = self.cpu or task_definition.get("cpu") or ECS_DEFAULT_CPU

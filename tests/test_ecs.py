@@ -1379,3 +1379,41 @@ async def test_custom_subnets_in_the_network_configuration(aws_credentials):
             "assignPublicIp": "DISABLED",
         }
     }
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize(
+    "labels,expected_family",
+    [
+        ({}, "prefect"),
+        ({"prefect.io/deployment-name": "foo"}, "prefect_foo"),
+        ({"prefect.io/flow-name": "foo"}, "prefect_foo"),
+        # Length limited to 255
+        ({"prefect.io/flow-name": "x" * 300}, "prefect_" + "x" * (255 - 8)),
+        # Spaces are not allowed
+        ({"prefect.io/flow-name": "foo bar"}, "prefect_foo-bar"),
+        # Special characters are not allowed
+        ({"prefect.io/flow-name": "foo*bar&!"}, "prefect_foo-bar"),
+        #
+        (
+            {"prefect.io/flow-name": "foo", "prefect.io/deployment-name": "bar"},
+            "prefect_foo_bar",
+        ),
+    ],
+)
+async def test_default_family_name(aws_credentials, labels, expected_family):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        labels=labels,
+    )
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    assert task_definition["family"] == expected_family
