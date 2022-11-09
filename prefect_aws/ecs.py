@@ -701,9 +701,17 @@ class ECSTask(Infrastructure):
         last_status = status = current_status
         t0 = time.time()
         while status != until_status:
-            task = ecs_client.describe_tasks(tasks=[task_arn], cluster=cluster_arn)[
+            tasks = ecs_client.describe_tasks(tasks=[task_arn], cluster=cluster_arn)[
                 "tasks"
-            ][0]
+            ]
+
+            if not tasks:
+                # Intermittently, the task will not be described
+                self.logger.debug(f"{self._log_prefix}: Task not found.")
+                time.sleep(self.task_watch_poll_interval)
+                continue
+
+            task = tasks[0]
 
             status = task["lastStatus"]
             if status != last_status:
