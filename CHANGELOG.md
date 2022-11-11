@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added `family` field to `ECSTask` to configure task definition family names — [#152](https://github.com/PrefectHQ/prefect-aws/pull/152)
+
 ### Changed
+
+- Changes the default `ECSTask` family to include the flow and deployment names if available — [#152](https://github.com/PrefectHQ/prefect-aws/pull/152)
 
 ### Deprecated
 
