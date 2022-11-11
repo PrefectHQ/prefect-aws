@@ -705,25 +705,26 @@ class ECSTask(Infrastructure):
                 "tasks"
             ]
 
-            if not tasks:
-                # Intermittently, the task will not be described
+            if tasks:
+                task = tasks[0]
+
+                status = task["lastStatus"]
+                if status != last_status:
+                    self.logger.info(f"{self._log_prefix}: Status is {status}.")
+
+                yield task
+
+                # No point in continuing if the status is final
+                if status == "STOPPED":
+                    break
+
+                last_status = status
+
+            else:
+                # Intermittently, the task will not be described. We wat to respect the
+                # watch timeout though.
                 self.logger.debug(f"{self._log_prefix}: Task not found.")
-                time.sleep(self.task_watch_poll_interval)
-                continue
 
-            task = tasks[0]
-
-            status = task["lastStatus"]
-            if status != last_status:
-                self.logger.info(f"{self._log_prefix}: Status is {status}.")
-
-            yield task
-
-            # No point in continuing if the status is final
-            if status == "STOPPED":
-                break
-
-            last_status = status
             elapsed_time = time.time() - t0
             if timeout is not None and elapsed_time > timeout:
                 raise RuntimeError(
