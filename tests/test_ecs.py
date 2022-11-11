@@ -1478,6 +1478,7 @@ async def test_user_provided_family(aws_credentials, given_family, expected_fami
     assert task_definition["family"] == expected_family
 
 
+@pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize("prepare_for_flow_run", [True, False])
 async def test_family_from_task_definition_arn(aws_credentials, prepare_for_flow_run):
     session = aws_credentials.get_boto3_session()
