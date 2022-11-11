@@ -433,16 +433,24 @@ class ECSTask(Infrastructure):
     def cast_customizations_to_a_json_patch(
         cls, value: Union[List[Dict], JsonPatch]
     ) -> JsonPatch:
+        """
+        Casts lists to JsonPatch instances.
+        """
         if isinstance(value, list):
             return JsonPatch(value)
         return value
 
     class Config:
+        """Configuration of pydantic."""
+
         # Support serialization of the 'JsonPatch' type
         arbitrary_types_allowed = True
         json_encoders = {JsonPatch: lambda p: p.patch}
 
     def dict(self, *args, **kwargs) -> Dict:
+        """
+        Convert to a dictionary.
+        """
         # Support serialization of the 'JsonPatch' type
         d = super().dict(*args, **kwargs)
         d["task_customizations"] = self.task_customizations.patch
