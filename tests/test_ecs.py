@@ -9,6 +9,7 @@ import yaml
 from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.logging.configuration import setup_logging
+from prefect.orion.schemas.core import Deployment, Flow, FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from pydantic import ValidationError
 
@@ -1137,10 +1138,7 @@ async def test_task_definition_arn(aws_credentials):
 @pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize(
     "overrides",
-    [
-        {"image": "new-image"},
-        {"configure_cloudwatch_logs": True},
-    ],
+    [{"image": "new-image"}, {"configure_cloudwatch_logs": True}, {"family": "foobar"}],
 )
 async def test_task_definition_arn_with_overrides_that_require_copy(
     aws_credentials, overrides
@@ -1379,3 +1377,134 @@ async def test_custom_subnets_in_the_network_configuration(aws_credentials):
             "assignPublicIp": "DISABLED",
         }
     }
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize(
+    "fields,prepare_inputs,expected_family",
+    [
+        # Default
+        ({}, {}, "prefect"),
+        # Only flow
+        ({}, {"flow": Flow(name="foo")}, "prefect__foo"),
+        # Only deployment
+        (
+            {},
+            {"deployment": Deployment.construct(name="foo")},
+            "prefect__unknown-flow__foo",
+        ),
+        # Flow and deployment
+        (
+            {},
+            {
+                "flow": Flow(name="foo"),
+                "deployment": Deployment.construct(name="bar"),
+            },
+            "prefect__foo__bar",
+        ),
+        # Family provided as a field
+        (
+            {"family": "test"},
+            {
+                "flow": Flow(name="foo"),
+                "deployment": Deployment.construct(name="bar"),
+            },
+            "test",
+        ),
+        # Family provided in a task definition
+        (
+            {"task_definition": {"family": "test"}},
+            {
+                "flow": Flow(name="foo"),
+                "deployment": Deployment.construct(name="bar"),
+            },
+            "test",
+        ),
+    ],
+)
+async def test_family_from_flow_run_metadata(
+    aws_credentials, fields, prepare_inputs, expected_family
+):
+    prepare_inputs.setdefault("flow_run", FlowRun.construct())
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        **fields,
+    ).prepare_for_flow_run(**prepare_inputs)
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    assert task_definition["family"] == expected_family
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize(
+    "given_family,expected_family",
+    [
+        # Default
+        (None, "prefect"),
+        ("", "prefect"),
+        # Length limited to 255
+        ("x" * 300, "x" * 255),
+        # Spaces are not allowed
+        ("foo bar", "foo-bar"),
+        # Special characters are not allowed
+        ("foo*bar&!", "foo-bar"),
+    ],
+)
+async def test_user_provided_family(aws_credentials, given_family, expected_family):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        family=given_family,
+    )
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    assert task_definition["family"] == expected_family
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("prepare_for_flow_run", [True, False])
+async def test_family_from_task_definition_arn(aws_credentials, prepare_for_flow_run):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(
+        **{**BASE_TASK_DEFINITION, "family": "test-family"}
+    )["taskDefinition"]["taskDefinitionArn"]
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+        image=None,
+    )
+    if prepare_for_flow_run:
+        task = task.prepare_for_flow_run(
+            flow_run=FlowRun.construct(),
+            flow=Flow(name="foo"),
+            deployment=Deployment.construct(name="bar"),
+        )
+
+    print(task.preview())
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    assert task_definition["family"] == "test-family"

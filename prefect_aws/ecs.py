@@ -107,7 +107,7 @@ import copy
 import sys
 import time
 import warnings
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Tuple, Union
 
 import boto3
 import yaml
@@ -117,12 +117,18 @@ from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.pydantic import JsonPatch
 from pydantic import Field, root_validator, validator
-from typing_extensions import Literal
+from slugify import slugify
+from typing_extensions import Literal, Self
 
 from prefect_aws import AwsCredentials
 
 # Internal type alias for ECS clients which are generated dynamically in botocore
 _ECSClient = Any
+
+
+if TYPE_CHECKING:
+    from prefect.client.schemas import FlowRun
+    from prefect.orion.schemas.core import Deployment, Flow
 
 
 class ECSTaskResult(InfrastructureResult):
@@ -132,6 +138,7 @@ class ECSTaskResult(InfrastructureResult):
 PREFECT_ECS_CONTAINER_NAME = "prefect"
 ECS_DEFAULT_CPU = 1024
 ECS_DEFAULT_MEMORY = 2048
+ECS_DEFAULT_FAMILY = "prefect"
 
 
 def get_prefect_container(containers: List[dict]) -> Optional[dict]:
@@ -191,6 +198,16 @@ class ECSTask(Infrastructure):
             "fields on this task definition to match other `ECSTask` fields. "
             "Cannot be used with `task_definition_arn`. If not provided, Prefect will "
             "generate and register a minimal task definition."
+        ),
+    )
+    family: Optional[str] = Field(
+        default=None,
+        description=(
+            "A family for the task definition. If not provided, it will be inferred "
+            "from the task definition. If the task definition does not have a family, "
+            "the name will be generated. When flow and deployment metadata is "
+            "available, the generated name will include their names. Values for this "
+            "field will be slugified to match AWS character requirements."
         ),
     )
     image: Optional[str] = Field(
@@ -416,20 +433,62 @@ class ECSTask(Infrastructure):
     def cast_customizations_to_a_json_patch(
         cls, value: Union[List[Dict], JsonPatch]
     ) -> JsonPatch:
+        """
+        Casts lists to JsonPatch instances.
+        """
         if isinstance(value, list):
             return JsonPatch(value)
         return value
 
     class Config:
+        """Configuration of pydantic."""
+
         # Support serialization of the 'JsonPatch' type
         arbitrary_types_allowed = True
         json_encoders = {JsonPatch: lambda p: p.patch}
 
     def dict(self, *args, **kwargs) -> Dict:
+        """
+        Convert to a dictionary.
+        """
         # Support serialization of the 'JsonPatch' type
         d = super().dict(*args, **kwargs)
         d["task_customizations"] = self.task_customizations.patch
         return d
+
+    def prepare_for_flow_run(
+        self: Self,
+        flow_run: "FlowRun",
+        deployment: Optional["Deployment"] = None,
+        flow: Optional["Flow"] = None,
+    ) -> Self:
+        """
+        Return an copy of the block that is prepared to execute a flow run.
+        """
+        new_family = None
+
+        # Update the family if not specified elsewhere
+        if (
+            not self.family
+            and not self.task_definition_arn
+            and not (self.task_definition and self.task_definition.get("family"))
+        ):
+
+            if flow and deployment:
+                new_family = f"{ECS_DEFAULT_FAMILY}__{flow.name}__{deployment.name}"
+            elif flow and not deployment:
+                new_family = f"{ECS_DEFAULT_FAMILY}__{flow.name}"
+            elif deployment and not flow:
+                # This is a weird case and should not be see in the wild
+                new_family = f"{ECS_DEFAULT_FAMILY}__unknown-flow__{deployment.name}"
+
+        new = super().prepare_for_flow_run(flow_run, deployment=deployment, flow=flow)
+
+        if new_family:
+            return new.copy(update={"family": new_family})
+        else:
+            # Avoid an extra copy if not needed
+            return new
 
     @sync_compatible
     async def run(self, task_status: Optional[TaskStatus] = None) -> ECSTaskResult:
@@ -955,7 +1014,12 @@ class ECSTask(Infrastructure):
                 },
             }
 
-        task_definition.setdefault("family", "prefect")
+        family = self.family or task_definition.get("family") or ECS_DEFAULT_FAMILY
+        task_definition["family"] = slugify(
+            family,
+            max_length=255,
+            regex_pattern=r"[^a-zA-Z0-9-_]+",
+        )
 
         # CPU and memory are required in some cases, retrieve the value to use
         cpu = self.cpu or task_definition.get("cpu") or ECS_DEFAULT_CPU
