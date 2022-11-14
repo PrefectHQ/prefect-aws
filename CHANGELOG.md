@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+
+- Fixed failure while watching ECS task execution when the task is missing — [#153](https://github.com/PrefectHQ/prefect-aws/pull/153)
+
+
 ### Security
 
 ## 0.1.7
