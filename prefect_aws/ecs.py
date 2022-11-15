@@ -760,21 +760,30 @@ class ECSTask(Infrastructure):
         last_status = status = current_status
         t0 = time.time()
         while status != until_status:
-            task = ecs_client.describe_tasks(tasks=[task_arn], cluster=cluster_arn)[
+            tasks = ecs_client.describe_tasks(tasks=[task_arn], cluster=cluster_arn)[
                 "tasks"
-            ][0]
+            ]
 
-            status = task["lastStatus"]
-            if status != last_status:
-                self.logger.info(f"{self._log_prefix}: Status is {status}.")
+            if tasks:
+                task = tasks[0]
 
-            yield task
+                status = task["lastStatus"]
+                if status != last_status:
+                    self.logger.info(f"{self._log_prefix}: Status is {status}.")
 
-            # No point in continuing if the status is final
-            if status == "STOPPED":
-                break
+                yield task
 
-            last_status = status
+                # No point in continuing if the status is final
+                if status == "STOPPED":
+                    break
+
+                last_status = status
+
+            else:
+                # Intermittently, the task will not be described. We wat to respect the
+                # watch timeout though.
+                self.logger.debug(f"{self._log_prefix}: Task not found.")
+
             elapsed_time = time.time() - t0
             if timeout is not None and elapsed_time > timeout:
                 raise RuntimeError(
