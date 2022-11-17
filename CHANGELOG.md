@@ -9,11 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added `family` field to `ECSTask` to configure task definition family names — [#152](https://github.com/PrefectHQ/prefect-aws/pull/152)
-
 ### Changed
-
-- Changes the default `ECSTask` family to include the flow and deployment names if available — [#152](https://github.com/PrefectHQ/prefect-aws/pull/152)
 
 ### Deprecated
 
@@ -21,11 +17,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 0.1.8
+
+Released on November 16th, 2022.
+
+### Added
+
+- Added `family` field to `ECSTask` to configure task definition family names — [#152](https://github.com/PrefectHQ/prefect-aws/pull/152)
+
+### Changed
+
+- Changes the default `ECSTask` family to include the flow and deployment names if available — [#152](https://github.com/PrefectHQ/prefect-aws/pull/152)
+
+### Fixed
 
 - Fixed failure while watching ECS task execution when the task is missing — [#153](https://github.com/PrefectHQ/prefect-aws/pull/153)
-
-
-### Security
 
 ## 0.1.7
 
