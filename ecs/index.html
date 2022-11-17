@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/ecs/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.7">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10">
     
     
       
@@ -21,10 +21,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.20d9efc8.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.472b142f.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.08040f6c.min.css">
         
           
           
@@ -64,7 +64,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="blue" data-md-color-accent="blue">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
   
     
     
@@ -382,6 +382,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.family" class="md-nav__link">
+    family
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.image" class="md-nav__link">
     image
   </a>
@@ -464,6 +471,26 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask-classes" class="md-nav__link">
+    Classes
+  </a>
+  
+    <nav class="md-nav" aria-label="Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.Config" class="md-nav__link">
+    Config
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask-methods" class="md-nav__link">
     Methods
   </a>
@@ -474,6 +501,13 @@
           <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.__json_encoder__" class="md-nav__link">
     __json_encoder__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.cast_customizations_to_a_json_patch" class="md-nav__link">
+    cast_customizations_to_a_json_patch()
   </a>
   
 </li>
@@ -502,6 +536,13 @@
           <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.image_is_required" class="md-nav__link">
     image_is_required()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.prepare_for_flow_run" class="md-nav__link">
+    prepare_for_flow_run()
   </a>
   
 </li>
@@ -714,6 +755,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.family" class="md-nav__link">
+    family
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.image" class="md-nav__link">
     image
   </a>
@@ -796,6 +844,26 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask-classes" class="md-nav__link">
+    Classes
+  </a>
+  
+    <nav class="md-nav" aria-label="Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.Config" class="md-nav__link">
+    Config
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask-methods" class="md-nav__link">
     Methods
   </a>
@@ -806,6 +874,13 @@
           <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.__json_encoder__" class="md-nav__link">
     __json_encoder__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.cast_customizations_to_a_json_patch" class="md-nav__link">
+    cast_customizations_to_a_json_patch()
   </a>
   
 </li>
@@ -834,6 +909,13 @@
           <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.image_is_required" class="md-nav__link">
     image_is_required()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.prepare_for_flow_run" class="md-nav__link">
+    prepare_for_flow_run()
   </a>
   
 </li>
@@ -1030,6 +1112,7 @@ logs:CreateLogGroup, and logs:PutLogEvents.
 
 
 
+
 <h2 id="prefect_aws.ecs-classes">Classes</h2>
 
   <div class="doc doc-object doc-class">
@@ -1092,6 +1175,16 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
             <span class="s2">&quot;fields on this task definition to match other `ECSTask` fields. &quot;</span>
             <span class="s2">&quot;Cannot be used with `task_definition_arn`. If not provided, Prefect will &quot;</span>
             <span class="s2">&quot;generate and register a minimal task definition.&quot;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">family</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;A family for the task definition. If not provided, it will be inferred &quot;</span>
+            <span class="s2">&quot;from the task definition. If the task definition does not have a family, &quot;</span>
+            <span class="s2">&quot;the name will be generated. When flow and deployment metadata is &quot;</span>
+            <span class="s2">&quot;available, the generated name will include their names. Values for this &quot;</span>
+            <span class="s2">&quot;field will be slugified to match AWS character requirements.&quot;</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">image</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1317,20 +1410,62 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
     <span class="k">def</span> <span class="nf">cast_customizations_to_a_json_patch</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">JsonPatch</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonPatch</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Casts lists to JsonPatch instances.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">JsonPatch</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span>
 
     <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Configuration of pydantic.&quot;&quot;&quot;</span>
+
         <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
         <span class="n">arbitrary_types_allowed</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">json_encoders</span> <span class="o">=</span> <span class="p">{</span><span class="n">JsonPatch</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">patch</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert to a dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;task_customizations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span><span class="o">.</span><span class="n">patch</span>
         <span class="k">return</span> <span class="n">d</span>
+
+    <span class="k">def</span> <span class="nf">prepare_for_flow_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Self</span><span class="p">,</span>
+        <span class="n">flow_run</span><span class="p">:</span> <span class="s2">&quot;FlowRun&quot;</span><span class="p">,</span>
+        <span class="n">deployment</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Deployment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">flow</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Flow&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an copy of the block that is prepared to execute a flow run.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_family</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Update the family if not specified elsewhere</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">family</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_definition_arn</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task_definition</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;family&quot;</span><span class="p">))</span>
+        <span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">flow</span> <span class="ow">and</span> <span class="n">deployment</span><span class="p">:</span>
+                <span class="n">new_family</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ECS_DEFAULT_FAMILY</span><span class="si">}</span><span class="s2">__</span><span class="si">{</span><span class="n">flow</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">__</span><span class="si">{</span><span class="n">deployment</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="n">flow</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">deployment</span><span class="p">:</span>
+                <span class="n">new_family</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ECS_DEFAULT_FAMILY</span><span class="si">}</span><span class="s2">__</span><span class="si">{</span><span class="n">flow</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="n">deployment</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">flow</span><span class="p">:</span>
+                <span class="c1"># This is a weird case and should not be see in the wild</span>
+                <span class="n">new_family</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ECS_DEFAULT_FAMILY</span><span class="si">}</span><span class="s2">__unknown-flow__</span><span class="si">{</span><span class="n">deployment</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">prepare_for_flow_run</span><span class="p">(</span><span class="n">flow_run</span><span class="p">,</span> <span class="n">deployment</span><span class="o">=</span><span class="n">deployment</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="n">flow</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">new_family</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">new</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;family&quot;</span><span class="p">:</span> <span class="n">new_family</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Avoid an extra copy if not needed</span>
+            <span class="k">return</span> <span class="n">new</span>
 
     <span class="nd">@sync_compatible</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TaskStatus</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ECSTaskResult</span><span class="p">:</span>
@@ -1602,21 +1737,30 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="n">last_status</span> <span class="o">=</span> <span class="n">status</span> <span class="o">=</span> <span class="n">current_status</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="k">while</span> <span class="n">status</span> <span class="o">!=</span> <span class="n">until_status</span><span class="p">:</span>
-            <span class="n">task</span> <span class="o">=</span> <span class="n">ecs_client</span><span class="o">.</span><span class="n">describe_tasks</span><span class="p">(</span><span class="n">tasks</span><span class="o">=</span><span class="p">[</span><span class="n">task_arn</span><span class="p">],</span> <span class="n">cluster</span><span class="o">=</span><span class="n">cluster_arn</span><span class="p">)[</span>
+            <span class="n">tasks</span> <span class="o">=</span> <span class="n">ecs_client</span><span class="o">.</span><span class="n">describe_tasks</span><span class="p">(</span><span class="n">tasks</span><span class="o">=</span><span class="p">[</span><span class="n">task_arn</span><span class="p">],</span> <span class="n">cluster</span><span class="o">=</span><span class="n">cluster_arn</span><span class="p">)[</span>
                 <span class="s2">&quot;tasks&quot;</span>
-            <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">]</span>
 
-            <span class="n">status</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;lastStatus&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="n">last_status</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Status is </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tasks</span><span class="p">:</span>
+                <span class="n">task</span> <span class="o">=</span> <span class="n">tasks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-            <span class="k">yield</span> <span class="n">task</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;lastStatus&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="n">last_status</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Status is </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
-            <span class="c1"># No point in continuing if the status is final</span>
-            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;STOPPED&quot;</span><span class="p">:</span>
-                <span class="k">break</span>
+                <span class="k">yield</span> <span class="n">task</span>
 
-            <span class="n">last_status</span> <span class="o">=</span> <span class="n">status</span>
+                <span class="c1"># No point in continuing if the status is final</span>
+                <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;STOPPED&quot;</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="n">last_status</span> <span class="o">=</span> <span class="n">status</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Intermittently, the task will not be described. We wat to respect the</span>
+                <span class="c1"># watch timeout though.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Task not found.&quot;</span><span class="p">)</span>
+
             <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
             <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">elapsed_time</span> <span class="o">&gt;</span> <span class="n">timeout</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
@@ -1847,7 +1991,12 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
                 <span class="p">},</span>
             <span class="p">}</span>
 
-        <span class="n">task_definition</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;family&quot;</span><span class="p">,</span> <span class="s2">&quot;prefect&quot;</span><span class="p">)</span>
+        <span class="n">family</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">family</span> <span class="ow">or</span> <span class="n">task_definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;family&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ECS_DEFAULT_FAMILY</span>
+        <span class="n">task_definition</span><span class="p">[</span><span class="s2">&quot;family&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">slugify</span><span class="p">(</span>
+            <span class="n">family</span><span class="p">,</span>
+            <span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span>
+            <span class="n">regex_pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;[^a-zA-Z0-9-_]+&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="c1"># CPU and memory are required in some cases, retrieve the value to use</span>
         <span class="n">cpu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpu</span> <span class="ow">or</span> <span class="n">task_definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ECS_DEFAULT_CPU</span>
@@ -2192,6 +2341,28 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
 
 
+<h5 id="prefect_aws.ecs.ECSTask.family" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">family</span><span class="p">:</span> <span class="nb">str</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>A family for the task definition. If not provided, it will be inferred from the task definition. If the task definition does not have a family, the name will be generated. When flow and deployment metadata is available, the generated name will include their names. Values for this field will be slugified to match AWS character requirements.</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
 <h5 id="prefect_aws.ecs.ECSTask.image" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">image</span><span class="p">:</span> <span class="nb">str</span></code>
 
@@ -2429,6 +2600,56 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
   </div>
 
 
+<h4 id="prefect_aws.ecs.ECSTask-classes">Classes</h4>
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h5 id="prefect_aws.ecs.ECSTask.Config" class="doc doc-heading">
+        <code>
+Config        </code>
+
+
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>Configuration of pydantic.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Configuration of pydantic.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
+    <span class="n">arbitrary_types_allowed</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">json_encoders</span> <span class="o">=</span> <span class="p">{</span><span class="n">JsonPatch</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">patch</span><span class="p">}</span>
+</code></pre></div>
+        </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
 
 
 
@@ -2458,6 +2679,42 @@ of the given arguments and keywords.</p>
 
   </div>
 
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h5 id="prefect_aws.ecs.ECSTask.cast_customizations_to_a_json_patch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">cast_customizations_to_a_json_patch</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>Casts lists to JsonPatch instances.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@validator</span><span class="p">(</span><span class="s2">&quot;task_customizations&quot;</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">cast_customizations_to_a_json_patch</span><span class="p">(</span>
+    <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">JsonPatch</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonPatch</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Casts lists to JsonPatch instances.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">JsonPatch</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
 
 
 
@@ -2566,11 +2823,14 @@ runtime task definition) when configuring logging.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.</p>
+      <p>Convert to a dictionary.</p>
 
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert to a dictionary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
     <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">d</span><span class="p">[</span><span class="s2">&quot;task_customizations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span><span class="o">.</span><span class="n">patch</span>
@@ -2625,6 +2885,63 @@ runtime task definition) when configuring logging.</p>
             <span class="s2">&quot;present for the Prefect container definition a given task definition.&quot;</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">values</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h5 id="prefect_aws.ecs.ECSTask.prepare_for_flow_run" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">prepare_for_flow_run</span></code>
+
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>Return an copy of the block that is prepared to execute a flow run.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">prepare_for_flow_run</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">:</span> <span class="n">Self</span><span class="p">,</span>
+    <span class="n">flow_run</span><span class="p">:</span> <span class="s2">&quot;FlowRun&quot;</span><span class="p">,</span>
+    <span class="n">deployment</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Deployment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">flow</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Flow&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return an copy of the block that is prepared to execute a flow run.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_family</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Update the family if not specified elsewhere</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">family</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_definition_arn</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task_definition</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;family&quot;</span><span class="p">))</span>
+    <span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">flow</span> <span class="ow">and</span> <span class="n">deployment</span><span class="p">:</span>
+            <span class="n">new_family</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ECS_DEFAULT_FAMILY</span><span class="si">}</span><span class="s2">__</span><span class="si">{</span><span class="n">flow</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">__</span><span class="si">{</span><span class="n">deployment</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">elif</span> <span class="n">flow</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">deployment</span><span class="p">:</span>
+            <span class="n">new_family</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ECS_DEFAULT_FAMILY</span><span class="si">}</span><span class="s2">__</span><span class="si">{</span><span class="n">flow</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">elif</span> <span class="n">deployment</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">flow</span><span class="p">:</span>
+            <span class="c1"># This is a weird case and should not be see in the wild</span>
+            <span class="n">new_family</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ECS_DEFAULT_FAMILY</span><span class="si">}</span><span class="s2">__unknown-flow__</span><span class="si">{</span><span class="n">deployment</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">prepare_for_flow_run</span><span class="p">(</span><span class="n">flow_run</span><span class="p">,</span> <span class="n">deployment</span><span class="o">=</span><span class="n">deployment</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="n">flow</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">new_family</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">new</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;family&quot;</span><span class="p">:</span> <span class="n">new_family</span><span class="p">})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Avoid an extra copy if not needed</span>
+        <span class="k">return</span> <span class="n">new</span>
 </code></pre></div>
         </details>
     </div>
@@ -3019,7 +3336,7 @@ If not found, <code>None</code> is returned.</p>
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.8492ddcf.min.js"></script>
+      <script src="../assets/javascripts/bundle.d6c3db9e.min.js"></script>
       
     
   </body>
