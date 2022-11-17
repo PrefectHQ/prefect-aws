@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Bumped minimum required `prefect` version - [#154](https://github.com/PrefectHQ/prefect-aws/pull/154)
+
 ### Deprecated
 
 ### Removed
