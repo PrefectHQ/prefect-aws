@@ -1508,7 +1508,6 @@ async def test_family_from_task_definition_arn(aws_credentials, prepare_for_flow
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-@pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize(
     "cluster", [None, "default", "second-cluster", "second-cluster-arn"]
 )
