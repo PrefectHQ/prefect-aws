@@ -1641,3 +1641,29 @@ async def test_kill_with_task_that_is_already_stopped(aws_credentials):
 
     # AWS will happily stop the task "again"
     await task.kill(f"default::{task_arn}")
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_kill_with_grace_period(aws_credentials, caplog):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+    )
+    print(task.preview())
+
+    with anyio.fail_after(5):
+        async with anyio.create_task_group() as tg:
+            identifier = await tg.start(task.run)
+
+            await task.kill(identifier, grace_seconds=60)
+
+    # Task stops correctly
+    _, task_arn = parse_task_identifier(identifier)
+    task = describe_task(ecs_client, task_arn)
+    assert task["lastStatus"] == "STOPPED"
+
+    # Logs warning
+    assert "grace period of 60s requested, but AWS does not support" in caplog.text

@@ -550,7 +550,7 @@ class ECSTask(Infrastructure):
         )
 
     @sync_compatible
-    async def kill(self, identifier: str, grace_period: int = 30) -> None:
+    async def kill(self, identifier: str, grace_seconds: int = 30) -> None:
         """
         Kill a task running on ECS.
 
@@ -558,10 +558,10 @@ class ECSTask(Infrastructure):
             identifier: A cluster and task arn combination. This should match a value
                 yielded by `ECSTask.run`.
         """
-        if grace_period != 30:
+        if grace_seconds != 30:
             self.logger.warning(
-                "Kill grace period of {grace_period}s requested, but AWS does not "
-                "support dynamic grace period configuration. "
+                f"Kill grace period of {grace_seconds}s requested, but AWS does not "
+                "support dynamic grace period configuration so 30s will be used. "
                 "See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html for configuration of grace periods."  # noqa
             )
         cluster, task = parse_task_identifier(identifier)
