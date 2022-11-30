@@ -2,6 +2,8 @@
 
 ## Getting Started
 
+Now that you've bootstrapped a project, follow the steps below to get started developing your Prefect Collection!
+
 ### Python setup
 
 Requires an installation of Python 3.7+

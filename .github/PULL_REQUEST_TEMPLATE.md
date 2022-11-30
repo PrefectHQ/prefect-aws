@@ -1,32 +1,28 @@
-<!-- 
-Thanks for opening a pull request to prefect-aws 🎉!
+<!-- Thanks for contributing 🎉! Please ensure the title neatly summarizes the proposed changes. -->
 
-We've got a few requests to help us review contributions:
+<!-- Overview -->
 
-- Make sure that your title neatly summarizes the proposed changes.
-- Provide a short overview of the change and the value it adds.
-- Share an example to help us understand the change in user experience.
-- Run `pre-commit install && pre-commit run --all` for linting.
-
-Happy engineering!
--->
-
-<!-- Include an overview here -->
-
-<!-- Link to issue -->
-Closes #
+Closes
 
 ### Example
-<!-- 
-Share an example of the change in action.
+<!-- A code blurb is best. Changes to features should include an example that is executable by a new user. -->
 
-A code blurb is best. Changes to features should include an example that is executable by a new user.
+### Screenshots
+<!--
+Any relevant screenshots
+  - The updated docs page from `mkdocs serve`.
+  - Output from running the example.
+  - Service integration test results.
 -->
 
 ### Checklist
 <!-- These boxes may be checked after opening the pull request. -->
 
-- [ ] This pull request references any related issue by including "Closes #<ISSUE_NUMBER>"
-	- If no issue exists and your change is not a small fix, please [create an issue](https://github.com/PrefectHQ/prefect-aws/issues/new/choose) first.
-- [ ] This pull request includes tests or only affects documentation.
-- [ ] Summarized PR's changes in [CHANGELOG.md](https://github.com/PrefectHQ/prefect-aws/blob/main/CHANGELOG.md)
+- [ ] References any related issue by including "Closes #<Issue Number>" or "Closes <Issue URL>".
+  - If no issue exists and your change is not a small fix, please [create an issue](https://github.com/PrefectHQ/prefect-aws/issues/new/choose) first.
+- [ ] Includes tests or only affects documentation.
+- [ ] Passes `pre-commit` checks.
+  - Run `pre-commit install && pre-commit run --all` locally for formatting and linting.
+- [ ] Includes screenshots of documentation updates.
+  - Run `mkdocs serve` view documentation locally.
+- [ ] Summarizes PR's changes in [CHANGELOG.md](https://github.com/PrefectHQ/prefect-aws/blob/main/CHANGELOG.md)

@@ -19,3 +19,11 @@ repos:
       - id: interrogate
         args: [-vv]
         pass_filenames: false
+  - repo: https://github.com/fsouza/autoflake8
+    rev: v0.3.2
+    hooks:
+      - id: autoflake8
+        language_version: python3
+        args: [
+          '--in-place',
+        ]
