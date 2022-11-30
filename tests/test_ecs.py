@@ -1567,7 +1567,10 @@ async def test_kill_with_mismatched_cluster(aws_credentials):
 
     with pytest.raises(
         InfrastructureNotAvailable,
-        match="Cannot stop ECS task: this infrastructure block has access to cluster 'foo' but the task is running in cluster 'bar'.",
+        match=(
+            "Cannot stop ECS task: this infrastructure block has access to cluster "
+            "'foo' but the task is running in cluster 'bar'."
+        ),
     ):
         await task.kill("bar:::task_arn")
 
@@ -1604,7 +1607,10 @@ async def test_kill_with_task_that_does_not_exist(aws_credentials):
 
     with pytest.raises(
         InfrastructureNotFound,
-        match="Cannot stop ECS task: the task 'foo' could not be found in cluster 'default'",
+        match=(
+            "Cannot stop ECS task: the task 'foo' could not be found in cluster"
+            " 'default'"
+        ),
     ):
         await task.kill("default::foo")
 
