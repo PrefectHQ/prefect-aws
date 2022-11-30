@@ -8,6 +8,7 @@ import pytest
 import yaml
 from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
+from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.logging.configuration import setup_logging
 from prefect.orion.schemas.core import Deployment, Flow, FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
@@ -20,6 +21,7 @@ from prefect_aws.ecs import (
     ECSTask,
     get_container,
     get_prefect_container,
+    parse_task_identifier,
 )
 
 setup_logging()
@@ -138,22 +140,23 @@ def describe_task_definition(ecs_client, task):
     )["taskDefinition"]
 
 
-async def run_then_stop_task(task: ECSTask, **kwargs) -> str:
+async def run_then_stop_task(task: ECSTask) -> str:
     """
     Run an ECS Task then stop it.
 
     Moto will not advance the state of tasks, so `ECSTask.run` would hang forever if
     the run is created successfully and not stopped.
-
-    Additional keyword arguments are passed to `ECSClient.stop_task`
     """
     session = task.aws_credentials.get_boto3_session()
 
     with anyio.fail_after(20):
         async with anyio.create_task_group() as tg:
-            task_arn = await tg.start(task.run)
+            identifier = await tg.start(task.run)
+            cluster, task_arn = parse_task_identifier(identifier)
             # Stop the task after it starts to prevent the test from running forever
-            tg.start_soon(partial(stop_task, session.client("ecs"), task_arn, **kwargs))
+            tg.start_soon(
+                partial(stop_task, session.client("ecs"), task_arn, cluster=cluster)
+            )
 
     return task_arn
 
@@ -766,11 +769,7 @@ async def test_cluster(aws_credentials, default_cluster: bool):
     )
     print(task.preview())
 
-    task_arn = await run_then_stop_task(
-        # Stopping a task requires the active cluster to be specified
-        task,
-        cluster="default" if default_cluster else second_cluster_arn,
-    )
+    task_arn = await run_then_stop_task(task)
 
     task = describe_task(ecs_client, task_arn)
 
@@ -1201,10 +1200,8 @@ async def test_task_definition_arn_with_overrides_that_do_not_require_copy(
     ecs_client = session.client("ecs")
 
     if "cluster" in overrides:
-        cluster_arn = create_test_ecs_cluster(ecs_client, overrides["cluster"])
+        create_test_ecs_cluster(ecs_client, overrides["cluster"])
         add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
-    else:
-        cluster_arn = "default"
 
     task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION,)[
         "taskDefinition"
@@ -1221,9 +1218,9 @@ async def test_task_definition_arn_with_overrides_that_do_not_require_copy(
         **overrides,
     )
     print(task.preview())
-    task_arn = await run_then_stop_task(task, cluster=cluster_arn)
+    task_arn = await run_then_stop_task(task)
 
-    task = describe_task(ecs_client, task_arn, cluster=cluster_arn)
+    task = describe_task(ecs_client, task_arn)
     assert (
         task["taskDefinitionArn"] == task_definition_arn
     ), "The existing task definition should be used"
@@ -1508,3 +1505,140 @@ async def test_family_from_task_definition_arn(aws_credentials, prepare_for_flow
     task = describe_task(ecs_client, task_arn)
     task_definition = describe_task_definition(ecs_client, task)
     assert task_definition["family"] == "test-family"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize(
+    "cluster", [None, "default", "second-cluster", "second-cluster-arn"]
+)
+async def test_kill(aws_credentials, cluster: str):
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    # Kill requires cluster-specificity so we test with variable clusters
+    second_cluster_arn = create_test_ecs_cluster(ecs_client, "second-cluster")
+    add_ec2_instance_to_ecs_cluster(session, "second-cluster")
+
+    if cluster == "second-cluster-arn":
+        # Use the actual arn for this test case
+        cluster = second_cluster_arn
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        cluster=cluster,
+    )
+    print(task.preview())
+
+    with anyio.fail_after(5):
+        async with anyio.create_task_group() as tg:
+            identifier = await tg.start(task.run)
+
+            await task.kill(identifier)
+
+    _, task_arn = parse_task_identifier(identifier)
+    task = describe_task(ecs_client, task_arn)
+    assert task["lastStatus"] == "STOPPED"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_kill_with_invalid_identifier(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["sleep", "1000"],
+    )
+    print(task.preview())
+
+    with pytest.raises(ValueError):
+        await task.kill("test")
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_kill_with_mismatched_cluster(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["sleep", "1000"],
+        cluster="foo",
+    )
+    print(task.preview())
+
+    with pytest.raises(
+        InfrastructureNotAvailable,
+        match="Cannot stop ECS task: this infrastructure block has access to cluster 'foo' but the task is running in cluster 'bar'.",
+    ):
+        await task.kill("bar:::task_arn")
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_kill_with_cluster_that_does_not_exist(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["sleep", "1000"],
+        cluster="foo",
+    )
+    print(task.preview())
+
+    with pytest.raises(
+        InfrastructureNotFound,
+        match="Cannot stop ECS task: the cluster 'foo' could not be found.",
+    ):
+        await task.kill("foo::task_arn")
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_kill_with_task_that_does_not_exist(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["sleep", "1000"],
+        cluster="default",
+    )
+    print(task.preview())
+
+    # Run the task so that a task definition is registered in the cluster
+    await run_then_stop_task(task)
+
+    with pytest.raises(
+        InfrastructureNotFound,
+        match="Cannot stop ECS task: the task 'foo' could not be found in cluster 'default'",
+    ):
+        await task.kill("default::foo")
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_kill_with_cluster_that_has_no_tasks(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["sleep", "1000"],
+        cluster="default",
+    )
+    print(task.preview())
+
+    with pytest.raises(
+        InfrastructureNotFound,
+        match="Cannot stop ECS task: the cluster 'default' has no tasks.",
+    ):
+        await task.kill("default::foo")
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_kill_with_task_that_is_already_stopped(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["sleep", "1000"],
+        cluster="default",
+    )
+    print(task.preview())
+
+    # Run and stop the task
+    task_arn = await run_then_stop_task(task)
+
+    # AWS will happily stop the task "again"
+    await task.kill(f"default::{task_arn}")
