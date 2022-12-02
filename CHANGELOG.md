@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 0.2.0
+
+Released on December 2nd, 2022.
+
 ### Added
 
 - `ECSTask.kill` method for cancellation support - [#163](https://github.com/PrefectHQ/prefect-aws/pull/163)
@@ -15,14 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Breaking: Identifiers `ECSTask` now include the cluster in addition to the task ARN - [#163](https://github.com/PrefectHQ/prefect-aws/pull/163)
 - Bumped minimum required `prefect` version - [#154](https://github.com/PrefectHQ/prefect-aws/pull/154)
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## 0.1.8
 
