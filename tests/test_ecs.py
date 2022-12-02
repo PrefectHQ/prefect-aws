@@ -1212,7 +1212,7 @@ async def test_task_definition_arn_with_overrides_requiring_copy_shows_diff(
     assert ("Enable DEBUG level logs to see the difference.") not in caplog.text
 
     expected_diff = textwrap.dedent(
-        """    
+        """
         -                            'image': 'prefecthq/prefect:2.1.0-python3.8',
         +                            'image': 'foobar',
         """
