@@ -113,6 +113,7 @@ import boto3
 import yaml
 from anyio.abc import TaskStatus
 from prefect.docker import get_prefect_image_name
+from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.pydantic import JsonPatch
@@ -158,6 +159,15 @@ def get_container(containers: List[dict], name: str) -> Optional[dict]:
         if container.get("name") == name:
             return container
     return None
+
+
+def parse_task_identifier(identifier: str) -> Tuple[str, str]:
+    """
+    Splits identifier into its cluster and task components, e.g.
+    input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").
+    """
+    cluster, task = identifier.split("::", maxsplit=1)
+    return cluster, task
 
 
 class ECSTask(Infrastructure):
@@ -517,8 +527,14 @@ class ECSTask(Infrastructure):
             f"in container {PREFECT_ECS_CONTAINER_NAME!r} ({self.image})..."
         )
 
+        # The task identifier is "{cluster}::{task}" where we use the configured cluster
+        # if set to preserve matching by name rather than arn
+        # Note "::" is used despite the Prefect standard being ":" because ARNs contain
+        # single colons.
+        identifier = (self.cluster if self.cluster else cluster_arn) + "::" + task_arn
+
         if task_status:
-            task_status.started(task_arn)
+            task_status.started(identifier)
 
         status_code = await run_sync_in_worker_thread(
             self._watch_task_and_get_exit_code,
@@ -531,11 +547,62 @@ class ECSTask(Infrastructure):
         )
 
         return ECSTaskResult(
-            identifier=task_arn,
+            identifier=identifier,
             # If the container does not start the exit code can be null but we must
             # still report a status code. We use a -1 to indicate a special code.
             status_code=status_code or -1,
         )
+
+    @sync_compatible
+    async def kill(self, identifier: str, grace_seconds: int = 30) -> None:
+        """
+        Kill a task running on ECS.
+
+        Args:
+            identifier: A cluster and task arn combination. This should match a value
+                yielded by `ECSTask.run`.
+        """
+        if grace_seconds != 30:
+            self.logger.warning(
+                f"Kill grace period of {grace_seconds}s requested, but AWS does not "
+                "support dynamic grace period configuration so 30s will be used. "
+                "See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html for configuration of grace periods."  # noqa
+            )
+        cluster, task = parse_task_identifier(identifier)
+        await run_sync_in_worker_thread(self._stop_task, cluster, task)
+
+    def _stop_task(self, cluster: str, task: str) -> None:
+        """
+        Stop a running ECS task.
+        """
+        if self.cluster is not None and cluster != self.cluster:
+            raise InfrastructureNotAvailable(
+                "Cannot stop ECS task: this infrastructure block has access to "
+                f"cluster {self.cluster!r} but the task is running in cluster "
+                f"{cluster!r}."
+            )
+
+        _, ecs_client = self._get_session_and_client()
+        try:
+            ecs_client.stop_task(cluster=cluster, task=task)
+        except Exception as exc:
+            # Raise a special exception if the task does not exist
+            if "ClusterNotFound" in str(exc):
+                raise InfrastructureNotFound(
+                    f"Cannot stop ECS task: the cluster {cluster!r} could not be found."
+                ) from exc
+            if "not find task" in str(exc):
+                raise InfrastructureNotFound(
+                    f"Cannot stop ECS task: the task {task!r} could not be found in "
+                    f"cluster {cluster!r}."
+                ) from exc
+            if "no registered tasks" in str(exc):
+                raise InfrastructureNotFound(
+                    f"Cannot stop ECS task: the cluster {cluster!r} has no tasks."
+                ) from exc
+
+            # Reraise unknown exceptions
+            raise
 
     @property
     def _log_prefix(self) -> str:
