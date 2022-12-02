@@ -104,6 +104,9 @@ Examples:
     ```
 """
 import copy
+import difflib
+import logging
+import pprint
 import sys
 import time
 import warnings
@@ -168,6 +171,15 @@ def parse_task_identifier(identifier: str) -> Tuple[str, str]:
     """
     cluster, task = identifier.split("::", maxsplit=1)
     return cluster, task
+
+
+def _pretty_diff(d1: dict, d2: dict) -> str:
+    """
+    Return a string with a pretty printed difference between two dictionaries.
+    """
+    return "\n" + "\n".join(
+        difflib.ndiff(pprint.pformat(d1).splitlines(), pprint.pformat(d2).splitlines())
+    )
 
 
 class ECSTask(Infrastructure):
@@ -648,8 +660,26 @@ class ECSTask(Infrastructure):
 
         # We must register the task definition if the arn is null or changes were made
         if task_definition != requested_task_definition or not task_definition_arn:
-            self.logger.info(f"{self._log_prefix}: Registering task definition...")
-            self.logger.debug("Task definition payload\n" + yaml.dump(task_definition))
+            if task_definition_arn:
+                self.logger.warning(
+                    f"{self._log_prefix}: Settings require changes to the linked "
+                    "task definition. A new task definition will be registered. "
+                    + (
+                        "Enable DEBUG level logs to see the difference."
+                        if self.logger.level > logging.DEBUG
+                        else ""
+                    )
+                )
+                self.logger.debug(
+                    f"{self._log_prefix}: Diff for requested task definition"
+                    + _pretty_diff(requested_task_definition, task_definition)
+                )
+            else:
+                self.logger.info(f"{self._log_prefix}: Registering task definition...")
+                self.logger.debug(
+                    "Task definition payload\n" + yaml.dump(task_definition)
+                )
+
             task_definition_arn = self._register_task_definition(
                 ecs_client, task_definition
             )
