@@ -9,8 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ECSTask.kill` method for cancellation support - [#163](https://github.com/PrefectHQ/prefect-aws/pull/163)
+
 ### Changed
 
+- Breaking: Identifiers `ECSTask` now include the cluster in addition to the task ARN - [#163](https://github.com/PrefectHQ/prefect-aws/pull/163)
 - Bumped minimum required `prefect` version - [#154](https://github.com/PrefectHQ/prefect-aws/pull/154)
 
 ### Deprecated
