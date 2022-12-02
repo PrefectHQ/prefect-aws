@@ -162,6 +162,10 @@ def get_container(containers: List[dict], name: str) -> Optional[dict]:
 
 
 def parse_task_identifier(identifier: str) -> Tuple[str, str]:
+    """
+    Splits identifier into its cluster and task components, e.g.
+    input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").
+    """
     cluster, task = identifier.split("::", maxsplit=1)
     return cluster, task
 
