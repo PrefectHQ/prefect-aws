@@ -1,4 +1,6 @@
 import json
+import logging
+import textwrap
 from functools import partial
 from typing import Callable, Dict, List
 from unittest.mock import MagicMock
@@ -1140,7 +1142,7 @@ async def test_task_definition_arn(aws_credentials):
     [{"image": "new-image"}, {"configure_cloudwatch_logs": True}, {"family": "foobar"}],
 )
 async def test_task_definition_arn_with_overrides_that_require_copy(
-    aws_credentials, overrides
+    aws_credentials, overrides, caplog
 ):
     """
     Any of these overrides should cause the task definition to be copied and
@@ -1161,12 +1163,61 @@ async def test_task_definition_arn_with_overrides_that_require_copy(
         **overrides,
     )
     print(task.preview())
-    task_arn = await run_then_stop_task(task)
+    with caplog.at_level(logging.INFO, logger=task.logger.name):
+        task_arn = await run_then_stop_task(task)
 
     task = describe_task(ecs_client, task_arn)
     assert (
         task["taskDefinitionArn"] != task_definition_arn
     ), "A new task definition should be registered"
+
+    assert (
+        "Settings require changes to the linked task definition. "
+        "A new task definition will be registered. "
+        "Enable DEBUG level logs to see the difference."
+    ) in caplog.text
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_task_definition_arn_with_overrides_requiring_copy_shows_diff(
+    aws_credentials, caplog
+):
+    """
+    Any of these overrides should cause the task definition to be copied and
+    registered as a new version
+    """
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(
+        **BASE_TASK_DEFINITION, executionRoleArn="base"
+    )["taskDefinition"]["taskDefinitionArn"]
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+        image="foobar",
+    )
+    print(task.preview())
+    with caplog.at_level(logging.DEBUG, logger=task.logger.name):
+        await run_then_stop_task(task)
+
+    assert (
+        "Settings require changes to the linked task definition. "
+        "A new task definition will be registered. "
+    ) in caplog.text
+
+    assert ("Enable DEBUG level logs to see the difference.") not in caplog.text
+
+    expected_diff = textwrap.dedent(
+        """
+        -                            'image': 'prefecthq/prefect:2.1.0-python3.8',
+        +                            'image': 'foobar',
+        """
+    )
+    assert expected_diff in caplog.text
 
 
 @pytest.mark.usefixtures("ecs_mocks")

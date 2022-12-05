@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- `ECSTask` now logs the difference between the requested and the pre-registered task definition when using a `task_definition_arn` - [#166](https://github.com/PrefectHQ/prefect-aws/pull/166)
+
 ### Deprecated
 
 ### Removed
