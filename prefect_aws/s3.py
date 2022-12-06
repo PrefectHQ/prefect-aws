@@ -3,7 +3,7 @@ import io
 import os
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 import boto3
@@ -269,7 +269,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
         description="A block containing your credentials (choose this or "
         "AWS Credentials).",
     )
-    basepath: Optional[str] = Field(
+    basepath: Optional[Union[str, Path]] = Field(
         default="",
         description="Location to write to and read from in the S3 bucket. Defaults to "
         "the root of the bucket.",
