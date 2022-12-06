@@ -442,18 +442,17 @@ class ECSTask(Infrastructure):
         )
         image_in_task_definition = prefect_container.get("image")
 
+        if has_image:
+            return values
+
         # The image can only be null when the task_definition_arn is set
         # If a task_definition is given with a prefect container image, use that value
-        if (
-            not has_image and not has_task_definition_arn and image_in_task_definition
-        ):  # noqa
+        if not has_task_definition_arn and image_in_task_definition:
             values["image"] = image_in_task_definition
         # Otherwise, it should default to the Prefect base image
-        elif not has_image and not has_task_definition_arn and prefect_container:
+        elif not has_task_definition_arn and prefect_container:
             values["image"] = get_prefect_image_name()
-        elif (
-            not has_image and not has_task_definition_arn and not prefect_container
-        ):  # noqa
+        elif not has_task_definition_arn and not prefect_container:  # noqa
             raise ValueError(
                 "A value for the `image` field must be provided unless already "
                 "present for the Prefect container definition a given task definition."
