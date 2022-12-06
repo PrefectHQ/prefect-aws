@@ -1092,7 +1092,7 @@ class ECSTask(Infrastructure):
             # the image is explicitly set
             container["image"] = self.image
         elif container.get("image") is None:
-            # clause to lessen the breaking changes, since previously,
+            # clause to prevent breaking changes, since previously,
             # `image = Field(default_factory=get_prefect_image_name)``
             container["image"] = get_prefect_image_name()
 
