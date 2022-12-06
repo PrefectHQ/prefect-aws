@@ -482,14 +482,17 @@ async def test_prefect_container_in_task_definition(aws_credentials):
     task_definition = describe_task_definition(ecs_client, task)
 
     prefect_container = get_prefect_container(task_definition["containerDefinitions"])
+
     assert (
         prefect_container["image"] == "test"
     ), "The prefect container should use the image field"
+
     assert prefect_container["command"] == [
         "should",
         "be",
         "gone",
     ], "The command should be left unchanged on the task definition"
+
     assert (
         prefect_container["privileged"] is True
     ), "Extra attributes should be retained"
@@ -502,7 +505,7 @@ async def test_prefect_container_in_task_definition(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_image_in_task_definition(aws_credentials):
+async def test_default_image_in_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
@@ -522,6 +525,9 @@ async def test_image_in_task_definition(aws_credentials):
     ecs_client = session.client("ecs")
 
     task_arn = await run_then_stop_task(task)
+
+    # The image on the block is inferred from the task defintinion
+    assert task.image == "use-this-image"
 
     task = describe_task(ecs_client, task_arn)
     task_definition = describe_task_definition(ecs_client, task)
@@ -529,15 +535,15 @@ async def test_image_in_task_definition(aws_credentials):
     prefect_container = get_prefect_container(task_definition["containerDefinitions"])
     assert (
         prefect_container["image"] == "use-this-image"
-    ), "The prefect container should use the image field"
+    ), "The image from the task definition should be used"
 
 
 @pytest.mark.parametrize(
     "task_definition",
     [
-        # Empty task definition
+        # Empty task defininition
         {},
-        # Task definnition with prefect container
+        # Task definition with prefect container but no image
         {
             "containerDefinitions": [
                 {
@@ -545,90 +551,34 @@ async def test_image_in_task_definition(aws_credentials):
                 }
             ]
         },
-        # Task definition with other container
-        {
-            "containerDefinitions": [
-                {
-                    "name": "foo",
-                }
-            ]
-        },
+        # Task definition with other container with image
+        {"containerDefinitions": [{"name": "foo", "image": "not-me-image"}]},
     ],
 )
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_without_image_in_task_definition(aws_credentials, task_definition):
+async def test_default_image(aws_credentials, task_definition):
     task = ECSTask(
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         task_definition=task_definition,
         command=["prefect", "version"],
     )
+    print(task.preview())
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    # The image on the block is inferred from Prefect/Python versions
     assert task.image == get_prefect_image_name()
-    print(task.preview())
-
-
-@pytest.mark.usefixtures("ecs_mocks")
-async def test_image_overrides_task_definition(aws_credentials):
-    task = ECSTask(
-        aws_credentials=aws_credentials,
-        auto_deregister_task_definition=False,
-        task_definition={
-            "containerDefinitions": [
-                {
-                    "name": "prefect",
-                    "image": "use-this-image",
-                }
-            ]
-        },
-        command=["prefect", "version"],
-        image="override-image",
-    )
-    print(task.preview())
-
-    session = aws_credentials.get_boto3_session()
-    ecs_client = session.client("ecs")
-
-    task_arn = await run_then_stop_task(task)
 
     task = describe_task(ecs_client, task_arn)
     task_definition = describe_task_definition(ecs_client, task)
 
     prefect_container = get_prefect_container(task_definition["containerDefinitions"])
     assert (
-        prefect_container["image"] == "override-image"
-    ), "The provided image should override task definition"
-
-
-@pytest.mark.usefixtures("ecs_mocks")
-async def test_image_provided_not_prefect_container(aws_credentials):
-    task = ECSTask(
-        aws_credentials=aws_credentials,
-        auto_deregister_task_definition=False,
-        task_definition={
-            "containerDefinitions": [
-                {
-                    "name": "non-prefect",
-                    "image": "use-this-image",
-                }
-            ]
-        },
-        command=["prefect", "version"],
-        image="image-provided",
-    )
-    print(task.preview())
-
-    session = aws_credentials.get_boto3_session()
-    ecs_client = session.client("ecs")
-
-    task_arn = await run_then_stop_task(task)
-
-    task = describe_task(ecs_client, task_arn)
-    task_definition = describe_task_definition(ecs_client, task)
-
-    prefect_container = get_prefect_container(task_definition["containerDefinitions"])
-    assert (
-        prefect_container["image"] == "image-provided"
-    ), "The image should not be from the task definition"
+        prefect_container["image"] == get_prefect_image_name()
+    ), "The image should be the default Prefect tag"
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -1189,6 +1139,8 @@ async def test_task_definition_arn(aws_credentials):
     )
     print(task.preview())
     task_arn = await run_then_stop_task(task)
+
+    assert task.image is None, "Image option can be null when using task definition arn"
 
     task = describe_task(ecs_client, task_arn)
     assert (
