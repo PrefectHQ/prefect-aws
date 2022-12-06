@@ -233,7 +233,7 @@ class ECSTask(Infrastructure):
         ),
     )
     image: Optional[str] = Field(
-        default_factory=get_prefect_image_name,
+        default=None,
         description=(
             "The image to use for the Prefect container in the task. If this value is "
             "not null, it will override the value in the task definition. This value "
@@ -432,23 +432,20 @@ class ECSTask(Infrastructure):
         """
         Enforces that an image is available if the user sets it to `None`.
         """
-        if (
-            not values.get("image")
-            and not values.get("task_definition_arn")
-            # Check for an image in the task definition; whew!
-            and not (
-                get_prefect_container(
-                    (values.get("task_definition") or {}).get(
-                        "containerDefinitions", []
-                    )
-                )
-                or {}
-            ).get("image")
-        ):
+        has_no_image = not values.get("image")
+        has_no_task_definition_arn = not values.get("task_definition_arn")
+        # image will default to the prefect image at runtime if there is a prefect container
+        # to reflect past behavior of image = Field(default_factory=get_prefect_image_name)
+        has_no_prefect_container = not get_prefect_container(
+            (values.get("task_definition") or {}).get(
+                "containerDefinitions", []
+            )
+        ) or {}
+        if has_no_image and has_no_task_definition_arn and has_no_prefect_container:
             raise ValueError(
                 "A value for the `image` field must be provided unless already "
-                "present for the Prefect container definition a given task definition."
-            )
+                "present in the Prefect container definition from the task definition."
+            ) 
         return values
 
     @validator("task_customizations", pre=True)
@@ -1090,8 +1087,14 @@ class ECSTask(Infrastructure):
             container = {"name": PREFECT_ECS_CONTAINER_NAME}
             task_definition["containerDefinitions"].append(container)
 
-        if self.image:
+        if self.image is not None:
+            # still allow users to override the image in the task definition if
+            # the image is explicitly set
             container["image"] = self.image
+        elif container.get("image") is None:
+            # clause to lessen the breaking changes, since previously,
+            # `image = Field(default_factory=get_prefect_image_name)``
+            container["image"] = get_prefect_image_name()
 
         # Remove any keys that have been explicitly "unset"
         unset_keys = {key for key, value in self.env.items() if value is None}

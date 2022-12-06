@@ -15,6 +15,7 @@ from prefect.logging.configuration import setup_logging
 from prefect.orion.schemas.core import Deployment, Flow, FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from pydantic import ValidationError
+from prefect.docker import get_prefect_image_name
 
 from prefect_aws.ecs import (
     ECS_DEFAULT_CPU,
@@ -203,6 +204,7 @@ async def test_launch_types(aws_credentials, launch_type: str):
         auto_deregister_task_definition=False,
         command=["prefect", "version"],
         launch_type=launch_type,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -247,6 +249,7 @@ async def test_cpu_and_memory(aws_credentials, launch_type: str, cpu: int, memor
         launch_type=launch_type,
         cpu=cpu,
         memory=memory,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -288,6 +291,7 @@ async def test_network_mode_default(aws_credentials, launch_type: str):
         auto_deregister_task_definition=False,
         command=["prefect", "version"],
         launch_type=launch_type,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -313,6 +317,7 @@ async def test_container_command(aws_credentials, launch_type: str):
         auto_deregister_task_definition=False,
         command=["prefect", "version"],
         launch_type=launch_type,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -333,6 +338,7 @@ async def test_environment_variables(aws_credentials):
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         env={"FOO": "BAR"},
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -367,6 +373,7 @@ async def test_labels(aws_credentials):
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         labels={"foo": "bar"},
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -391,6 +398,7 @@ async def test_container_command_from_task_definition(aws_credentials):
             "containerDefinitions": [{"name": "prefect", "command": ["echo", "hello"]}]
         },
         command=[],
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -532,19 +540,125 @@ async def test_image_in_task_definition(aws_credentials):
     ), "The prefect container should use the image field"
 
 
-@pytest.mark.parametrize(
-    "task_definition",
-    [
-        # Empty task definition
-        {},
-        # Task definnition with prefect container
-        {
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_image_overrides_task_definition(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition={
+            "containerDefinitions": [
+                {
+                    "name": "prefect",
+                    "image": "use-this-image",
+                }
+            ]
+        },
+        command=["prefect", "version"],
+        image="override-image",
+    )
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    prefect_container = get_prefect_container(task_definition["containerDefinitions"])
+    assert (
+        prefect_container["image"] == "override-image"
+    ), "The provided image should override task definition"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_has_prefect_container_and_default_image(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition={
             "containerDefinitions": [
                 {
                     "name": "prefect",
                 }
             ]
         },
+        command=["prefect", "version"],
+        image=None,
+    )
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    prefect_container = get_prefect_container(task_definition["containerDefinitions"])
+    assert (
+        prefect_container["image"] == get_prefect_image_name()
+    ), "The image should be the default"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_image_provided_not_prefect_container(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition={
+            "containerDefinitions": [
+                {
+                    "name": "non-prefect",
+                    "image": "use-this-image",
+                }
+            ]
+        },
+        command=["prefect", "version"],
+        image="image-provided",
+    )
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    prefect_container = get_prefect_container(task_definition["containerDefinitions"])
+    assert (
+        prefect_container["image"] == "image-provided"
+    ), "The image should not be from the task definition"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_error_if_null_image_without_prefect_container(aws_credentials):
+    with pytest.raises(ValidationError, match="A value for the `image` field must be"):
+        ECSTask(
+            aws_credentials=aws_credentials,
+            auto_deregister_task_definition=False,
+            task_definition={
+                "containerDefinitions": [
+                    {
+                        "name": "not-prefect",
+                        "image": "use-this-image",
+                    }
+                ]
+            },
+            command=["prefect", "version"],
+            image=None,
+        )
+
+
+@pytest.mark.parametrize(
+    "task_definition",
+    [
+        # Empty task definition
+        {},
         # Task definition with other container
         {
             "containerDefinitions": [
@@ -642,6 +756,7 @@ async def test_environment_variables_in_task_definition(aws_credentials):
             ],
         },
         env={"FOO": "BAR", "OVERRIDE": "NEW"},
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -694,6 +809,7 @@ async def test_unset_environment_variables_in_task_definition(aws_credentials):
             ]
         },
         env={"FOO": None},
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -736,6 +852,7 @@ async def test_execution_role_arn_in_task_definition(
         auto_deregister_task_definition=False,
         task_definition={"executionRoleArn": "test"},
         execution_role_arn="override" if provided_as_field else None,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -768,6 +885,7 @@ async def test_cluster(aws_credentials, default_cluster: bool):
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         cluster=None if default_cluster else "second-cluster",
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -790,6 +908,7 @@ async def test_execution_role_arn(aws_credentials):
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         execution_role_arn="test",
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -810,6 +929,7 @@ async def test_task_role_arn(aws_credentials):
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         task_role_arn="test",
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -827,7 +947,11 @@ async def test_network_config_from_vpc_id(aws_credentials):
     vpc = ec2_resource.create_vpc(CidrBlock="10.0.0.0/16")
     subnet = ec2_resource.create_subnet(CidrBlock="10.0.2.0/24", VpcId=vpc.id)
 
-    task = ECSTask(aws_credentials=aws_credentials, vpc_id=vpc.id)
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        vpc_id=vpc.id,
+        image="prefecthq/prefect:2.1.0-python3.8",
+    )
 
     # Capture the task run call because moto does not track 'networkConfiguration'
     original_run_task = task._run_task
@@ -858,7 +982,9 @@ async def test_network_config_from_default_vpc(aws_credentials):
         Filters=[{"Name": "vpc-id", "Values": [default_vpc_id]}]
     )["Subnets"]
 
-    task = ECSTask(aws_credentials=aws_credentials)
+    task = ECSTask(aws_credentials=aws_credentials,
+        image="prefecthq/prefect:2.1.0-python3.8",
+    )
 
     # Capture the task run call because moto does not track 'networkConfiguration'
     original_run_task = task._run_task
@@ -893,6 +1019,7 @@ async def test_network_config_is_empty_without_awsvpc_network_mode(
         task_definition={"networkMode": "bridge"} if explicit_network_mode else None,
         # FARGATE requires the 'awsvpc' network mode
         launch_type="EC2",
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
 
     # Capture the task run call because moto does not track 'networkConfiguration'
@@ -918,7 +1045,9 @@ async def test_network_config_missing_default_vpc(aws_credentials):
     )["Vpcs"][0]["VpcId"]
     ec2_client.delete_vpc(VpcId=default_vpc_id)
 
-    task = ECSTask(aws_credentials=aws_credentials)
+    task = ECSTask(aws_credentials=aws_credentials,
+        image="prefecthq/prefect:2.1.0-python3.8",
+    )
 
     with pytest.raises(ValueError, match="Failed to find the default VPC"):
         await run_then_stop_task(task)
@@ -934,6 +1063,7 @@ async def test_network_config_from_vpc_with_no_subnets(aws_credentials):
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         vpc_id=vpc.id,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1008,6 +1138,7 @@ async def test_configure_cloudwatch_logging(aws_credentials):
             command=["prefect", "version"],
             configure_cloudwatch_logs=True,
             execution_role_arn="test",
+            image="prefecthq/prefect:2.1.0-python3.8",
         )
 
     task_arn = await run_then_stop_task(task)
@@ -1047,6 +1178,7 @@ async def test_cloudwatch_log_options(aws_credentials):
                 "awslogs-stream-prefix": "override-prefix",
                 "max-buffer-size": "2m",
             },
+            image="prefecthq/prefect:2.1.0-python3.8",
         )
 
     task_arn = await run_then_stop_task(task)
@@ -1081,6 +1213,7 @@ async def test_bridge_network_mode_warns_on_fargate(aws_credentials, launch_type
         command=["prefect", "version"],
         task_definition={"networkMode": "bridge"},
         launch_type=launch_type,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     with pytest.warns(
         UserWarning,
@@ -1097,6 +1230,7 @@ async def test_deregister_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=True,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1322,6 +1456,7 @@ async def test_adding_security_groups_to_network_config(aws_credentials):
                 "value": [security_group_id],
             },
         ],
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
 
     # Capture the task run call because moto does not track 'networkConfiguration'
@@ -1362,6 +1497,7 @@ async def test_disable_public_ip_in_network_config(aws_credentials):
                 "value": "DISABLED",
             },
         ],
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
 
     # Capture the task run call because moto does not track 'networkConfiguration'
@@ -1405,6 +1541,7 @@ async def test_custom_subnets_in_the_network_configuration(aws_credentials):
                 "value": "DISABLED",
             },
         ],
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
 
     # Capture the task run call because moto does not track 'networkConfiguration'
@@ -1478,6 +1615,7 @@ async def test_family_from_flow_run_metadata(
     task = ECSTask(
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
+        image="prefecthq/prefect:2.1.0-python3.8",
         **fields,
     ).prepare_for_flow_run(**prepare_inputs)
     print(task.preview())
@@ -1512,6 +1650,7 @@ async def test_user_provided_family(aws_credentials, given_family, expected_fami
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         family=given_family,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1579,6 +1718,7 @@ async def test_kill(aws_credentials, cluster: str):
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         cluster=cluster,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1599,6 +1739,7 @@ async def test_kill_with_invalid_identifier(aws_credentials):
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         command=["sleep", "1000"],
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1613,6 +1754,7 @@ async def test_kill_with_mismatched_cluster(aws_credentials):
         auto_deregister_task_definition=False,
         command=["sleep", "1000"],
         cluster="foo",
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1633,6 +1775,7 @@ async def test_kill_with_cluster_that_does_not_exist(aws_credentials):
         auto_deregister_task_definition=False,
         command=["sleep", "1000"],
         cluster="foo",
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1650,6 +1793,7 @@ async def test_kill_with_task_that_does_not_exist(aws_credentials):
         auto_deregister_task_definition=False,
         command=["sleep", "1000"],
         cluster="default",
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1673,6 +1817,7 @@ async def test_kill_with_cluster_that_has_no_tasks(aws_credentials):
         auto_deregister_task_definition=False,
         command=["sleep", "1000"],
         cluster="default",
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1690,6 +1835,7 @@ async def test_kill_with_task_that_is_already_stopped(aws_credentials):
         auto_deregister_task_definition=False,
         command=["sleep", "1000"],
         cluster="default",
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -1708,6 +1854,7 @@ async def test_kill_with_grace_period(aws_credentials, caplog):
     task = ECSTask(
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
+        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
