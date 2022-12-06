@@ -573,7 +573,7 @@ async def test_image_overrides_task_definition(aws_credentials):
 @pytest.mark.parametrize(
     "task_definition",
     [
-        # Empty task defininition
+        # Empty task definition
         {},
         # Task definition with prefect container but no image
         {
