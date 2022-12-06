@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Deployments of `S3Bucket` - [#168](https://github.com/PrefectHQ/prefect-aws/pull/168)
+- Deployments of `S3Bucket` - [#169](https://github.com/PrefectHQ/prefect-aws/pull/169)
 
 ### Security
 
