@@ -434,18 +434,20 @@ class ECSTask(Infrastructure):
         """
         has_no_image = not values.get("image")
         has_no_task_definition_arn = not values.get("task_definition_arn")
-        # image will default to the prefect image at runtime if there is a prefect container
-        # to reflect past behavior of image = Field(default_factory=get_prefect_image_name)
-        has_no_prefect_container = not get_prefect_container(
-            (values.get("task_definition") or {}).get(
-                "containerDefinitions", []
+        # image will default to the prefect image at runtime if there
+        # is a prefect container to reflect past behavior of
+        # image = Field(default_factory=get_prefect_image_name)
+        has_no_prefect_container = (
+            not get_prefect_container(
+                (values.get("task_definition") or {}).get("containerDefinitions", [])
             )
-        ) or {}
+            or {}
+        )
         if has_no_image and has_no_task_definition_arn and has_no_prefect_container:
             raise ValueError(
                 "A value for the `image` field must be provided unless already "
                 "present in the Prefect container definition from the task definition."
-            ) 
+            )
         return values
 
     @validator("task_customizations", pre=True)

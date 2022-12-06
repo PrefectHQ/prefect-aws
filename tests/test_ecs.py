@@ -10,12 +10,12 @@ import pytest
 import yaml
 from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
+from prefect.docker import get_prefect_image_name
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.logging.configuration import setup_logging
 from prefect.orion.schemas.core import Deployment, Flow, FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from pydantic import ValidationError
-from prefect.docker import get_prefect_image_name
 
 from prefect_aws.ecs import (
     ECS_DEFAULT_CPU,
@@ -979,7 +979,8 @@ async def test_network_config_from_default_vpc(aws_credentials):
         Filters=[{"Name": "vpc-id", "Values": [default_vpc_id]}]
     )["Subnets"]
 
-    task = ECSTask(aws_credentials=aws_credentials,
+    task = ECSTask(
+        aws_credentials=aws_credentials,
         image="prefecthq/prefect:2.1.0-python3.8",
     )
 
@@ -1042,7 +1043,8 @@ async def test_network_config_missing_default_vpc(aws_credentials):
     )["Vpcs"][0]["VpcId"]
     ec2_client.delete_vpc(VpcId=default_vpc_id)
 
-    task = ECSTask(aws_credentials=aws_credentials,
+    task = ECSTask(
+        aws_credentials=aws_credentials,
         image="prefecthq/prefect:2.1.0-python3.8",
     )
 
