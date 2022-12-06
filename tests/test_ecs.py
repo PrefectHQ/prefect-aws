@@ -398,7 +398,6 @@ async def test_container_command_from_task_definition(aws_credentials):
             "containerDefinitions": [{"name": "prefect", "command": ["echo", "hello"]}]
         },
         command=[],
-        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -756,7 +755,6 @@ async def test_environment_variables_in_task_definition(aws_credentials):
             ],
         },
         env={"FOO": "BAR", "OVERRIDE": "NEW"},
-        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
@@ -809,7 +807,6 @@ async def test_unset_environment_variables_in_task_definition(aws_credentials):
             ]
         },
         env={"FOO": None},
-        image="prefecthq/prefect:2.1.0-python3.8",
     )
     print(task.preview())
 
