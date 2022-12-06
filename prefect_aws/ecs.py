@@ -233,7 +233,7 @@ class ECSTask(Infrastructure):
         ),
     )
     image: Optional[str] = Field(
-        default_factory=get_prefect_image_name,
+        default=None,
         description=(
             "The image to use for the Prefect container in the task. If this value is "
             "not null, it will override the value in the task definition. This value "
@@ -427,24 +427,34 @@ class ECSTask(Infrastructure):
             )
         return values
 
-    @root_validator
+    @root_validator(pre=True)
     def image_is_required(cls, values: dict) -> dict:
         """
-        Enforces that an image is available if the user sets it to `None`.
+        Enforces that an image is available if image is `None`.
         """
+        has_image = values.get("image")
+        has_task_definition_arn = values.get("task_definition_arn")
+        image_in_task_definition = (
+            get_prefect_container(
+                (values.get("task_definition") or {}).get("containerDefinitions", [])
+            )
+            or {}
+        ).get("image")
+
+        # The image can only be null when the task_definition_arn is set
+        # If a task_definition is given with a prefect container image, use that value
         if (
-            not values.get("image")
-            and not values.get("task_definition_arn")
-            # Check for an image in the task definition; whew!
-            and not (
-                get_prefect_container(
-                    (values.get("task_definition") or {}).get(
-                        "containerDefinitions", []
-                    )
-                )
-                or {}
-            ).get("image")
-        ):
+            not has_image and not has_task_definition_arn and image_in_task_definition
+        ):  # noqa
+            values["image"] = image_in_task_definition
+        # Otherwise, it should default to the Prefect base image
+        elif not has_image and not has_task_definition_arn:
+            values["image"] = get_prefect_image_name()
+        elif (
+            not has_image
+            and not has_task_definition_arn
+            and not image_in_task_definition
+        ):  # noqa
             raise ValueError(
                 "A value for the `image` field must be provided unless already "
                 "present for the Prefect container definition a given task definition."
