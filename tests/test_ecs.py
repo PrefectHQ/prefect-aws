@@ -502,6 +502,38 @@ async def test_prefect_container_in_task_definition(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_image_in_task_definition(aws_credentials):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition={
+            "containerDefinitions": [
+                {
+                    "name": "prefect",
+                    "image": "use-this-image",
+                }
+            ]
+        },
+        command=["prefect", "version"],
+        image=None,
+    )
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    prefect_container = get_prefect_container(task_definition["containerDefinitions"])
+    assert (
+        prefect_container["image"] == "use-this-image"
+    ), "The prefect container should use the image field"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_image_overrides_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
@@ -597,35 +629,53 @@ async def test_image_provided_not_prefect_container(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_image_in_task_definition(aws_credentials):
-    task = ECSTask(
-        aws_credentials=aws_credentials,
-        auto_deregister_task_definition=False,
-        task_definition={
+async def test_error_if_null_image_without_prefect_container(aws_credentials):
+    with pytest.raises(ValidationError, match="A value for the `image` field must be"):
+        ECSTask(
+            aws_credentials=aws_credentials,
+            auto_deregister_task_definition=False,
+            task_definition={
+                "containerDefinitions": [
+                    {
+                        "name": "not-prefect",
+                        "image": "use-this-image",
+                    }
+                ]
+            },
+            command=["prefect", "version"],
+            image=None,
+        )
+
+
+@pytest.mark.parametrize(
+    "task_definition",
+    [
+        # Empty task definition
+        {},
+        # Task definition with other container
+        {
             "containerDefinitions": [
                 {
-                    "name": "prefect",
-                    "image": "use-this-image",
+                    "name": "foo",
                 }
             ]
         },
-        command=["prefect", "version"],
-        image=None,
-    )
-    print(task.preview())
-
-    session = aws_credentials.get_boto3_session()
-    ecs_client = session.client("ecs")
-
-    task_arn = await run_then_stop_task(task)
-
-    task = describe_task(ecs_client, task_arn)
-    task_definition = describe_task_definition(ecs_client, task)
-
-    prefect_container = get_prefect_container(task_definition["containerDefinitions"])
-    assert (
-        prefect_container["image"] == "use-this-image"
-    ), "The prefect container should use the image field"
+    ],
+)
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_error_if_null_image_without_image_in_task_definition(
+    aws_credentials, task_definition
+):
+    with pytest.raises(
+        ValidationError, match="A value for the `image` field must be provided"
+    ):
+        ECSTask(
+            aws_credentials=aws_credentials,
+            auto_deregister_task_definition=False,
+            task_definition=task_definition,
+            command=["prefect", "version"],
+            image=None,
+        )
 
 
 @pytest.mark.usefixtures("ecs_mocks")
