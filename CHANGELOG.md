@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `ECSTask` now logs the difference between the requested and the pre-registered task definition when using a `task_definition_arn` - [#166](https://github.com/PrefectHQ/prefect-aws/pull/166)
+- Default of `S3Bucket` to be an empty string rather than None - [#169](https://github.com/PrefectHQ/prefect-aws/pull/169)
 
 ### Deprecated
 
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Deployments of `S3Bucket` - [#169](https://github.com/PrefectHQ/prefect-aws/pull/169)
+- The image from `task_definition_arn` will be respected if `image` is not explicitly set - [#170](https://github.com/PrefectHQ/prefect-aws/pull/170)
 
 ### Security
 

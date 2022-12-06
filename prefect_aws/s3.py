@@ -12,7 +12,7 @@ from prefect import get_run_logger, task
 from prefect.filesystems import WritableDeploymentStorage, WritableFileSystem
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.filesystem import filter_files
-from pydantic import Field, root_validator
+from pydantic import Field, root_validator, validator
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.client_parameters import AwsClientParameters
@@ -279,6 +279,19 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
         description="URL endpoint to use for S3 compatible storage. Defaults to "
         "standard AWS S3 endpoint.",
     )
+
+    @validator("basepath", pre=True)
+    def cast_pathlib(cls, value):
+
+        """
+        If basepath provided, it means we aren't writing to the root directory
+        of the bucket. We need to ensure that it is a valid path. This is called
+        when the S3Bucket block is instantiated.
+        """
+
+        if isinstance(value, Path):
+            return str(value)
+        return value
 
     @root_validator(pre=True)
     def check_credentials(cls, values):

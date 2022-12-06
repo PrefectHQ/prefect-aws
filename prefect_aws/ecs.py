@@ -233,7 +233,7 @@ class ECSTask(Infrastructure):
         ),
     )
     image: Optional[str] = Field(
-        default_factory=get_prefect_image_name,
+        default=None,
         description=(
             "The image to use for the Prefect container in the task. If this value is "
             "not null, it will override the value in the task definition. This value "
@@ -427,28 +427,32 @@ class ECSTask(Infrastructure):
             )
         return values
 
-    @root_validator
+    @root_validator(pre=True)
     def image_is_required(cls, values: dict) -> dict:
         """
-        Enforces that an image is available if the user sets it to `None`.
+        Enforces that an image is available if image is `None`.
         """
-        if (
-            not values.get("image")
-            and not values.get("task_definition_arn")
-            # Check for an image in the task definition; whew!
-            and not (
-                get_prefect_container(
-                    (values.get("task_definition") or {}).get(
-                        "containerDefinitions", []
-                    )
-                )
-                or {}
-            ).get("image")
-        ):
-            raise ValueError(
-                "A value for the `image` field must be provided unless already "
-                "present for the Prefect container definition a given task definition."
+        has_image = bool(values.get("image"))
+        has_task_definition_arn = bool(values.get("task_definition_arn"))
+
+        # The image can only be null when the task_definition_arn is set
+        if has_image or has_task_definition_arn:
+            return values
+
+        prefect_container = (
+            get_prefect_container(
+                (values.get("task_definition") or {}).get("containerDefinitions", [])
             )
+            or {}
+        )
+        image_in_task_definition = prefect_container.get("image")
+
+        # If a task_definition is given with a prefect container image, use that value
+        if image_in_task_definition:
+            values["image"] = image_in_task_definition
+        # Otherwise, it should default to the Prefect base image
+        else:
+            values["image"] = get_prefect_image_name()
         return values
 
     @validator("task_customizations", pre=True)
