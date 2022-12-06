@@ -321,7 +321,11 @@ def test_deployment_default_basepath(s3_bucket):
 
 
 @pytest.mark.parametrize("type_", [str, Path])
-def test_deployment_set_basepath(s3_bucket, type_):
-    s3_bucket.basepath = type_("home")
-    deployment = Deployment(name="testing", storage=s3_bucket)
+def test_deployment_set_basepath(aws_creds_block, type_):
+    s3_bucket_block = S3Bucket(
+        bucket_name=BUCKET_NAME,
+        aws_credentials=aws_creds_block,
+        basepath=type_("home"),
+    )
+    deployment = Deployment(name="testing", storage=s3_bucket_block)
     assert deployment.location == "home/"
