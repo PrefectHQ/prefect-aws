@@ -515,7 +515,6 @@ async def test_image_in_task_definition(aws_credentials):
             ]
         },
         command=["prefect", "version"],
-        image=None,
     )
     print(task.preview())
 
@@ -531,6 +530,41 @@ async def test_image_in_task_definition(aws_credentials):
     assert (
         prefect_container["image"] == "use-this-image"
     ), "The prefect container should use the image field"
+
+
+@pytest.mark.parametrize(
+    "task_definition",
+    [
+        # Empty task definition
+        {},
+        # Task definnition with prefect container
+        {
+            "containerDefinitions": [
+                {
+                    "name": "prefect",
+                }
+            ]
+        },
+        # Task definition with other container
+        {
+            "containerDefinitions": [
+                {
+                    "name": "foo",
+                }
+            ]
+        },
+    ],
+)
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_without_image_in_task_definition(aws_credentials, task_definition):
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition=task_definition,
+        command=["prefect", "version"],
+    )
+    assert task.image == get_prefect_image_name()
+    print(task.preview())
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -563,37 +597,6 @@ async def test_image_overrides_task_definition(aws_credentials):
     assert (
         prefect_container["image"] == "override-image"
     ), "The provided image should override task definition"
-
-
-@pytest.mark.usefixtures("ecs_mocks")
-async def test_has_prefect_container_and_default_image(aws_credentials):
-    task = ECSTask(
-        aws_credentials=aws_credentials,
-        auto_deregister_task_definition=False,
-        task_definition={
-            "containerDefinitions": [
-                {
-                    "name": "prefect",
-                }
-            ]
-        },
-        command=["prefect", "version"],
-        image=None,
-    )
-    print(task.preview())
-
-    session = aws_credentials.get_boto3_session()
-    ecs_client = session.client("ecs")
-
-    task_arn = await run_then_stop_task(task)
-
-    task = describe_task(ecs_client, task_arn)
-    task_definition = describe_task_definition(ecs_client, task)
-
-    prefect_container = get_prefect_container(task_definition["containerDefinitions"])
-    assert (
-        prefect_container["image"] == get_prefect_image_name()
-    ), "The image should be the default"
 
 
 @pytest.mark.usefixtures("ecs_mocks")

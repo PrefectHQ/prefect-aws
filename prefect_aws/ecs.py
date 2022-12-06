@@ -432,8 +432,8 @@ class ECSTask(Infrastructure):
         """
         Enforces that an image is available if image is `None`.
         """
-        has_image = values.get("image")
-        has_task_definition_arn = values.get("task_definition_arn")
+        has_image = bool(values.get("image"))
+        has_task_definition_arn = bool(values.get("task_definition_arn"))
 
         # The image can only be null when the task_definition_arn is set
         if has_image or has_task_definition_arn:
