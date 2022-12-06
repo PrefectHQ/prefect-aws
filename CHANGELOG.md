@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The image from `task_definition_arn` will be respected if `image` is not explicitly set - [#170](https://github.com/PrefectHQ/prefect-aws/pull/170)
+
 ### Security
 
 ## 0.2.0
