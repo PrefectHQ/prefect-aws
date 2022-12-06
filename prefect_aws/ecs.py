@@ -435,7 +435,7 @@ class ECSTask(Infrastructure):
         has_image = values.get("image")
         has_task_definition_arn = values.get("task_definition_arn")
 
-        if has_image or not has_task_definition_arn:
+        if has_image or has_task_definition_arn:
             return values
 
         prefect_container = (
