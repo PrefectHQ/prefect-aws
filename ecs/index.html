@@ -1216,7 +1216,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">image</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">default_factory</span><span class="o">=</span><span class="n">get_prefect_image_name</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="p">(</span>
             <span class="s2">&quot;The image to use for the Prefect container in the task. If this value is &quot;</span>
             <span class="s2">&quot;not null, it will override the value in the task definition. This value &quot;</span>
@@ -1410,28 +1410,32 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">values</span>
 
-    <span class="nd">@root_validator</span>
+    <span class="nd">@root_validator</span><span class="p">(</span><span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">image_is_required</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Enforces that an image is available if the user sets it to `None`.</span>
+<span class="sd">        Enforces that an image is available if image is `None`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="ow">not</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
-            <span class="ow">and</span> <span class="ow">not</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_definition_arn&quot;</span><span class="p">)</span>
-            <span class="c1"># Check for an image in the task definition; whew!</span>
-            <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
-                <span class="n">get_prefect_container</span><span class="p">(</span>
-                    <span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_definition&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                        <span class="s2">&quot;containerDefinitions&quot;</span><span class="p">,</span> <span class="p">[]</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-                <span class="ow">or</span> <span class="p">{}</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
-        <span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;A value for the `image` field must be provided unless already &quot;</span>
-                <span class="s2">&quot;present for the Prefect container definition a given task definition.&quot;</span>
+        <span class="n">has_image</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">))</span>
+        <span class="n">has_task_definition_arn</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_definition_arn&quot;</span><span class="p">))</span>
+
+        <span class="c1"># The image can only be null when the task_definition_arn is set</span>
+        <span class="k">if</span> <span class="n">has_image</span> <span class="ow">or</span> <span class="n">has_task_definition_arn</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">values</span>
+
+        <span class="n">prefect_container</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">get_prefect_container</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_definition&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;containerDefinitions&quot;</span><span class="p">,</span> <span class="p">[])</span>
             <span class="p">)</span>
+            <span class="ow">or</span> <span class="p">{}</span>
+        <span class="p">)</span>
+        <span class="n">image_in_task_definition</span> <span class="o">=</span> <span class="n">prefect_container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
+
+        <span class="c1"># If a task_definition is given with a prefect container image, use that value</span>
+        <span class="k">if</span> <span class="n">image_in_task_definition</span><span class="p">:</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_in_task_definition</span>
+        <span class="c1"># Otherwise, it should default to the Prefect base image</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_prefect_image_name</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">values</span>
 
     <span class="nd">@validator</span><span class="p">(</span><span class="s2">&quot;task_customizations&quot;</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1643,8 +1647,26 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
         <span class="c1"># We must register the task definition if the arn is null or changes were made</span>
         <span class="k">if</span> <span class="n">task_definition</span> <span class="o">!=</span> <span class="n">requested_task_definition</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">task_definition_arn</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Registering task definition...&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Task definition payload</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">task_definition</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">task_definition_arn</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Settings require changes to the linked &quot;</span>
+                    <span class="s2">&quot;task definition. A new task definition will be registered. &quot;</span>
+                    <span class="o">+</span> <span class="p">(</span>
+                        <span class="s2">&quot;Enable DEBUG level logs to see the difference.&quot;</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
+                        <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Diff for requested task definition&quot;</span>
+                    <span class="o">+</span> <span class="n">_pretty_diff</span><span class="p">(</span><span class="n">requested_task_definition</span><span class="p">,</span> <span class="n">task_definition</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Registering task definition...&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Task definition payload</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">task_definition</span><span class="p">)</span>
+                <span class="p">)</span>
+
             <span class="n">task_definition_arn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register_task_definition</span><span class="p">(</span>
                 <span class="n">ecs_client</span><span class="p">,</span> <span class="n">task_definition</span>
             <span class="p">)</span>
@@ -2943,32 +2965,36 @@ runtime task definition) when configuring logging.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Enforces that an image is available if the user sets it to <code>None</code>.</p>
+      <p>Enforces that an image is available if image is <code>None</code>.</p>
 
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="nd">@root_validator</span>
+          <div class="highlight"><pre><span></span><code><span class="nd">@root_validator</span><span class="p">(</span><span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">image_is_required</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Enforces that an image is available if the user sets it to `None`.</span>
+<span class="sd">    Enforces that an image is available if image is `None`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="p">(</span>
-        <span class="ow">not</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
-        <span class="ow">and</span> <span class="ow">not</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_definition_arn&quot;</span><span class="p">)</span>
-        <span class="c1"># Check for an image in the task definition; whew!</span>
-        <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
-            <span class="n">get_prefect_container</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_definition&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                    <span class="s2">&quot;containerDefinitions&quot;</span><span class="p">,</span> <span class="p">[]</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-            <span class="ow">or</span> <span class="p">{}</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
-    <span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;A value for the `image` field must be provided unless already &quot;</span>
-            <span class="s2">&quot;present for the Prefect container definition a given task definition.&quot;</span>
+    <span class="n">has_image</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">))</span>
+    <span class="n">has_task_definition_arn</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_definition_arn&quot;</span><span class="p">))</span>
+
+    <span class="c1"># The image can only be null when the task_definition_arn is set</span>
+    <span class="k">if</span> <span class="n">has_image</span> <span class="ow">or</span> <span class="n">has_task_definition_arn</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="n">prefect_container</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">get_prefect_container</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_definition&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;containerDefinitions&quot;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="p">)</span>
+        <span class="ow">or</span> <span class="p">{}</span>
+    <span class="p">)</span>
+    <span class="n">image_in_task_definition</span> <span class="o">=</span> <span class="n">prefect_container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
+
+    <span class="c1"># If a task_definition is given with a prefect container image, use that value</span>
+    <span class="k">if</span> <span class="n">image_in_task_definition</span><span class="p">:</span>
+        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_in_task_definition</span>
+    <span class="c1"># Otherwise, it should default to the Prefect base image</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_prefect_image_name</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">values</span>
 </code></pre></div>
         </details>

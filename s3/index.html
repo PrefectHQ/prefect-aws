@@ -792,7 +792,7 @@ or aws_credentials).</p></td>
       </tr>
       <tr>
         <td><code>basepath</code></td>
-        <td><code>Optional[pathlib.Path]</code></td>
+        <td><code>Union[str, pathlib.Path]</code></td>
         <td><p>Used when you don't want to read/write at base level.</p></td>
       </tr>
       <tr>
@@ -850,8 +850,8 @@ defaults to AWS.</p></td>
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;A block containing your credentials (choose this or &quot;</span>
         <span class="s2">&quot;AWS Credentials).&quot;</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">basepath</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">basepath</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Location to write to and read from in the S3 bucket. Defaults to &quot;</span>
         <span class="s2">&quot;the root of the bucket.&quot;</span><span class="p">,</span>
     <span class="p">)</span>
@@ -1197,7 +1197,7 @@ defaults to AWS.</p></td>
 
 
 <h5 id="prefect_aws.s3.S3Bucket.basepath" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">basepath</span><span class="p">:</span> <span class="n">Path</span></code>
+<code class="highlight language-python"><span class="n">basepath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">]</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
