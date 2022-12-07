@@ -4,6 +4,7 @@ import boto3
 import pytest
 from botocore.exceptions import ClientError
 from moto import mock_s3
+from prefect.deployments import Deployment
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.s3 import S3Bucket
@@ -312,3 +313,19 @@ def test_write_path_in_sync_context(s3_bucket):
     key = s3_bucket.write_path("test.txt", content=b"hello")
     content = s3_bucket.read_path(key)
     assert content == b"hello"
+
+
+def test_deployment_default_basepath(s3_bucket):
+    deployment = Deployment(name="testing", storage=s3_bucket)
+    assert deployment.location == "/"
+
+
+@pytest.mark.parametrize("type_", [str, Path])
+def test_deployment_set_basepath(aws_creds_block, type_):
+    s3_bucket_block = S3Bucket(
+        bucket_name=BUCKET_NAME,
+        aws_credentials=aws_creds_block,
+        basepath=type_("home"),
+    )
+    deployment = Deployment(name="testing", storage=s3_bucket_block)
+    assert deployment.location == "home/"
