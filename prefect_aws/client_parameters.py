@@ -1,14 +1,12 @@
 """Module handling Client parameters"""
 
-import dataclasses
-from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union
 
 from botocore.client import Config
+from prefect.blocks.core import Block
 
 
-@dataclass(frozen=True)
-class AwsClientParameters:
+class AwsClientParameters(Block):
     """
     Dataclass used to manage extra parameters that you can pass when you initialize the Client. If you
     want to find more information, see
@@ -50,10 +48,17 @@ class AwsClientParameters:
     use_ssl: Optional[bool] = None
     verify: Optional[Union[bool, str]] = None
     endpoint_url: Optional[str] = None
-    config: Optional[Config] = None
+    config: Optional[Dict[str, Any]] = None
 
     def get_params_override(self) -> Dict[str, Any]:
         """
         Return the dictionary of the parameters to override. The parameters to override are the one which are not None.
         """  # noqa E501
-        return {k: v for k, v in dataclasses.asdict(self).items() if v is not None}
+        params_override = {}
+        for key, value in self.dict().items():
+            if value is None:
+                continue
+            if key == "config":
+                value = Config(**value)
+            params_override[key] = value
+        return params_override

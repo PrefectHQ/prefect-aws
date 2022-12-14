@@ -3,12 +3,13 @@ import io
 import os
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, BinaryIO, Dict, List, Optional, Union
 from uuid import uuid4
 
 import boto3
 from botocore.paginate import PageIterator
 from prefect import get_run_logger, task
+from prefect.blocks.abstract import ObjectStorageBlock
 from prefect.filesystems import WritableDeploymentStorage, WritableFileSystem
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.filesystem import filter_files
@@ -576,3 +577,228 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
         with io.BytesIO(data) as stream:
 
             s3_client.upload_fileobj(Fileobj=stream, Bucket=self.bucket_name, Key=key)
+
+
+class S3(ObjectStorageBlock):
+
+    aws_credentials: Union[MinIOCredentials, AwsCredentials]
+    bucket_name: str = Field(..., description="The name of the S3 bucket.")
+
+    def _list_objects_sync(self, page_iterator: PageIterator) -> List[Dict[str, Any]]:
+        """
+        Synchronous method to collect S3 objects into a list
+
+        Args:
+            page_iterator: AWS Paginator for S3 objects
+
+        Returns:
+            List[Dict]: List of object information
+        """
+        return [
+            content for page in page_iterator for content in page.get("Contents", [])
+        ]
+
+    @sync_compatible
+    async def list_blobs(
+        self,
+        folder: str,
+        delimiter: str = "",
+        page_size: Optional[int] = None,
+        max_items: Optional[int] = None,
+        jmespath_query: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Args:
+            bucket: Name of bucket to list items from. Required if a default value
+                was not supplied when creating the task.
+            aws_credentials: Credentials to use for authentication with AWS.
+            aws_client_parameters: Custom parameter for the boto3 client initialization.
+            prefix: Used to filter objects with keys starting with the specified prefix.
+            delimiter: Character used to group keys of listed objects.
+            page_size: Number of objects to return in each request to the AWS API.
+            max_items: Maximum number of objects that to be returned by task.
+            jmespath_query: Query used to filter objects based on object attributes refer to
+                the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html#filtering-results-with-jmespath)
+                for more information on how to construct queries.
+        """  # noqa: E501
+        client = self.aws_credentials.get_s3_client()
+        paginator = client.get_paginator("list_objects_v2")
+        page_iterator = paginator.paginate(
+            Bucket=self.bucket_name,
+            Prefix=folder,
+            Delimiter=delimiter,
+            PaginationConfig={"PageSize": page_size, "MaxItems": max_items},
+        )
+        if jmespath_query:
+            page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
+
+        return await run_sync_in_worker_thread(self._list_objects_sync, page_iterator)
+
+    @sync_compatible
+    async def download_object_to_path(
+        self,
+        from_path: str,
+        to_path: Union[str, Path],
+        **download_kwargs: Dict[str, Any],
+    ) -> Path:
+        """
+        Downloads an object from the S3 bucket to a path.
+
+        Args:
+            from_path: The path to download from.
+            to_path: The path to download to.
+            **download_kwargs: Additional keyword arguments to pass to download.
+
+        Returns:
+            The path that the object was downloaded to.
+        """
+        client = self.aws_credentials.get_s3_client()
+        run_sync_in_worker_thread(
+            client.download_file,
+            self.bucket_name,
+            from_path,
+            to_path,
+            **download_kwargs,
+        )
+        return Path(to_path)
+
+    @sync_compatible
+    async def download_object_to_file_object(
+        self,
+        from_path: str,
+        to_file_object: BinaryIO,
+        **download_kwargs: Dict[str, Any],
+    ) -> BinaryIO:
+        """
+        Downloads an object from the S3 bucket to a file-like object,
+        which can be a BytesIO object or a BufferedWriter.
+
+        Args:
+            from_path: The path to download from.
+            to_file_object: The file-like object to download to.
+            **download_kwargs: Additional keyword arguments to pass to download.
+
+        Returns:
+            The file-like object that the object was downloaded to.
+        """
+        client = self.aws_credentials.get_s3_client()
+        run_sync_in_worker_thread(
+            client.download_fileobj,
+            Bucket=self.bucket_name,
+            Key=from_path,
+            Fileobj=to_file_object,
+            **download_kwargs,
+        )
+        return to_file_object
+
+    @sync_compatible
+    async def download_folder_to_path(
+        self,
+        from_folder: str,
+        to_folder: Union[str, Path],
+        **download_kwargs: Dict[str, Any],
+    ) -> Path:
+        """
+        Downloads a folder (up to a 1000 objects) from the S3 bucket to a path.
+
+        Args:
+            from_folder: The path to the folder to download from.
+            to_folder: The path to download the folder to.
+            **download_kwargs: Additional keyword arguments to pass to download.
+
+        Returns:
+            The path that the folder was downloaded to.
+        """
+        client = self.aws_credentials.get_s3_client()
+        objects = client.list_objects_v2(Bucket=self.bucket_name, Prefix=from_folder)
+        for object in objects["Contents"]:
+            path = Path(to_folder) / object["Key"]
+            path.parent.mkdir(parents=True, exist_ok=True)
+            run_sync_in_worker_thread(
+                client.download_file,
+                Bucket=self.bucket_name,
+                Key=object["Key"],
+                Filename=path,
+                **download_kwargs,
+            )
+        return Path(to_folder)
+
+    @sync_compatible
+    async def upload_from_path(
+        self, from_path: Union[str, Path], to_path: str, **upload_kwargs: Dict[str, Any]
+    ) -> str:
+        """
+        Uploads an object from a path to the S3 bucket.
+
+        Args:
+            from_path: The path to the file to upload from.
+            to_path: The path to upload the file to.
+            **upload_kwargs: Additional keyword arguments to pass to upload.
+
+        Returns:
+            The path that the object was uploaded to.
+        """
+        client = self.aws_credentials.get_s3_client()
+        run_sync_in_worker_thread(
+            client.upload_file,
+            Filename=from_path,
+            Bucket=self.bucket_name,
+            Key=to_path,
+            **upload_kwargs,
+        )
+        return to_path
+
+    @sync_compatible
+    async def upload_from_file_object(
+        self, from_file_object: BinaryIO, to_path: str, **upload_kwargs
+    ) -> str:
+        """
+        Uploads an object to the S3 bucket from a file-like object,
+        which can be a BytesIO object or a BufferedReader.
+
+        Args:
+            from_file_object: The file-like object to upload from.
+            to_path: The path to upload the object to.
+            **upload_kwargs: Additional keyword arguments to pass to upload.
+        Returns:
+            The path that the object was uploaded to.
+        """
+        client = self.aws_credentials.get_s3_client()
+        run_sync_in_worker_thread(
+            client.upload_fileobj,
+            Fileobj=from_file_object,
+            Bucket=self.bucket_name,
+            Key=to_path,
+            **upload_kwargs,
+        )
+        return to_path
+
+    @sync_compatible
+    async def upload_from_folder(
+        self,
+        from_folder: Union[str, Path],
+        to_folder: str,
+        **upload_kwargs: Dict[str, Any],
+    ) -> str:
+        """
+        Uploads a folder to the S3 bucket from a path.
+
+        Args:
+            from_folder: The path to the folder to upload from.
+            to_folder: The path to upload the folder to.
+            **upload_kwargs: Additional keyword arguments to pass to upload.
+
+        Returns:
+            The path that the folder was uploaded to.
+        """
+        client = self.aws_credentials.get_s3_client()
+        for path in Path(from_folder).rglob("*"):
+            if path.is_file():
+                run_sync_in_worker_thread(
+                    client.upload_file,
+                    Filename=path,
+                    Bucket=self.bucket_name,
+                    Key=str(Path(to_folder) / path.relative_to(from_folder)),
+                    **upload_kwargs,
+                )
+        return to_folder

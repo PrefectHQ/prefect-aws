@@ -3,8 +3,11 @@
 from typing import Optional
 
 import boto3
+from mypy_boto3_s3 import S3Client
 from prefect.blocks.core import Block
 from pydantic import Field, SecretStr
+
+from prefect_aws.client_parameters import AwsClientParameters
 
 
 class AwsCredentials(Block):
@@ -46,6 +49,10 @@ class AwsCredentials(Block):
         default=None,
         description="The AWS Region where you want to create new connections.",
     )
+    aws_client_parameters: AwsClientParameters = Field(
+        default_factory=AwsClientParameters,
+        description="Extra parameters to initialize the Client.",
+    )
 
     def get_boto3_session(self) -> boto3.Session:
         """
@@ -75,6 +82,12 @@ class AwsCredentials(Block):
             profile_name=self.profile_name,
             region_name=self.region_name,
         )
+
+    def get_s3_client(self) -> S3Client:
+        client = self.get_boto3_session().client(
+            service_name="s3", **self.aws_client_parameters.get_params_override()
+        )
+        return client
 
 
 class MinIOCredentials(Block):
@@ -108,6 +121,10 @@ class MinIOCredentials(Block):
     minio_root_user: str
     minio_root_password: SecretStr
     region_name: Optional[str] = None
+    aws_client_parameters: AwsClientParameters = Field(
+        default_factory=AwsClientParameters,
+        description="Extra parameters to initialize the Client.",
+    )
 
     def get_boto3_session(self) -> boto3.Session:
         """
@@ -140,3 +157,9 @@ class MinIOCredentials(Block):
             aws_secret_access_key=minio_root_password,
             region_name=self.region_name,
         )
+
+    def get_s3_client(self) -> boto3.client:
+        client = self.get_boto3_session().client(
+            service_name="s3", **self.aws_client_parameters.get_params_override()
+        )
+        return client
