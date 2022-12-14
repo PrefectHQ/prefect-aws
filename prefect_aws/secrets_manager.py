@@ -3,9 +3,11 @@ from typing import Dict, List, Optional, Union
 
 from botocore.exceptions import ClientError
 from prefect import get_run_logger, task
+from prefect.blocks.abstract import SecretBlock
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
+from pydantic import Field
 
-from prefect_aws import AwsCredentials
+from prefect_aws import AwsCredentials, MinIOCredentials
 
 
 @task
@@ -350,3 +352,107 @@ async def delete_secret(
     except ClientError:
         logger.exception("Unable to delete secret %s", secret_name)
         raise
+
+
+class SecretsManager(SecretBlock):
+    """
+    Block that represents a resource that can store and retrieve secrets.
+    """
+
+    aws_credentials: Union[AwsCredentials, MinIOCredentials]
+    secret_name: str = Field(default=..., description="The name of the secret.")
+
+    async def read_secret(
+        self, version_id: str = None, version_stage: str = None
+    ) -> Union[str, bytes]:
+        """
+        Reads the secret from the secret storage service.
+
+        Args:
+            version_id: The version of the secret to read. If not provided, the latest
+                version will be read.
+            version_stage: The version stage of the secret to read. If not provided,
+                the latest version will be read.
+
+        Returns:
+            The secret data.
+        """
+        client = self.aws_credentials.get_secrets_manager_client()
+        response = await run_sync_in_worker_thread(
+            client.get_secret_value,
+            SecretId=self.secret_name,
+            VersionId=version_id,
+            version_stage=version_stage,
+        )
+        secret = response.get("SecretString") or response.get("SecretBinary")
+        return secret
+
+    async def write_secret(self, secret_data: bytes) -> str:
+        """
+        Writes the secret to the secret storage service.
+
+        Args:
+            secret_data: The secret data to write.
+
+        Returns:
+            The path that the secret was written to.
+        """
+        client = self.aws_credentials.get_secrets_manager_client()
+        response = await run_sync_in_worker_thread(
+            client.put_secret_value, SecretId=self.secret_name, SecretBinary=secret_data
+        )
+        return response["name"]
+
+    async def update_secret(
+        self, secret_data: bytes, description: Optional[str] = None
+    ) -> str:
+        """
+        Updates the secret to the secret storage service.
+
+        Args:
+            secret_data: The secret data to update.
+
+        Returns:
+            The path that the secret was updated to.
+        """
+        client = self.aws_credentials.get_secrets_manager_client()
+        response = await run_sync_in_worker_thread(
+            client.update_secret,
+            SecretId=self.secret_name,
+            SecretBinary=secret_data,
+            Description=description,
+        )
+        return response["name"]
+
+    async def delete_secret(
+        self,
+        recovery_window_in_days: Optional[int] = None,
+        force_delete_without_recovery: bool = False,
+    ) -> str:
+        """
+        Deletes the secret from the secret storage service.
+
+        Args:
+            recovery_window_in_days: The number of days to wait before permanently
+                deleting the secret. Must be between 7 and 30 days.
+            force_delete_without_recovery: If True, the secret will be deleted
+                immediately without a recovery window.
+
+        Returns:
+            The path that the secret was deleted from.
+        """
+        if force_delete_without_recovery and recovery_window_in_days:
+            raise ValueError(
+                "Cannot specify recovery window and force delete without recovery."
+            )
+        elif 7 <= recovery_window_in_days <= 30:
+            raise ValueError("Recovery window must be between 7 and 30 days.")
+
+        client = self.aws_credentials.get_secrets_manager_client()
+        await run_sync_in_worker_thread(
+            client.delete_secret,
+            SecretId=self.secret_name,
+            RecoveryWindowInDays=recovery_window_in_days,
+            ForceDeleteWithoutRecovery=force_delete_without_recovery,
+        )
+        return self.secret_name

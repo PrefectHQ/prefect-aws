@@ -4,6 +4,7 @@ from typing import Optional
 
 import boto3
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_secretsmanager import SecretsManagerClient
 from prefect.blocks.core import Block
 from pydantic import Field, SecretStr
 
@@ -158,8 +159,15 @@ class MinIOCredentials(Block):
             region_name=self.region_name,
         )
 
-    def get_s3_client(self) -> boto3.client:
+    def get_s3_client(self) -> S3Client:
         client = self.get_boto3_session().client(
             service_name="s3", **self.aws_client_parameters.get_params_override()
+        )
+        return client
+
+    def get_secrets_manager_client(self) -> SecretsManagerClient:
+        client = self.get_boto3_session().client(
+            service_name="secretsmanager",
+            **self.aws_client_parameters.get_params_override()
         )
         return client
