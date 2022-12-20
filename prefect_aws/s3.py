@@ -1,7 +1,9 @@
 """Tasks for interacting with AWS S3"""
+import asyncio
 import io
 import os
 import uuid
+import warnings
 from pathlib import Path
 from typing import Any, BinaryIO, Dict, List, Optional, Union
 from uuid import uuid4
@@ -232,7 +234,7 @@ async def s3_list_objects(
     return await run_sync_in_worker_thread(_list_objects_sync, page_iterator)
 
 
-class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
+class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock):
 
     """
     Block used to store data using AWS S3 or S3-compatible object storage like MinIO.
@@ -262,23 +264,39 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
     bucket_name: str = Field(default=..., description="Name of your bucket")
     minio_credentials: Optional[MinIOCredentials] = Field(
         default=None,
-        description="A block containing your credentials (choose this or "
-        "MinIO Credentials)",
+        description=(
+            "[DEPRECATED; use the aws_credentials field instead] "
+            "A block containing your credentials (choose this or "
+            "AWS Credentials)",
+        ),
     )
-    aws_credentials: Optional[AwsCredentials] = Field(
+    aws_credentials: Optional[Union[AwsCredentials, MinIOCredentials]] = Field(
         default=None,
         description="A block containing your credentials (choose this or "
-        "AWS Credentials).",
+        "MinIO Credentials).",
     )
     basepath: Optional[Union[str, Path]] = Field(
         default="",
-        description="Location to write to and read from in the S3 bucket. Defaults to "
-        "the root of the bucket.",
+        description=(
+            "[DEPRECATED; use the bucket_folder field instead] "
+            "A default location to write to and read from in the S3 bucket. Defaults "
+            "to the root of the bucket."
+        ),
     )
     endpoint_url: Optional[str] = Field(
         default=None,
-        description="URL endpoint to use for S3 compatible storage. Defaults to "
-        "standard AWS S3 endpoint.",
+        description=(
+            "[DEPRECATED; pass AwsClientParameters in AwsCredentials instead] "
+            "URL endpoint to use for S3 compatible storage. Defaults to "
+            "standard AWS S3 endpoint."
+        ),
+    )
+    bucket_folder: str = Field(
+        default="",
+        description=(
+            "A default path to a folder within the S3 bucket to use "
+            "for reading and writing objects."
+        ),
     )
 
     @validator("basepath", pre=True)
@@ -294,6 +312,25 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
             return str(value)
         return value
 
+    @validator("basepath", pre=True)
+    def deprecate_basepath(cls, value):
+        if value:
+            warnings.warn(
+                "The basepath field is deprecated. Please use bucket_folder instead.",
+                DeprecationWarning,
+            )
+        return value
+
+    @validator("endpoint_url", pre=True)
+    def deprecate_endpoint_url(cls, value):
+        if value:
+            warnings.warn(
+                "The endpoint_url field is deprecated. Please pass it in "
+                "AwsClientParameters and pass it into aws_credentials instead.",
+                DeprecationWarning,
+            )
+        return value
+
     @root_validator(pre=True)
     def check_credentials(cls, values):
 
@@ -306,11 +343,15 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
         aws_creds_exist = bool(values.get("aws_credentials"))
 
         # if both credentials fields provided
-        if minio_creds_exist and aws_creds_exist:
-            raise ValueError(
-                "S3Bucket accepts a minio_credentials field or an"
-                "aws_credentials field but not both."
+        if minio_creds_exist:
+            # raise deprecationwarning
+            warnings.warn(
+                "The minio_credentials field is deprecated. Please use "
+                "aws_credentials instead.",
+                DeprecationWarning,
             )
+            values["aws_credentials"] = values.get("minio_credentials")
+
         # if neither credentials fields provided
         if not minio_creds_exist and not aws_creds_exist:
             raise ValueError(
@@ -333,9 +374,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
 
         path = path or str(uuid4())
 
+        bucket_folder = self.bucket_folder or self.basepath
         # If basepath provided, it means we won't write to the root dir of
         # the bucket. So we need to add it on the front of the path.
-        path = str(Path(self.basepath) / path) if self.basepath else path
+        path = str(Path(bucket_folder) / path) if bucket_folder else path
 
         return path
 
@@ -402,8 +444,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
             local_path: Local path to download S3 contents to. Defaults to the current
                 working directory.
         """
+        bucket_folder = self.bucket_folder or self.basepath
         if from_path is None:
-            from_path = str(self.basepath) if self.basepath else ""
+            from_path = str(bucket_folder) if bucket_folder else ""
 
         if local_path is None:
             local_path = str(Path(".").absolute())
@@ -578,12 +621,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
 
             s3_client.upload_fileobj(Fileobj=stream, Bucket=self.bucket_name, Key=key)
 
-
-class S3(ObjectStorageBlock):
-
-    aws_credentials: Union[MinIOCredentials, AwsCredentials]
-    bucket_name: str = Field(..., description="The name of the S3 bucket.")
-
     def _list_objects_sync(self, page_iterator: PageIterator) -> List[Dict[str, Any]]:
         """
         Synchronous method to collect S3 objects into a list
@@ -598,8 +635,24 @@ class S3(ObjectStorageBlock):
             content for page in page_iterator for content in page.get("Contents", [])
         ]
 
+    # NEW BLOCK INTERFACE METHODS BELOW
+    def _join_bucket_folder(self, bucket_path: str = "") -> str:
+        """
+        Joins the base bucket folder to the bucket path.
+        NOTE: If a method reuses another method in this class, be careful to not
+        call this  twice because it'll join the bucket folder twice.
+        See https://github.com/PrefectHQ/prefect-aws/issues/141 for a past issue.
+        """
+        bucket_path = str(bucket_path)
+        if self.bucket_folder != "" and bucket_path.startswith(self.bucket_folder):
+            self.logger.info(
+                f"Bucket path {bucket_path!r} is already prefixed with "
+                f"bucket folder {self.bucket_folder!r}; is this intentional?"
+            )
+        return str(Path(self.bucket_folder) / bucket_path)
+
     @sync_compatible
-    async def list_blobs(
+    async def list_objects(
         self,
         folder: str,
         delimiter: str = "",
@@ -621,44 +674,65 @@ class S3(ObjectStorageBlock):
                 the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html#filtering-results-with-jmespath)
                 for more information on how to construct queries.
         """  # noqa: E501
+        bucket_path = self._join_bucket_folder(folder)
         client = self.aws_credentials.get_s3_client()
         paginator = client.get_paginator("list_objects_v2")
         page_iterator = paginator.paginate(
             Bucket=self.bucket_name,
-            Prefix=folder,
+            Prefix=bucket_path,
             Delimiter=delimiter,
             PaginationConfig={"PageSize": page_size, "MaxItems": max_items},
         )
         if jmespath_query:
             page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
 
+        self.logger.info(f"Listing objects in bucket {bucket_path}.")
         return await run_sync_in_worker_thread(self._list_objects_sync, page_iterator)
 
     @sync_compatible
     async def download_object_to_path(
         self,
         from_path: str,
-        to_path: Union[str, Path],
+        to_path: Optional[Union[str, Path]],
         **download_kwargs: Dict[str, Any],
     ) -> Path:
         """
         Downloads an object from the S3 bucket to a path.
 
         Args:
-            from_path: The path to download from.
-            to_path: The path to download to.
-            **download_kwargs: Additional keyword arguments to pass to download.
+            from_path: The path to the object to download; this gets prefixed
+                with the bucket_folder.
+            to_path: The path to download the object to. If not provided, the
+                object's name will be used.
+            **download_kwargs: Additional keyword arguments to pass to
+                `Client.download_file`.
 
         Returns:
-            The path that the object was downloaded to.
+            The absolute path that the object was downloaded to.
         """
+        if to_path is None:
+            to_path = Path(from_path).name
+
+        # making path absolute, but converting back to str here
+        # since !r looks nicer that way and filename arg expects str
+        to_path = str(Path(to_path).absolute())
+        bucket_path = self._join_bucket_folder(from_path)
         client = self.aws_credentials.get_s3_client()
-        run_sync_in_worker_thread(
+
+        self.logger.debug(
+            f"Preparing to download object from bucket {self.bucket_name!r} "
+            f"path {bucket_path!r} to {to_path!r}."
+        )
+        await run_sync_in_worker_thread(
             client.download_file,
-            self.bucket_name,
-            from_path,
-            to_path,
+            Bucket=self.bucket_name,
+            Key=from_path,
+            Filename=to_path,
             **download_kwargs,
+        )
+        self.logger.info(
+            f"Downloaded object from bucket {self.bucket_name!r} path {bucket_path!r}"
+            f"to {to_path!r}."
         )
         return Path(to_path)
 
@@ -670,24 +744,36 @@ class S3(ObjectStorageBlock):
         **download_kwargs: Dict[str, Any],
     ) -> BinaryIO:
         """
-        Downloads an object from the S3 bucket to a file-like object,
+        Downloads an object from the object storage service to a file-like object,
         which can be a BytesIO object or a BufferedWriter.
 
         Args:
-            from_path: The path to download from.
-            to_file_object: The file-like object to download to.
-            **download_kwargs: Additional keyword arguments to pass to download.
+            from_path: The path to the object to download from; this gets prefixed
+                with the bucket_folder.
+            to_file_object: The file-like object to download the object to.
+            **download_kwargs: Additional keyword arguments to pass to
+                `Client.download_fileobj`.
 
         Returns:
             The file-like object that the object was downloaded to.
         """
         client = self.aws_credentials.get_s3_client()
-        run_sync_in_worker_thread(
+        bucket_path = self._join_bucket_folder(from_path)
+
+        self.logger.debug(
+            f"Preparing to download object from bucket {self.bucket_name!r} "
+            f"path {bucket_path!r} to file object."
+        )
+        await run_sync_in_worker_thread(
             client.download_fileobj,
             Bucket=self.bucket_name,
-            Key=from_path,
+            Key=bucket_path,
             Fileobj=to_file_object,
             **download_kwargs,
+        )
+        self.logger.info(
+            f"Downloaded object from bucket {self.bucket_name!r} path {bucket_path!r}"
+            f"to file object."
         )
         return to_file_object
 
@@ -695,32 +781,62 @@ class S3(ObjectStorageBlock):
     async def download_folder_to_path(
         self,
         from_folder: str,
-        to_folder: Union[str, Path],
+        to_folder: Optional[Union[str, Path]] = None,
         **download_kwargs: Dict[str, Any],
     ) -> Path:
         """
-        Downloads a folder (up to a 1000 objects) from the S3 bucket to a path.
+        Downloads objects *within* a folder (excluding the folder itself)
+        from the S3 bucket to a folder.
 
         Args:
             from_folder: The path to the folder to download from.
             to_folder: The path to download the folder to.
-            **download_kwargs: Additional keyword arguments to pass to download.
+            **download_kwargs: Additional keyword arguments to pass to
+                `Client.download_file`.
 
         Returns:
-            The path that the folder was downloaded to.
+            The absolute path that the folder was downloaded to.
         """
+        if to_folder is None:
+            to_folder = ""
+        to_folder = Path(to_folder).absolute()
+
         client = self.aws_credentials.get_s3_client()
         objects = client.list_objects_v2(Bucket=self.bucket_name, Prefix=from_folder)
-        for object in objects["Contents"]:
-            path = Path(to_folder) / object["Key"]
-            path.parent.mkdir(parents=True, exist_ok=True)
-            run_sync_in_worker_thread(
-                client.download_file,
-                Bucket=self.bucket_name,
-                Key=object["Key"],
-                Filename=path,
-                **download_kwargs,
+        if len(objects) == 0:
+            self.logger.warning(
+                f"No objects were downloaded from "
+                f"bucket {self.bucket_name!r} path {from_folder!r}."
             )
+            return
+
+        # do not call self._join_bucket_folder for list_objects
+        # because it's built-in to that method already!
+        # however, we still need to do it because we're using relative_to
+        bucket_folder = self._join_bucket_folder(from_folder)
+
+        async_coros = []
+        for object in objects["Contents"]:
+            bucket_path = Path(object["Key"]).relative_to(bucket_folder)
+            if bucket_path.is_dir():
+                continue
+            to_path = to_folder / bucket_path
+            to_path.parent.mkdir(parents=True, exist_ok=True)
+            self.logger.info(
+                f"Downloading object from bucket {self.bucket_name!r} path "
+                f"{str(bucket_path)!r} to {to_path}."
+            )
+            async_coros.append(
+                run_sync_in_worker_thread(
+                    client.download_file,
+                    Bucket=self.bucket_name,
+                    Key=object["Key"],
+                    Filename=str(to_path),
+                    **download_kwargs,
+                )
+            )
+        await asyncio.gather(*async_coros)
+
         return Path(to_folder)
 
     @sync_compatible
@@ -733,20 +849,29 @@ class S3(ObjectStorageBlock):
         Args:
             from_path: The path to the file to upload from.
             to_path: The path to upload the file to.
-            **upload_kwargs: Additional keyword arguments to pass to upload.
+            **upload_kwargs: Additional keyword arguments to pass to `Client.upload`.
 
         Returns:
             The path that the object was uploaded to.
         """
+        if to_path is None:
+            to_path = Path(from_path).name
+
+        bucket_path = self._join_bucket_folder(to_path)
         client = self.aws_credentials.get_s3_client()
-        run_sync_in_worker_thread(
+        self.logger.info(
+            f"Uploading from {from_path!r} to the bucket "
+            f"{self.bucket_name!r} path {bucket_path!r}."
+        )
+
+        await run_sync_in_worker_thread(
             client.upload_file,
             Filename=from_path,
             Bucket=self.bucket_name,
-            Key=to_path,
+            Key=bucket_path,
             **upload_kwargs,
         )
-        return to_path
+        return bucket_path
 
     @sync_compatible
     async def upload_from_file_object(
@@ -759,19 +884,27 @@ class S3(ObjectStorageBlock):
         Args:
             from_file_object: The file-like object to upload from.
             to_path: The path to upload the object to.
-            **upload_kwargs: Additional keyword arguments to pass to upload.
+            **upload_kwargs: Additional keyword arguments to pass to
+                `Client.upload_fileobj`.
+
         Returns:
             The path that the object was uploaded to.
         """
+        bucket_path = self._join_bucket_folder(to_path)
         client = self.aws_credentials.get_s3_client()
-        run_sync_in_worker_thread(
+        self.logger.info(
+            f"Uploading from file object to the bucket "
+            f"{self.bucket_name!r} path {bucket_path!r}."
+        )
+
+        await run_sync_in_worker_thread(
             client.upload_fileobj,
             Fileobj=from_file_object,
             Bucket=self.bucket_name,
-            Key=to_path,
+            Key=bucket_path,
             **upload_kwargs,
         )
-        return to_path
+        return bucket_path
 
     @sync_compatible
     async def upload_from_folder(
@@ -781,24 +914,46 @@ class S3(ObjectStorageBlock):
         **upload_kwargs: Dict[str, Any],
     ) -> str:
         """
-        Uploads a folder to the S3 bucket from a path.
+        Uploads files *within* a folder (excluding the folder itself)
+        to the object storage service folder.
 
         Args:
             from_folder: The path to the folder to upload from.
             to_folder: The path to upload the folder to.
-            **upload_kwargs: Additional keyword arguments to pass to upload.
+            **upload_kwargs: Additional keyword arguments to pass to
+                `Client.upload_fileobj`.
 
         Returns:
             The path that the folder was uploaded to.
         """
+        from_folder = Path(from_folder)
+        bucket_folder = self._join_bucket_folder(to_folder or "")
+
+        num_uploaded = 0
         client = self.aws_credentials.get_s3_client()
-        for path in Path(from_folder).rglob("*"):
-            if path.is_file():
+
+        async_coros = []
+        for from_path in from_folder.rglob("**/*"):
+            if from_path.is_dir():
+                continue
+            bucket_path = str(Path(bucket_folder) / from_path.relative_to(from_folder))
+            self.logger.info(
+                f"Uploading from {str(from_path)!r} to the bucket "
+                f"{self.bucket_name!r} path {bucket_path!r}."
+            )
+            async_coros.append(
                 run_sync_in_worker_thread(
                     client.upload_file,
-                    Filename=path,
+                    Filename=str(from_path),
                     Bucket=self.bucket_name,
-                    Key=str(Path(to_folder) / path.relative_to(from_folder)),
+                    Key=bucket_path,
                     **upload_kwargs,
                 )
+            )
+            num_uploaded += 1
+        await asyncio.gather(*async_coros)
+
+        if num_uploaded == 0:
+            self.logger.warning(f"No files were uploaded from {from_folder}.")
+
         return to_folder
