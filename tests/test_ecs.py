@@ -1220,6 +1220,7 @@ async def test_latest_task_definition_not_used_if_inequal(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("launch_type", ["EC2", "FARGATE"])
 @pytest.mark.parametrize(
     "overrides",
     [
@@ -1242,7 +1243,7 @@ async def test_latest_task_definition_not_used_if_inequal(
     ids=lambda item: str(set(item.keys())),
 )
 async def test_latest_task_definition_with_overrides_that_do_not_require_copy(
-    aws_credentials, overrides
+    aws_credentials, overrides, launch_type
 ):
     """
     Any of these overrides should be configured at runtime and not require a new
@@ -1255,19 +1256,17 @@ async def test_latest_task_definition_with_overrides_that_do_not_require_copy(
         create_test_ecs_cluster(ecs_client, overrides["cluster"])
         add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
 
-    # Set the default launch type for compatibility with the base task definition
-    overrides.setdefault("launch_type", "EC2")
-
     task_1 = ECSTask(
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
-        launch_type="EC2",
         family="test",
+        launch_type=launch_type,
     )
     task_2 = ECSTask(
         aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         family="test",
+        launch_type=launch_type,
         **overrides,
     )
     task_arn_1 = await run_then_stop_task(task_1)
