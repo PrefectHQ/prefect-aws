@@ -387,15 +387,20 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         Authenticate MinIO credentials or AWS credentials and return an S3 client.
         This is a helper function called by read_path() or write_path().
         """
+        params_override = (
+            self.aws_credentials.aws_client_parameters.get_params_override()
+        )
+        if "endpoint_url" not in params_override and self.endpoint_url:
+            params_override["endpoint_url"] = self.endpoint_url
 
         if self.minio_credentials:
             s3_client = self.minio_credentials.get_boto3_session().client(
-                service_name="s3", endpoint_url=self.endpoint_url
+                service_name="s3", **params_override
             )
 
         elif self.aws_credentials:
             s3_client = self.aws_credentials.get_boto3_session().client(
-                service_name="s3"
+                service_name="s3", **params_override
             )
         else:
             raise ValueError(
@@ -408,17 +413,23 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         """
         Retrieves boto3 resource object for the configured bucket
         """
+        params_override = (
+            self.aws_credentials.aws_client_parameters.get_params_override()
+        )
+        if "endpoint_url" not in params_override and self.endpoint_url:
+            params_override["endpoint_url"] = self.endpoint_url
+
         if self.minio_credentials:
             bucket = (
                 self.minio_credentials.get_boto3_session()
-                .resource("s3", endpoint_url=self.endpoint_url)
+                .resource("s3", **params_override)
                 .Bucket(self.bucket_name)
             )
 
         elif self.aws_credentials:
             bucket = (
                 self.aws_credentials.get_boto3_session()
-                .resource("s3")
+                .resource("s3", **params_override)
                 .Bucket(self.bucket_name)
             )
         else:
@@ -644,6 +655,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         call this  twice because it'll join the bucket folder twice.
         See https://github.com/PrefectHQ/prefect-aws/issues/141 for a past issue.
         """
+        if not self.bucket_folder and not bucket_path:
+            # there's a difference between "." and "", at least in the tests
+            return ""
+
         bucket_path = str(bucket_path)
         if self.bucket_folder != "" and bucket_path.startswith(self.bucket_folder):
             self.logger.info(
@@ -700,7 +715,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
 
         self.logger.info(f"Listing objects in bucket {bucket_path}.")
-        return await run_sync_in_worker_thread(self._list_objects_sync, page_iterator)
+        objects = await run_sync_in_worker_thread(
+            self._list_objects_sync, page_iterator
+        )
+        return objects
 
     @sync_compatible
     async def download_object_to_path(
@@ -753,7 +771,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             **download_kwargs,
         )
         self.logger.info(
-            f"Downloaded object from bucket {self.bucket_name!r} path {bucket_path!r}"
+            f"Downloaded object from bucket {self.bucket_name!r} path {bucket_path!r} "
             f"to {to_path!r}."
         )
         return Path(to_path)
@@ -814,7 +832,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             **download_kwargs,
         )
         self.logger.info(
-            f"Downloaded object from bucket {self.bucket_name!r} path {bucket_path!r}"
+            f"Downloaded object from bucket {self.bucket_name!r} path {bucket_path!r} "
             f"to file object."
         )
         return to_file_object
@@ -853,36 +871,31 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         to_folder = Path(to_folder).absolute()
 
         client = self.aws_credentials.get_s3_client()
-        objects = client.list_objects_v2(Bucket=self.bucket_name, Prefix=from_folder)
-        if len(objects) == 0:
-            self.logger.warning(
-                f"No objects were downloaded from "
-                f"bucket {self.bucket_name!r} path {from_folder!r}."
-            )
-            return
+        objects = await self.list_objects(folder=from_folder)
 
-        # do not call self._join_bucket_folder for list_objects
+        # do not call self._join_bucket_folder for filter
         # because it's built-in to that method already!
         # however, we still need to do it because we're using relative_to
         bucket_folder = self._join_bucket_folder(from_folder)
 
         async_coros = []
-        for object in objects["Contents"]:
+        for object in objects:
             bucket_path = Path(object["Key"]).relative_to(bucket_folder)
             if bucket_path.is_dir():
                 continue
             to_path = to_folder / bucket_path
             to_path.parent.mkdir(parents=True, exist_ok=True)
+            to_path = str(to_path)  # must be string
             self.logger.info(
                 f"Downloading object from bucket {self.bucket_name!r} path "
-                f"{str(bucket_path)!r} to {to_path}."
+                f"{str(bucket_path)!r} to {to_path!r}."
             )
             async_coros.append(
                 run_sync_in_worker_thread(
                     client.download_file,
                     Bucket=self.bucket_name,
                     Key=object["Key"],
-                    Filename=str(to_path),
+                    Filename=to_path,
                     **download_kwargs,
                 )
             )
@@ -917,15 +930,12 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             s3_bucket.upload_from_path("notes.txt", "my_folder/notes.txt")
             ```
         """
+        from_path = str(Path(from_path).absolute())
         if to_path is None:
             to_path = Path(from_path).name
 
-        bucket_path = self._join_bucket_folder(to_path)
+        bucket_path = str(self._join_bucket_folder(to_path))
         client = self.aws_credentials.get_s3_client()
-        self.logger.info(
-            f"Uploading from {from_path!r} to the bucket "
-            f"{self.bucket_name!r} path {bucket_path!r}."
-        )
 
         await run_sync_in_worker_thread(
             client.upload_file,
@@ -933,6 +943,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             Bucket=self.bucket_name,
             Key=bucket_path,
             **upload_kwargs,
+        )
+        self.logger.info(
+            f"Uploaded from {from_path!r} to the bucket "
+            f"{self.bucket_name!r} path {bucket_path!r}."
         )
         return bucket_path
 
@@ -975,19 +989,18 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                 )
             ```
         """
-        bucket_path = self._join_bucket_folder(to_path)
+        bucket_path = str(self._join_bucket_folder(to_path))
         client = self.aws_credentials.get_s3_client()
-        self.logger.info(
-            f"Uploading from file object to the bucket "
-            f"{self.bucket_name!r} path {bucket_path!r}."
-        )
-
         await run_sync_in_worker_thread(
             client.upload_fileobj,
             Fileobj=from_file_object,
             Bucket=self.bucket_name,
             Key=bucket_path,
             **upload_kwargs,
+        )
+        self.logger.info(
+            f"Uploaded from file object to the bucket "
+            f"{self.bucket_name!r} path {bucket_path!r}."
         )
         return bucket_path
 
@@ -1047,6 +1060,11 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         await asyncio.gather(*async_coros)
 
         if num_uploaded == 0:
-            self.logger.warning(f"No files were uploaded from {from_folder}.")
+            self.logger.warning(f"No files were uploaded from {str(from_folder)!r}.")
+        else:
+            self.logger.info(
+                f"Uploaded {num_uploaded} files from {str(from_folder)!r} to "
+                f"the bucket {self.bucket_name!r} path {bucket_path!r}"
+            )
 
         return to_folder
