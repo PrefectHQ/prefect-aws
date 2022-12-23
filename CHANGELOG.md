@@ -13,9 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `S3Bucket` additionally inherits from `ObjectStorageBlock` - [#85](https://github.com/PrefectHQ/prefect-gcp/pull/175)
+- `S3Bucket` additionally inherits from `ObjectStorageBlock` - [#175](https://github.com/PrefectHQ/prefect-gcp/pull/175)
 
 ### Deprecated
+
+- `endpoint_url` field in S3Bucket; specify `aws_client_parameters` in `AwsCredentials` or `MinIOCredentials` instead - [#175](https://github.com/PrefectHQ/prefect-gcp/pull/175)
+- `basepath` field in S3Bucket; specify `bucket_folder` instead - [#175](https://github.com/PrefectHQ/prefect-gcp/pull/175)
+- `minio_credentials` field in S3Bucket; pass `minio_credentials` into the `aws_credentials` field instead  - [#175](https://github.com/PrefectHQ/prefect-gcp/pull/175)
 
 ### Removed
 

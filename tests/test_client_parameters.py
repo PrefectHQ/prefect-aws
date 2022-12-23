@@ -6,7 +6,7 @@ from botocore.client import Config
 from prefect_aws.client_parameters import AwsClientParameters
 
 
-class TestAwsClientParameter:
+class TestAwsClientParameters:
     @pytest.mark.parametrize(
         "params,result",
         [
@@ -31,7 +31,7 @@ class TestAwsClientParameter:
             ),
         ],
     )
-    def test_empty_return_empty_dict(
+    def test_get_params_override_expected_output(
         self, params: AwsClientParameters, result: Dict[str, Any], tmp_path
     ):
         if "use_ssl" not in result:

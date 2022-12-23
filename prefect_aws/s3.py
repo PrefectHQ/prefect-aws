@@ -621,7 +621,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
             s3_client.upload_fileobj(Fileobj=stream, Bucket=self.bucket_name, Key=key)
 
-    def _list_objects_sync(self, page_iterator: PageIterator) -> List[Dict[str, Any]]:
+    # NEW BLOCK INTERFACE METHODS BELOW
+    @staticmethod
+    def _list_objects_sync(page_iterator: PageIterator) -> List[Dict[str, Any]]:
         """
         Synchronous method to collect S3 objects into a list
 
@@ -635,7 +637,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             content for page in page_iterator for content in page.get("Contents", [])
         ]
 
-    # NEW BLOCK INTERFACE METHODS BELOW
     def _join_bucket_folder(self, bucket_path: str = "") -> str:
         """
         Joins the base bucket folder to the bucket path.
