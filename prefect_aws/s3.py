@@ -267,7 +267,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         description=(
             "[DEPRECATED; use the aws_credentials field instead] "
             "A block containing your credentials (choose this or "
-            "AWS Credentials)",
+            "AWS Credentials)"
         ),
     )
     aws_credentials: Optional[Union[AwsCredentials, MinIOCredentials]] = Field(
@@ -654,7 +654,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
     @sync_compatible
     async def list_objects(
         self,
-        folder: str,
+        folder: str = "",
         delimiter: str = "",
         page_size: Optional[int] = None,
         max_items: Optional[int] = None,
@@ -673,6 +673,18 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             jmespath_query: Query used to filter objects based on object attributes refer to
                 the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html#filtering-results-with-jmespath)
                 for more information on how to construct queries.
+
+        Returns:
+            List of objects and their metadata in the bucket.
+
+        Examples:
+            List objects under the `base_folder`.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.list_objects("base_folder")
+            ```
         """  # noqa: E501
         bucket_path = self._join_bucket_folder(folder)
         client = self.aws_credentials.get_s3_client()
@@ -709,6 +721,15 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
         Returns:
             The absolute path that the object was downloaded to.
+
+        Examples:
+            Download my_folder/notes.txt object to notes.txt.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.download_object_to_path("my_folder/notes.txt", "notes.txt")
+            ```
         """
         if to_path is None:
             to_path = Path(from_path).name
@@ -756,6 +777,26 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
         Returns:
             The file-like object that the object was downloaded to.
+
+        Examples:
+            Download my_folder/notes.txt object to a BytesIO object.
+            ```python
+            from io import BytesIO
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            with BytesIO() as buf:
+                s3_bucket.download_object_to_file_object("my_folder/notes.txt", buf)
+            ```
+
+            Download my_folder/notes.txt object to a BufferedWriter.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            with open("notes.txt", "wb") as f:
+                s3_bucket.download_object_to_file_object("my_folder/notes.txt", f)
+            ```
         """
         client = self.aws_credentials.get_s3_client()
         bucket_path = self._join_bucket_folder(from_path)
@@ -796,6 +837,15 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
         Returns:
             The absolute path that the folder was downloaded to.
+
+        Examples:
+            Download my_folder to a local folder named my_folder.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.download_folder_to_path("my_folder", "my_folder")
+            ```
         """
         if to_folder is None:
             to_folder = ""
@@ -841,7 +891,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     @sync_compatible
     async def upload_from_path(
-        self, from_path: Union[str, Path], to_path: str, **upload_kwargs: Dict[str, Any]
+        self,
+        from_path: Union[str, Path],
+        to_path: Optional[str] = None,
+        **upload_kwargs: Dict[str, Any],
     ) -> str:
         """
         Uploads an object from a path to the S3 bucket.
@@ -853,6 +906,15 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
         Returns:
             The path that the object was uploaded to.
+
+        Examples:
+            Upload notes.txt to my_folder/notes.txt.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.upload_from_path("notes.txt", "my_folder/notes.txt")
+            ```
         """
         if to_path is None:
             to_path = Path(from_path).name
@@ -889,6 +951,28 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
         Returns:
             The path that the object was uploaded to.
+
+        Examples:
+            Upload BytesIO object to my_folder/notes.txt.
+            ```python
+            from io import BytesIO
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            with open("notes.txt", "rb") as f:
+                s3_bucket.upload_from_file_object(f, "my_folder/notes.txt")
+            ```
+
+            Upload BufferedReader object to my_folder/notes.txt.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            with open("notes.txt", "rb") as f:
+                s3_bucket.upload_from_file_object(
+                    f, "my_folder/notes.txt"
+                )
+            ```
         """
         bucket_path = self._join_bucket_folder(to_path)
         client = self.aws_credentials.get_s3_client()
@@ -910,7 +994,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
     async def upload_from_folder(
         self,
         from_folder: Union[str, Path],
-        to_folder: str,
+        to_folder: Optional[str] = None,
         **upload_kwargs: Dict[str, Any],
     ) -> str:
         """
@@ -925,6 +1009,14 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
         Returns:
             The path that the folder was uploaded to.
+
+        Examples:
+            Upload notes.txt to my_folder/notes.txt
+            ```python
+            from prefect_gcp.cloud_storage import GcsBucket
+            gcs_bucket = GcsBucket.load("my-bucket")
+            gcs_bucket.upload_from_folder("my_folder")
+            ```
         """
         from_folder = Path(from_folder)
         bucket_folder = self._join_bucket_folder(to_folder or "")

@@ -3,10 +3,10 @@
 from typing import Any, Dict, Optional, Union
 
 from botocore.client import Config
-from prefect.blocks.core import Block
+from pydantic import BaseModel
 
 
-class AwsClientParameters(Block):
+class AwsClientParameters(BaseModel):
     """
     Dataclass used to manage extra parameters that you can pass when you initialize the Client. If you
     want to find more information, see
@@ -56,7 +56,7 @@ class AwsClientParameters(Block):
         """  # noqa E501
         params_override = {}
         for key, value in self.dict().items():
-            if value is None:
+            if value is None or key.startswith("_") or key == "block_type_slug":
                 continue
             if key == "config":
                 value = Config(**value)
