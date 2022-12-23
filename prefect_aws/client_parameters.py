@@ -22,12 +22,11 @@ class AwsClientParameters(BaseModel):
         use_ssl: Whether or not to use SSL. By default, SSL is used.
             Note that not all services support non-ssl connections.
         verify: Whether or not to verify SSL certificates. By default
-            SSL certificates are verified. You can provide the following values:
-            False - do not validate SSL certificates. SSL will still be
-              used (unless use_ssl is False), but SSL certificates
-              will not be verified.
+            SSL certificates are verified. If False, SSL will still be used
+            (unless use_ssl is False), but SSL certificates
+            will not be verified. Passing a file path to this is deprecated.
         verify_cert_path: A filename of the CA cert bundle to
-            uses. You can specify this argument if you want to use a
+            use. You can specify this argument if you want to use a
             different CA cert bundle than the one used by botocore.
         endpoint_url: The complete URL to use for the constructed
             client. Normally, botocore will automatically construct the
@@ -44,7 +43,7 @@ class AwsClientParameters(BaseModel):
         default=None, description="The API version to use."
     )
     use_ssl: bool = Field(default=True, description="Whether or not to use SSL.")
-    verify: bool = Field(
+    verify: Union[bool, FilePath] = Field(
         default=True, description="Whether or not to verify SSL certificates."
     )
     verify_cert_path: Optional[FilePath] = Field(
@@ -68,17 +67,43 @@ class AwsClientParameters(BaseModel):
             return value.__dict__["_user_provided_options"]
         return value
 
-    @root_validator(pre=True)
-    def has_verify_cert_path_but_verify_is_false(cls, values) -> Dict[str, Any]:
+    @root_validator
+    def deprecated_verify_cert_path(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        If verify is not a bool, raise a warning.
+        """
+        verify = values["verify"]
+
+        # deprecate using verify in favor of verify_cert_path
+        # so the UI looks nicer
+        if not isinstance(verify, bool):
+            warnings.warn(
+                "verify should be a boolean. "
+                "If you want to use a CA cert bundle, use verify_cert_path instead.",
+                DeprecationWarning,
+            )
+        return values
+
+    @root_validator
+    def verify_cert_path_and_verify(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         """
         If verify_cert_path is set but verify is False, raise a warning.
         """
-        if values.get("verify_cert_path") and not values["verify"]:
+        verify = values["verify"]
+        verify_cert_path = values.get("verify_cert_path")
+
+        if not verify and verify_cert_path:
             warnings.warn(
                 "verify_cert_path is set but verify is False. "
                 "verify_cert_path will be ignored."
             )
-            values.pop("verify_cert_path")
+            values["verify_cert_path"] = None
+        elif not isinstance(verify, bool) and verify_cert_path:
+            warnings.warn(
+                "verify_cert_path is set but verify is also set as a file path. "
+                "verify_cert_path will take precedence."
+            )
+            values["verify"] = True
         return values
 
     def get_params_override(self) -> Dict[str, Any]:
@@ -86,14 +111,19 @@ class AwsClientParameters(BaseModel):
         Return the dictionary of the parameters to override.
         The parameters to override are the one which are not None.
         """
+        params = self.dict()
+        if params.get("verify_cert_path"):
+            # to ensure that verify doesn't re-overwrite verify_cert_path
+            params.pop("verify")
+
         params_override = {}
-        for key, value in self.dict().items():
+        for key, value in params.items():
             if value is None:
                 continue
             elif key == "config":
                 params_override[key] = Config(**value)
             elif key == "verify_cert_path":
                 params_override["verify"] = value
-                params_override.pop("verify_cert_path")
-            params_override[key] = value
+            else:
+                params_override[key] = value
         return params_override
