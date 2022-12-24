@@ -3,7 +3,6 @@
 from typing import Optional
 
 import boto3
-from botocore.client import Config
 from mypy_boto3_s3 import S3Client
 from prefect.blocks.core import Block
 from pydantic import Field, SecretStr
@@ -54,13 +53,6 @@ class AwsCredentials(Block):
         default_factory=AwsClientParameters,
         description="Extra parameters to initialize the Client.",
     )
-
-    class Config:
-        """Configuration of pydantic."""
-
-        # Support serialization of the 'AwsClientParameters' type
-        arbitrary_types_allowed = True
-        json_encoders = {Config: lambda c: c.__dict__["_user_provided_options"]}
 
     def get_boto3_session(self) -> boto3.Session:
         """
