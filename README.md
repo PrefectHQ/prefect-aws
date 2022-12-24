@@ -40,7 +40,7 @@ pip install prefect-aws
 Then, register to [view the block](https://orion-docs.prefect.io/ui/blocks/) on Prefect Cloud:
 
 ```bash
-prefect block register -m prefect_aws.credentials
+prefect block register -m prefect_aws
 ```
 
 Note, to use the `load` method on Blocks, you must already have a block document [saved through code](https://orion-docs.prefect.io/concepts/blocks/#saving-blocks) or [saved through the UI](https://orion-docs.prefect.io/ui/blocks/).
@@ -131,6 +131,8 @@ asyncio.run(minio_s3_bucket_roundtrip())
 ## Next steps
 
 Refer to the API documentation in the side menu to explore all the capabilities of Prefect AWS!
+
+For more tips on how to use tasks and flows in a Collection, check out [Using Collections](https://orion-docs.prefect.io/collections/usage/)!
 
 ## Resources
 
