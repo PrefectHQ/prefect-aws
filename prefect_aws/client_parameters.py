@@ -72,11 +72,11 @@ class AwsClientParameters(BaseModel):
         """
         If verify is not a bool, raise a warning.
         """
-        verify = values["verify"]
+        verify = values.get("verify")
 
         # deprecate using verify in favor of verify_cert_path
         # so the UI looks nicer
-        if not isinstance(verify, bool):
+        if verify is not None and not isinstance(verify, bool):
             warnings.warn(
                 "verify should be a boolean. "
                 "If you want to use a CA cert bundle, use verify_cert_path instead.",
@@ -89,7 +89,7 @@ class AwsClientParameters(BaseModel):
         """
         If verify_cert_path is set but verify is False, raise a warning.
         """
-        verify = values["verify"]
+        verify = values.get("verify", True)
         verify_cert_path = values.get("verify_cert_path")
 
         if not verify and verify_cert_path:

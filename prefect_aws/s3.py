@@ -678,11 +678,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
     ) -> List[Dict[str, Any]]:
         """
         Args:
-            bucket: Name of bucket to list items from. Required if a default value
-                was not supplied when creating the task.
-            aws_credentials: Credentials to use for authentication with AWS.
-            aws_client_parameters: Custom parameter for the boto3 client initialization.
-            prefix: Used to filter objects with keys starting with the specified prefix.
+            folder: Folder to list objects from.
             delimiter: Character used to group keys of listed objects.
             page_size: Number of objects to return in each request to the AWS API.
             max_items: Maximum number of objects that to be returned by task.
@@ -1025,11 +1021,12 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             The path that the folder was uploaded to.
 
         Examples:
-            Upload notes.txt to my_folder/notes.txt
+            Upload contents from my_folder to new_folder.
             ```python
-            from prefect_gcp.cloud_storage import GcsBucket
-            gcs_bucket = GcsBucket.load("my-bucket")
-            gcs_bucket.upload_from_folder("my_folder")
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.upload_from_folder("my_folder", "new_folder")
             ```
         """
         from_folder = Path(from_folder)
