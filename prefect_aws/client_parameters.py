@@ -40,9 +40,11 @@ class AwsClientParameters(BaseModel):
     """  # noqa E501
 
     api_version: Optional[str] = Field(
-        default=None, description="The API version to use."
+        default=None, description="The API version to use.", title="API Version"
     )
-    use_ssl: bool = Field(default=True, description="Whether or not to use SSL.")
+    use_ssl: bool = Field(
+        default=True, description="Whether or not to use SSL.", title="Use SSL"
+    )
     verify: Union[bool, FilePath] = Field(
         default=True, description="Whether or not to verify SSL certificates."
     )
@@ -56,7 +58,11 @@ class AwsClientParameters(BaseModel):
         description="The complete URL to use for the constructed client.",
         title="Endpoint URL",
     )
-    config: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Advanced configuration for Botocore clients.",
+        title="Botocore Config",
+    )
 
     @validator("config", pre=True)
     def instantiate_config(cls, value: Union[Config, Dict[str, Any]]) -> Dict[str, Any]:

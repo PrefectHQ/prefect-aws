@@ -151,9 +151,13 @@ class MinIOCredentials(Block):
         "for more info about the possible credential configurations."
     )
 
-    minio_root_user: str
-    minio_root_password: SecretStr
-    region_name: Optional[str] = None
+    minio_root_user: str = Field(default=..., description="Admin or root user.")
+    minio_root_password: SecretStr = Field(
+        default=..., description="Admin or root password."
+    )
+    region_name: Optional[str] = Field(
+        default=None, description="Location of server.", example="us-east-1"
+    )
     aws_client_parameters: AwsClientParameters = Field(
         default_factory=AwsClientParameters,
         description="Extra parameters to initialize the Client.",
