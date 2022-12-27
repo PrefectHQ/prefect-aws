@@ -39,10 +39,14 @@ class AwsCredentials(Block):
     _block_type_name = "AWS Credentials"
 
     aws_access_key_id: Optional[str] = Field(
-        default=None, description="A specific AWS access key ID."
+        default=None,
+        description="A specific AWS access key ID.",
+        title="AWS Access Key ID",
     )
     aws_secret_access_key: Optional[SecretStr] = Field(
-        default=None, description="A specific AWS secret access key."
+        default=None,
+        description="A specific AWS secret access key.",
+        title="AWS Access Key Secret",
     )
     aws_session_token: Optional[str] = Field(
         default=None,
@@ -50,6 +54,7 @@ class AwsCredentials(Block):
             "The session key for your AWS account. "
             "This is only needed when you are using temporary credentials."
         ),
+        title="AWS Session Token",
     )
     profile_name: Optional[str] = Field(
         default=None, description="The profile to use when creating your session."
@@ -61,6 +66,7 @@ class AwsCredentials(Block):
     aws_client_parameters: AwsClientParameters = Field(
         default_factory=AwsClientParameters,
         description="Extra parameters to initialize the Client.",
+        title="AWS Client Parameters",
     )
 
     def get_boto3_session(self) -> boto3.Session:
