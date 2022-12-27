@@ -1,6 +1,7 @@
 """Module handling AWS credentials"""
 
-from typing import Optional
+from enum import Enum
+from typing import Any, Optional, Union
 
 import boto3
 from mypy_boto3_s3 import S3Client
@@ -8,6 +9,14 @@ from prefect.blocks.core import Block
 from pydantic import Field, SecretStr
 
 from prefect_aws.client_parameters import AwsClientParameters
+
+
+class ClientType(Enum):
+
+    S3 = "s3"
+    ECS = "ecs"
+    BATCH = "batch"
+    SECRETS_MANAGER = "secretsmanager"
 
 
 class AwsCredentials(Block):
@@ -83,11 +92,35 @@ class AwsCredentials(Block):
             region_name=self.region_name,
         )
 
-    def get_s3_client(self) -> S3Client:
+    def get_client(self, client_type: Union[str, ClientType]) -> Any:
+        """
+        Helper method to dynamically get a client type.
+
+        Args:
+            client_type: The client's service name.
+
+        Returns:
+            An authenticated client.
+
+        Raises:
+            ValueError: if the client is not supported.
+        """
+        if isinstance(client_type, ClientType):
+            client_type = client_type.value
+
         client = self.get_boto3_session().client(
-            service_name="s3", **self.aws_client_parameters.get_params_override()
+            service_name=client_type, **self.aws_client_parameters.get_params_override()
         )
         return client
+
+    def get_s3_client(self) -> S3Client:
+        """
+        Gets an authenticated S3 client.
+
+        Returns:
+            An authenticated S3 client.
+        """
+        return self.get_client(client_type=ClientType.S3)
 
 
 class MinIOCredentials(Block):
@@ -158,8 +191,32 @@ class MinIOCredentials(Block):
             region_name=self.region_name,
         )
 
-    def get_s3_client(self) -> boto3.client:
+    def get_client(self, client_type: Union[str, ClientType]) -> Any:
+        """
+        Helper method to dynamically get a client type.
+
+        Args:
+            client_type: The client's service name.
+
+        Returns:
+            An authenticated client.
+
+        Raises:
+            ValueError: if the client is not supported.
+        """
+        if isinstance(client_type, ClientType):
+            client_type = client_type.value
+
         client = self.get_boto3_session().client(
-            service_name="s3", **self.aws_client_parameters.get_params_override()
+            service_name=client_type, **self.aws_client_parameters.get_params_override()
         )
         return client
+
+    def get_s3_client(self) -> S3Client:
+        """
+        Gets an authenticated S3 client.
+
+        Returns:
+            An authenticated S3 client.
+        """
+        return self.get_client(client_type=ClientType.S3)

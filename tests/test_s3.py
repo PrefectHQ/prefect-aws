@@ -527,10 +527,25 @@ async def test_put_directory_respects_local_path(
     assert (tmp_path / "downloaded_files" / "folder2" / "file5.txt").exists()
 
 
+async def test_too_many_credentials_arguments(
+    s3_bucket, aws_creds_block, minio_creds_block
+):
+
+    """Test providing too many credentials as input."""
+    with pytest.raises(ValueError, match="Only one set of credentials should be"):
+        # create a new block with a subfolder
+        S3Bucket(
+            bucket_name=BUCKET_NAME,
+            aws_credentials=aws_creds_block,
+            minio_credentials=minio_creds_block,
+            basepath="subfolder",
+        )
+
+
 async def test_too_few_credentials_arguments(s3_bucket, aws_creds_block):
 
     """Test providing no credentials as input."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="S3Bucket requires at least one"):
         # create a new block with a subfolder
         S3Bucket(
             bucket_name=BUCKET_NAME,
@@ -581,7 +596,7 @@ class TestS3Bucket:
 
     @pytest.fixture
     def s3_bucket_empty(self, credentials, bucket):
-        _s3_bucket = S3Bucket(bucket_name="bucket", aws_credentials=credentials)
+        _s3_bucket = S3Bucket(bucket_name="bucket", credentials=credentials)
         return _s3_bucket
 
     @pytest.fixture

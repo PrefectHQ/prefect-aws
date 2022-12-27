@@ -238,43 +238,34 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     """
     Block used to store data using AWS S3 or S3-compatible object storage like MinIO.
-
-    Attributes:
-        bucket_name: Name of your bucket.
-        aws_credentials: A block containing your credentials (choose this
-            or minio_credentials).
-        minio_credentials: A block containing your credentials (choose this
-            or aws_credentials).
-        basepath: Used when you don't want to read/write at base level.
-        endpoint_url: Used for non-AWS configuration. When unspecified,
-            defaults to AWS.
-
-    Example:
-        Load stored S3Bucket configuration:
-        ```python
-        from prefect_aws.s3 import S3Bucket
-
-        s3bucket_block = S3Bucket.load("BLOCK_NAME")
-        ```
     """
 
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _block_type_name = "S3 Bucket"
 
     bucket_name: str = Field(default=..., description="Name of your bucket")
+
+    # TODO: remove deprecated minio_credentials after March 27, 2023
     minio_credentials: Optional[MinIOCredentials] = Field(
         default=None,
         description=(
-            "[DEPRECATED; use the aws_credentials field instead] "
+            "[DEPRECATED; use the credentials field instead] "
             "A block containing your credentials (choose this or "
             "AWS Credentials)"
         ),
     )
+
+    # TODO: remove deprecated aws_credentials after March 27, 2023
     aws_credentials: Optional[Union[AwsCredentials, MinIOCredentials]] = Field(
         default=None,
-        description="A block containing your credentials (choose this or "
-        "MinIO Credentials).",
+        description=(
+            "[DEPRECATED; use the credentials field instead] "
+            "A block containing your credentials (choose this or "
+            "MinIO Credentials)."
+        ),
     )
+
+    # TODO: remove deprecated basepath after March 27, 2023
     basepath: Optional[Union[str, Path]] = Field(
         default="",
         description=(
@@ -283,6 +274,8 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             "to the root of the bucket."
         ),
     )
+
+    # TODO: remove deprecated endpoint_url after March 27, 2023
     endpoint_url: Optional[str] = Field(
         default=None,
         description=(
@@ -291,6 +284,11 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             "standard AWS S3 endpoint."
         ),
     )
+
+    credentials: Optional[Union[AwsCredentials, MinIOCredentials]] = Field(
+        default=None, description="A block containing your credentials to AWS or MinIO."
+    )
+
     bucket_folder: str = Field(
         default="",
         description=(
@@ -301,7 +299,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     @validator("basepath", pre=True)
     def cast_pathlib(cls, value):
-
         """
         If basepath provided, it means we aren't writing to the root directory
         of the bucket. We need to ensure that it is a valid path. This is called
@@ -314,49 +311,66 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     @validator("basepath", pre=True)
     def deprecate_basepath(cls, value):
+        """
+        Raises deprecation warning.
+        """
         if value:
             warnings.warn(
-                "The basepath field is deprecated. Please use bucket_folder instead.",
+                "The basepath field is deprecated and will be removed March 2023. "
+                "Please use bucket_folder instead.",
                 DeprecationWarning,
             )
         return value
 
     @validator("endpoint_url", pre=True)
     def deprecate_endpoint_url(cls, value):
+        """
+        Raises deprecation warning.
+        """
         if value:
             warnings.warn(
-                "The endpoint_url field is deprecated. Please pass it in "
-                "AwsClientParameters and pass it into aws_credentials instead.",
+                "The endpoint_url field is deprecated and will be removed March 2023. "
+                "Please pass it in AwsClientParameters and pass it into "
+                "the credentials block instead.",
                 DeprecationWarning,
             )
         return value
 
     @root_validator(pre=True)
     def check_credentials(cls, values):
-
         """
         Ensure exactly 1 of 2 optional credentials fields has been provided by
         user.
         """
-
+        creds_exist = bool(values.get("credentials"))
         minio_creds_exist = bool(values.get("minio_credentials"))
         aws_creds_exist = bool(values.get("aws_credentials"))
 
         # if both credentials fields provided
+        if minio_creds_exist and aws_creds_exist:
+            raise ValueError("Only one set of credentials should be provided.")
+
         if minio_creds_exist:
             # raise deprecationwarning
             warnings.warn(
-                "The minio_credentials field is deprecated. Please use "
-                "aws_credentials instead.",
+                "The minio_credentials field is deprecated and "
+                "will be removed March 2023. Please use credentials instead.",
                 DeprecationWarning,
             )
-            values["aws_credentials"] = values.get("minio_credentials")
+            values["credentials"] = values.get("minio_credentials")
+        elif aws_creds_exist:
+            # raise deprecationwarning
+            warnings.warn(
+                "The aws_credentials field is deprecated and "
+                "will be removed March 2023. Please use credentials instead.",
+                DeprecationWarning,
+            )
+            values["credentials"] = values.get("aws_credentials")
 
         # if neither credentials fields provided
-        if not minio_creds_exist and not aws_creds_exist:
+        if not creds_exist and not minio_creds_exist and not aws_creds_exist:
             raise ValueError(
-                "S3Bucket requires either a minio_credentials"
-                "field or an aws_credentials field."
+                "S3Bucket requires at least one credentials block to be provided."
             )
         return values
 
@@ -699,7 +713,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             ```
         """  # noqa: E501
         bucket_path = self._join_bucket_folder(folder)
-        client = self.aws_credentials.get_s3_client()
+        client = self.credentials.get_s3_client()
         paginator = client.get_paginator("list_objects_v2")
         page_iterator = paginator.paginate(
             Bucket=self.bucket_name,
@@ -753,7 +767,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         # since !r looks nicer that way and filename arg expects str
         to_path = str(Path(to_path).absolute())
         bucket_path = self._join_bucket_folder(from_path)
-        client = self.aws_credentials.get_s3_client()
+        client = self.credentials.get_s3_client()
 
         self.logger.debug(
             f"Preparing to download object from bucket {self.bucket_name!r} "
@@ -813,7 +827,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                 s3_bucket.download_object_to_file_object("my_folder/notes.txt", f)
             ```
         """
-        client = self.aws_credentials.get_s3_client()
+        client = self.credentials.get_s3_client()
         bucket_path = self._join_bucket_folder(from_path)
 
         self.logger.debug(
@@ -866,7 +880,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             to_folder = ""
         to_folder = Path(to_folder).absolute()
 
-        client = self.aws_credentials.get_s3_client()
+        client = self.credentials.get_s3_client()
         objects = await self.list_objects(folder=from_folder)
 
         # do not call self._join_bucket_folder for filter
@@ -877,6 +891,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         async_coros = []
         for object in objects:
             bucket_path = Path(object["Key"]).relative_to(bucket_folder)
+            # this skips the actual directory itself, e.g.
+            # `my_folder/` will be skipped
+            # `my_folder/notes.txt` will be downloaded
             if bucket_path.is_dir():
                 continue
             to_path = to_folder / bucket_path
@@ -931,7 +948,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             to_path = Path(from_path).name
 
         bucket_path = str(self._join_bucket_folder(to_path))
-        client = self.aws_credentials.get_s3_client()
+        client = self.credentials.get_s3_client()
 
         await run_sync_in_worker_thread(
             client.upload_file,
@@ -986,7 +1003,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             ```
         """
         bucket_path = str(self._join_bucket_folder(to_path))
-        client = self.aws_credentials.get_s3_client()
+        client = self.credentials.get_s3_client()
         await run_sync_in_worker_thread(
             client.upload_fileobj,
             Fileobj=from_file_object,
@@ -1033,10 +1050,13 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         bucket_folder = self._join_bucket_folder(to_folder or "")
 
         num_uploaded = 0
-        client = self.aws_credentials.get_s3_client()
+        client = self.credentials.get_s3_client()
 
         async_coros = []
         for from_path in from_folder.rglob("**/*"):
+            # this skips the actual directory itself, e.g.
+            # `my_folder/` will be skipped
+            # `my_folder/notes.txt` will be uploaded
             if from_path.is_dir():
                 continue
             bucket_path = str(Path(bucket_folder) / from_path.relative_to(from_folder))
