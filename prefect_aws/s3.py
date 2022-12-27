@@ -401,21 +401,11 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         Authenticate MinIO credentials or AWS credentials and return an S3 client.
         This is a helper function called by read_path() or write_path().
         """
-        params_override = (
-            self.aws_credentials.aws_client_parameters.get_params_override()
-        )
-        if "endpoint_url" not in params_override and self.endpoint_url:
-            params_override["endpoint_url"] = self.endpoint_url
-
         if self.minio_credentials:
-            s3_client = self.minio_credentials.get_boto3_session().client(
-                service_name="s3", **params_override
-            )
+            s3_client = self.minio_credentials.get_s3_client()
 
         elif self.aws_credentials:
-            s3_client = self.aws_credentials.get_boto3_session().client(
-                service_name="s3", **params_override
-            )
+            s3_client = self.aws_credentials.get_s3_client()
         else:
             raise ValueError(
                 "S3 Bucket requires either a minio_credentials"
@@ -427,13 +417,12 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         """
         Retrieves boto3 resource object for the configured bucket
         """
-        params_override = (
-            self.aws_credentials.aws_client_parameters.get_params_override()
-        )
-        if "endpoint_url" not in params_override and self.endpoint_url:
-            params_override["endpoint_url"] = self.endpoint_url
-
         if self.minio_credentials:
+            params_override = (
+                self.minio_credentials.aws_client_parameters.get_params_override()
+            )
+            if "endpoint_url" not in params_override and self.endpoint_url:
+                params_override["endpoint_url"] = self.endpoint_url
             bucket = (
                 self.minio_credentials.get_boto3_session()
                 .resource("s3", **params_override)
@@ -441,6 +430,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             )
 
         elif self.aws_credentials:
+            params_override = (
+                self.aws_credentials.aws_client_parameters.get_params_override()
+            )
             bucket = (
                 self.aws_credentials.get_boto3_session()
                 .resource("s3", **params_override)
