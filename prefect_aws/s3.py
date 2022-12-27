@@ -243,8 +243,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _block_type_name = "S3 Bucket"
 
-    _block_schema_version = "9.9.9"
-
     bucket_name: str = Field(default=..., description="Name of your bucket")
 
     # TODO: remove deprecated minio_credentials after March 27, 2023
