@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `S3Bucket` additionally inherits from `ObjectStorageBlock` - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
 - Exposed all existing blocks to the top level init - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+- Inherit `CredentialsBlock` for `AwsCredentials` and `MinIOCredentials` - [#183](https://github.com/PrefectHQ/prefect-aws/pull/183)
 
 ### Deprecated
 
