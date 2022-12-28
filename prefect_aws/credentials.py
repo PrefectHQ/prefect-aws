@@ -168,8 +168,6 @@ class MinIOCredentials(Block):
     aws_client_parameters: AwsClientParameters = Field(
         default_factory=AwsClientParameters,
         description="Extra parameters to initialize the Client.",
-        default=...,
-        description="Password for root user.",
     )
 
     def get_boto3_session(self) -> boto3.Session:
