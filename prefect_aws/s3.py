@@ -258,11 +258,11 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _block_type_name = "S3 Bucket"
 
-    bucket_name: str = Field(default=..., description="Name of your bucket")
+    bucket_name: str = Field(default=..., description="Name of your bucket.")
     minio_credentials: Optional[MinIOCredentials] = Field(
         default=None,
         description="A block containing your credentials (choose this or "
-        "MinIO Credentials)",
+        "MinIO Credentials).",
     )
     aws_credentials: Optional[AwsCredentials] = Field(
         default=None,

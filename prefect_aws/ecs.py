@@ -285,7 +285,7 @@ class ECSTask(Infrastructure):
             "to the AWS CloudWatch logs service. This functionality requires an "
             "execution role with logs:CreateLogStream, logs:CreateLogGroup, and "
             "logs:PutLogEvents permissions. The default for this field is `False` "
-            "unless `stream_output` is set. "
+            "unless `stream_output` is set."
         ),
     )
     cloudwatch_logs_options: Dict[str, str] = Field(
@@ -294,7 +294,7 @@ class ECSTask(Infrastructure):
             "When `configure_cloudwatch_logs` is enabled, this setting may be used to "
             "pass additional options to the CloudWatch logs configuration or override "
             "the default options. See the AWS documentation for available options. "
-            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options"  # noqa
+            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options."  # noqa
         ),
     )
     stream_output: bool = Field(

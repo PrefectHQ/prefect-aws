@@ -105,9 +105,14 @@ class MinIOCredentials(Block):
         "for more info about the possible credential configurations."
     )
 
-    minio_root_user: str
-    minio_root_password: SecretStr
-    region_name: Optional[str] = None
+    minio_root_user: str = Field(default=..., description="Admin or root user.")
+    minio_root_password: SecretStr = Field(
+        default=..., description="Password for root user."
+    )
+    region_name: Optional[str] = Field(
+        default=None,
+        description="The AWS Region where you want to create new connections.",
+    )
 
     def get_boto3_session(self) -> boto3.Session:
         """
