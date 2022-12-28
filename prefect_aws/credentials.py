@@ -162,11 +162,14 @@ class MinIOCredentials(Block):
         default=..., description="Admin or root password."
     )
     region_name: Optional[str] = Field(
-        default=None, description="Location of server.", example="us-east-1"
+        default=None,
+        description="The AWS Region where you want to create new connections.",
     )
     aws_client_parameters: AwsClientParameters = Field(
         default_factory=AwsClientParameters,
         description="Extra parameters to initialize the Client.",
+        default=...,
+        description="Password for root user.",
     )
 
     def get_boto3_session(self) -> boto3.Session:
