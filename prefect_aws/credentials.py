@@ -5,7 +5,7 @@ from typing import Any, Optional, Union
 
 import boto3
 from mypy_boto3_s3 import S3Client
-from prefect.blocks.core import Block
+from prefect.blocks.abstract import CredentialsBlock
 from pydantic import Field, SecretStr
 
 from prefect_aws.client_parameters import AwsClientParameters
@@ -19,7 +19,7 @@ class ClientType(Enum):
     SECRETS_MANAGER = "secretsmanager"
 
 
-class AwsCredentials(Block):
+class AwsCredentials(CredentialsBlock):
     """
     Block used to manage authentication with AWS. AWS authentication is
     handled via the `boto3` module. Refer to the
@@ -129,7 +129,7 @@ class AwsCredentials(Block):
         return self.get_client(client_type=ClientType.S3)
 
 
-class MinIOCredentials(Block):
+class MinIOCredentials(CredentialsBlock):
     """
     Block used to manage authentication with MinIO. Refer to the
     [MinIO docs](https://docs.min.io/docs/minio-server-configuration-guide.html)
