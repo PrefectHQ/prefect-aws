@@ -104,6 +104,9 @@ Examples:
     ```
 """
 import copy
+import difflib
+import logging
+import pprint
 import sys
 import time
 import warnings
@@ -113,6 +116,7 @@ import boto3
 import yaml
 from anyio.abc import TaskStatus
 from prefect.docker import get_prefect_image_name
+from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.pydantic import JsonPatch
@@ -158,6 +162,24 @@ def get_container(containers: List[dict], name: str) -> Optional[dict]:
         if container.get("name") == name:
             return container
     return None
+
+
+def parse_task_identifier(identifier: str) -> Tuple[str, str]:
+    """
+    Splits identifier into its cluster and task components, e.g.
+    input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").
+    """
+    cluster, task = identifier.split("::", maxsplit=1)
+    return cluster, task
+
+
+def _pretty_diff(d1: dict, d2: dict) -> str:
+    """
+    Return a string with a pretty printed difference between two dictionaries.
+    """
+    return "\n" + "\n".join(
+        difflib.ndiff(pprint.pformat(d1).splitlines(), pprint.pformat(d2).splitlines())
+    )
 
 
 class ECSTask(Infrastructure):
@@ -211,7 +233,7 @@ class ECSTask(Infrastructure):
         ),
     )
     image: Optional[str] = Field(
-        default_factory=get_prefect_image_name,
+        default=None,
         description=(
             "The image to use for the Prefect container in the task. If this value is "
             "not null, it will override the value in the task definition. This value "
@@ -263,7 +285,7 @@ class ECSTask(Infrastructure):
             "to the AWS CloudWatch logs service. This functionality requires an "
             "execution role with logs:CreateLogStream, logs:CreateLogGroup, and "
             "logs:PutLogEvents permissions. The default for this field is `False` "
-            "unless `stream_output` is set. "
+            "unless `stream_output` is set."
         ),
     )
     cloudwatch_logs_options: Dict[str, str] = Field(
@@ -272,7 +294,7 @@ class ECSTask(Infrastructure):
             "When `configure_cloudwatch_logs` is enabled, this setting may be used to "
             "pass additional options to the CloudWatch logs configuration or override "
             "the default options. See the AWS documentation for available options. "
-            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options"  # noqa
+            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options."  # noqa
         ),
     )
     stream_output: bool = Field(
@@ -405,28 +427,32 @@ class ECSTask(Infrastructure):
             )
         return values
 
-    @root_validator
+    @root_validator(pre=True)
     def image_is_required(cls, values: dict) -> dict:
         """
-        Enforces that an image is available if the user sets it to `None`.
+        Enforces that an image is available if image is `None`.
         """
-        if (
-            not values.get("image")
-            and not values.get("task_definition_arn")
-            # Check for an image in the task definition; whew!
-            and not (
-                get_prefect_container(
-                    (values.get("task_definition") or {}).get(
-                        "containerDefinitions", []
-                    )
-                )
-                or {}
-            ).get("image")
-        ):
-            raise ValueError(
-                "A value for the `image` field must be provided unless already "
-                "present for the Prefect container definition a given task definition."
+        has_image = bool(values.get("image"))
+        has_task_definition_arn = bool(values.get("task_definition_arn"))
+
+        # The image can only be null when the task_definition_arn is set
+        if has_image or has_task_definition_arn:
+            return values
+
+        prefect_container = (
+            get_prefect_container(
+                (values.get("task_definition") or {}).get("containerDefinitions", [])
             )
+            or {}
+        )
+        image_in_task_definition = prefect_container.get("image")
+
+        # If a task_definition is given with a prefect container image, use that value
+        if image_in_task_definition:
+            values["image"] = image_in_task_definition
+        # Otherwise, it should default to the Prefect base image
+        else:
+            values["image"] = get_prefect_image_name()
         return values
 
     @validator("task_customizations", pre=True)
@@ -517,8 +543,14 @@ class ECSTask(Infrastructure):
             f"in container {PREFECT_ECS_CONTAINER_NAME!r} ({self.image})..."
         )
 
+        # The task identifier is "{cluster}::{task}" where we use the configured cluster
+        # if set to preserve matching by name rather than arn
+        # Note "::" is used despite the Prefect standard being ":" because ARNs contain
+        # single colons.
+        identifier = (self.cluster if self.cluster else cluster_arn) + "::" + task_arn
+
         if task_status:
-            task_status.started(task_arn)
+            task_status.started(identifier)
 
         status_code = await run_sync_in_worker_thread(
             self._watch_task_and_get_exit_code,
@@ -531,11 +563,62 @@ class ECSTask(Infrastructure):
         )
 
         return ECSTaskResult(
-            identifier=task_arn,
+            identifier=identifier,
             # If the container does not start the exit code can be null but we must
             # still report a status code. We use a -1 to indicate a special code.
             status_code=status_code or -1,
         )
+
+    @sync_compatible
+    async def kill(self, identifier: str, grace_seconds: int = 30) -> None:
+        """
+        Kill a task running on ECS.
+
+        Args:
+            identifier: A cluster and task arn combination. This should match a value
+                yielded by `ECSTask.run`.
+        """
+        if grace_seconds != 30:
+            self.logger.warning(
+                f"Kill grace period of {grace_seconds}s requested, but AWS does not "
+                "support dynamic grace period configuration so 30s will be used. "
+                "See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html for configuration of grace periods."  # noqa
+            )
+        cluster, task = parse_task_identifier(identifier)
+        await run_sync_in_worker_thread(self._stop_task, cluster, task)
+
+    def _stop_task(self, cluster: str, task: str) -> None:
+        """
+        Stop a running ECS task.
+        """
+        if self.cluster is not None and cluster != self.cluster:
+            raise InfrastructureNotAvailable(
+                "Cannot stop ECS task: this infrastructure block has access to "
+                f"cluster {self.cluster!r} but the task is running in cluster "
+                f"{cluster!r}."
+            )
+
+        _, ecs_client = self._get_session_and_client()
+        try:
+            ecs_client.stop_task(cluster=cluster, task=task)
+        except Exception as exc:
+            # Raise a special exception if the task does not exist
+            if "ClusterNotFound" in str(exc):
+                raise InfrastructureNotFound(
+                    f"Cannot stop ECS task: the cluster {cluster!r} could not be found."
+                ) from exc
+            if "not find task" in str(exc):
+                raise InfrastructureNotFound(
+                    f"Cannot stop ECS task: the task {task!r} could not be found in "
+                    f"cluster {cluster!r}."
+                ) from exc
+            if "no registered tasks" in str(exc):
+                raise InfrastructureNotFound(
+                    f"Cannot stop ECS task: the cluster {cluster!r} has no tasks."
+                ) from exc
+
+            # Reraise unknown exceptions
+            raise
 
     @property
     def _log_prefix(self) -> str:
@@ -581,8 +664,26 @@ class ECSTask(Infrastructure):
 
         # We must register the task definition if the arn is null or changes were made
         if task_definition != requested_task_definition or not task_definition_arn:
-            self.logger.info(f"{self._log_prefix}: Registering task definition...")
-            self.logger.debug("Task definition payload\n" + yaml.dump(task_definition))
+            if task_definition_arn:
+                self.logger.warning(
+                    f"{self._log_prefix}: Settings require changes to the linked "
+                    "task definition. A new task definition will be registered. "
+                    + (
+                        "Enable DEBUG level logs to see the difference."
+                        if self.logger.level > logging.DEBUG
+                        else ""
+                    )
+                )
+                self.logger.debug(
+                    f"{self._log_prefix}: Diff for requested task definition"
+                    + _pretty_diff(requested_task_definition, task_definition)
+                )
+            else:
+                self.logger.info(f"{self._log_prefix}: Registering task definition...")
+                self.logger.debug(
+                    "Task definition payload\n" + yaml.dump(task_definition)
+                )
+
             task_definition_arn = self._register_task_definition(
                 ecs_client, task_definition
             )
