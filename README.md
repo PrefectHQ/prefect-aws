@@ -37,117 +37,71 @@ Install `prefect-aws`
 ```bash
 pip install prefect-aws
 ```
-Then, register to [view the block](https://orion-docs.prefect.io/ui/blocks/) on Prefect Cloud:
 
-```bash
-prefect block register -m prefect_aws.credentials
-```
-
-Note, to use the `load` method on Blocks, you must already have a block document [saved through code](https://orion-docs.prefect.io/concepts/blocks/#saving-blocks) or [saved through the UI](https://orion-docs.prefect.io/ui/blocks/).
+A list of available blocks in `prefect-aws` and their setup instructions can be found [here](https://PrefectHQ.github.io/prefect-aws/#blocks-catalog).
 
 ### AWS Authentication
 
 You will need to obtain AWS credentials in order to use these tasks. Refer to the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for authentication methods available.
 
-### Write and run a flow with prefect-aws tasks
+### Write and run a flow
+
+#### Upload and download from S3Bucket
 ```python
 from prefect import flow
-from prefect_aws import AwsCredentials
-from prefect_aws.s3 import s3_upload
-
-@flow
-def example_s3_upload_flow():
-    aws_credentials = AwsCredentials(
-        aws_access_key_id="acccess_key_id",
-        aws_secret_access_key="secret_access_key"
-    )
-    with open("data.csv", "rb") as file:
-        key = s3_upload(
-            bucket="bucket",
-            key="data.csv",
-            data=file.read(),
-            aws_credentials=aws_credentials,
-        )
-
-example_s3_upload_flow()
-```
-
-### Write and run a flow with AwsCredentials and S3Bucket
-
-```python
-import asyncio
-from prefect import flow
-from prefect_aws import AwsCredentials
-from prefect_aws.s3 import S3Bucket
-
-
-@flow
-async def aws_s3_bucket_roundtrip():
-    # create an AwsCredentials block here or through UI
-    aws_creds = AwsCredentials(
-        aws_access_key_id="AWS_ACCESS_KEY_ID",
-        aws_secret_access_key="AWS_SECRET_ACCESS_KEY"
-    )
-
-    s3_bucket = S3Bucket(
-        bucket_name="bucket",  # must exist
-        aws_credentials=aws_creds,
-        basepath="subfolder",
-    )
-
-    key = await s3_bucket.write_path("data.csv", content=b"hello")
-
-    return await s3_bucket.read_path(key)
-
-asyncio.run(aws_s3_bucket_roundtrip())
-```
-
-### Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket
-
-```python
-import asyncio
-from prefect import flow
-from prefect_aws import MinIOCredentials
 from prefect_aws.s3 import S3Bucket
 
 @flow
-async def minio_s3_bucket_roundtrip():
+def example_flow():
+    with open("hello.py", "w") as f:
+        f.write("print('Hello world!')")
 
-    minio_creds = MinIOCredentials.load("MY_BLOCK_NAME")
+    s3_bucket = S3Bucket.load("my-bucket-test")
+    s3_bucket.upload_from_path("hello.py")
+    s3_bucket.download_object_to_path("hello.py", "downloaded_hello.py")
 
-    s3_bucket = S3Bucket(
-        bucket_name="bucket",  # must exist
-        minio_credentials=minio_creds,
-        endpoint_url="http://localhost:9000"
-    )
-
-    path_to_file = await s3_bucket.write_path("/data.csv", content=b"hello")
-    return await s3_bucket.read_path(path_to_file)
-
-asyncio.run(minio_s3_bucket_roundtrip())
+example_flow()
 ```
 
+#### Use `with_options` to customize options on any existing task or flow
+
+```python
+custom_example_flow = example_flow.with_options(
+    name="My custom task name",
+    retries=2,
+    retry_delay_seconds=10,
+) 
+```
 
 ## Next steps
 
 Refer to the API documentation in the side menu to explore all the capabilities of Prefect AWS!
 
+For more tips on how to use tasks and flows in a Collection, check out [Using Collections](https://orion-docs.prefect.io/collections/usage/)!
+
 ## Resources
 
-If you encounter and bugs while using `prefect-aws`, feel free to open an issue in the [prefect-aws](https://github.com/PrefectHQ/prefect-aws) repository.
+If you have any questions or issues while using `prefect-aws`, you can find help in either the [Prefect Discourse forum](https://discourse.prefect.io/) or the [Prefect Slack community](https://prefect.io/slack).
+ 
+Feel free to star or watch [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) for updates too!
 
-If you have any questions or issues while using `prefect-aws`, you can find help in either the [Prefect Discourse forum](https://discourse.prefect.io/) or the [Prefect Slack community](https://prefect.io/slack)
+## Contribute
 
-Feel free to ⭐️ or watch [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) for updates too!
+If you'd like to help contribute to fix an issue or add a feature to `prefect-aws`, please [propose changes through a pull request from a fork of the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
 
-## Development
+### Contribution Steps:
 
-If you'd like to install a version of `prefect-aws` for development, first clone the repository and then perform an editable install with `pip`:
-
-```bash
-git clone https://github.com/PrefectHQ/prefect-aws.git
-
-cd prefect-aws/
-
+1. [Fork the repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo#forking-a-repository)
+2. [Clone the forked repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo#cloning-your-forked-repository)
+3. Install the repository and its dependencies:
+```
 pip install -e ".[dev]"
 ```
+4. Make desired changes.
+5. Add tests.
+6. Insert an entry to [CHANGELOG.md](https://github.com/PrefectHQ/prefect-aws/blob/main/CHANGELOG.md)
+7. Install `pre-commit` to perform quality checks prior to commit:
+```
+pre-commit install
+```
+8. `git commit`, `git push`, and create a pull request.

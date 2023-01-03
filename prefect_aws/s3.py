@@ -1,14 +1,17 @@
 """Tasks for interacting with AWS S3"""
+import asyncio
 import io
 import os
 import uuid
+import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, BinaryIO, Dict, List, Optional, Union
 from uuid import uuid4
 
 import boto3
 from botocore.paginate import PageIterator
 from prefect import get_run_logger, task
+from prefect.blocks.abstract import ObjectStorageBlock
 from prefect.filesystems import WritableDeploymentStorage, WritableFileSystem
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.filesystem import filter_files
@@ -231,58 +234,71 @@ async def s3_list_objects(
     return await run_sync_in_worker_thread(_list_objects_sync, page_iterator)
 
 
-class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
+class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock):
 
     """
     Block used to store data using AWS S3 or S3-compatible object storage like MinIO.
-
-    Attributes:
-        bucket_name: Name of your bucket.
-        aws_credentials: A block containing your credentials (choose this
-            or minio_credentials).
-        minio_credentials: A block containing your credentials (choose this
-            or aws_credentials).
-        basepath: Used when you don't want to read/write at base level.
-        endpoint_url: Used for non-AWS configuration. When unspecified,
-            defaults to AWS.
-
-    Example:
-        Load stored S3Bucket configuration:
-        ```python
-        from prefect_aws.s3 import S3Bucket
-
-        s3bucket_block = S3Bucket.load("BLOCK_NAME")
-        ```
     """
 
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _block_type_name = "S3 Bucket"
 
-    bucket_name: str = Field(default=..., description="Name of your bucket")
+    bucket_name: str = Field(default=..., description="Name of your bucket.")
+
+    # TODO: remove deprecated minio_credentials after March 27, 2023
     minio_credentials: Optional[MinIOCredentials] = Field(
         default=None,
-        description="A block containing your credentials (choose this or "
-        "MinIO Credentials)",
+        description=(
+            "[DEPRECATED; use the credentials field instead] "
+            "A block containing your credentials (choose this or "
+            "AWS Credentials)"
+        ),
     )
+
+    # TODO: remove deprecated aws_credentials after March 27, 2023
     aws_credentials: Optional[AwsCredentials] = Field(
         default=None,
-        description="A block containing your credentials (choose this or "
-        "AWS Credentials).",
+        description=(
+            "[DEPRECATED; use the credentials field instead] "
+            "A block containing your credentials (choose this or "
+            "MinIO Credentials)."
+        ),
     )
+
+    # TODO: remove deprecated basepath after March 27, 2023
     basepath: Optional[Union[str, Path]] = Field(
         default="",
-        description="Location to write to and read from in the S3 bucket. Defaults to "
-        "the root of the bucket.",
+        description=(
+            "[DEPRECATED; use the bucket_folder field instead] "
+            "A default location to write to and read from in the S3 bucket. Defaults "
+            "to the root of the bucket."
+        ),
     )
+
+    # TODO: remove deprecated endpoint_url after March 27, 2023
     endpoint_url: Optional[str] = Field(
         default=None,
-        description="URL endpoint to use for S3 compatible storage. Defaults to "
-        "standard AWS S3 endpoint.",
+        description=(
+            "[DEPRECATED; pass AwsClientParameters in AwsCredentials instead] "
+            "URL endpoint to use for S3 compatible storage. Defaults to "
+            "standard AWS S3 endpoint."
+        ),
+    )
+
+    credentials: Optional[Union[AwsCredentials, MinIOCredentials]] = Field(
+        default=None, description="A block containing your credentials to AWS or MinIO."
+    )
+
+    bucket_folder: str = Field(
+        default="",
+        description=(
+            "A default path to a folder within the S3 bucket to use "
+            "for reading and writing objects."
+        ),
     )
 
     @validator("basepath", pre=True)
     def cast_pathlib(cls, value):
-
         """
         If basepath provided, it means we aren't writing to the root directory
         of the bucket. We need to ensure that it is a valid path. This is called
@@ -293,28 +309,68 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
             return str(value)
         return value
 
+    @validator("basepath", pre=True)
+    def deprecate_basepath(cls, value):
+        """
+        Raises deprecation warning.
+        """
+        if value:
+            warnings.warn(
+                "The basepath field is deprecated and will be removed March 2023. "
+                "Please use bucket_folder instead.",
+                DeprecationWarning,
+            )
+        return value
+
+    @validator("endpoint_url", pre=True)
+    def deprecate_endpoint_url(cls, value):
+        """
+        Raises deprecation warning.
+        """
+        if value:
+            warnings.warn(
+                "The endpoint_url field is deprecated and will be removed March 2023. "
+                "Please pass it in AwsClientParameters and pass it into "
+                "the credentials block instead.",
+                DeprecationWarning,
+            )
+        return value
+
     @root_validator(pre=True)
     def check_credentials(cls, values):
-
         """
         Ensure exactly 1 of 2 optional credentials fields has been provided by
         user.
         """
-
+        creds_exist = bool(values.get("credentials"))
         minio_creds_exist = bool(values.get("minio_credentials"))
         aws_creds_exist = bool(values.get("aws_credentials"))
 
         # if both credentials fields provided
         if minio_creds_exist and aws_creds_exist:
-            raise ValueError(
-                "S3Bucket accepts a minio_credentials field or an"
-                "aws_credentials field but not both."
+            raise ValueError("Only one set of credentials should be provided.")
+
+        if minio_creds_exist:
+            # raise deprecationwarning
+            warnings.warn(
+                "The minio_credentials field is deprecated and "
+                "will be removed March 2023. Please use credentials instead.",
+                DeprecationWarning,
             )
+            values["credentials"] = values.get("minio_credentials")
+        elif aws_creds_exist:
+            # raise deprecationwarning
+            warnings.warn(
+                "The aws_credentials field is deprecated and "
+                "will be removed March 2023. Please use credentials instead.",
+                DeprecationWarning,
+            )
+            values["credentials"] = values.get("aws_credentials")
+
         # if neither credentials fields provided
-        if not minio_creds_exist and not aws_creds_exist:
+        if not creds_exist and not minio_creds_exist and not aws_creds_exist:
             raise ValueError(
-                "S3Bucket requires either a minio_credentials"
-                "field or an aws_credentials field."
+                "S3Bucket requires at least one credentials block to be provided."
             )
         return values
 
@@ -332,9 +388,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
 
         path = path or str(uuid4())
 
+        bucket_folder = self.bucket_folder or self.basepath
         # If basepath provided, it means we won't write to the root dir of
         # the bucket. So we need to add it on the front of the path.
-        path = str(Path(self.basepath) / path) if self.basepath else path
+        path = str(Path(bucket_folder) / path) if bucket_folder else path
 
         return path
 
@@ -344,16 +401,11 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
         Authenticate MinIO credentials or AWS credentials and return an S3 client.
         This is a helper function called by read_path() or write_path().
         """
-
         if self.minio_credentials:
-            s3_client = self.minio_credentials.get_boto3_session().client(
-                service_name="s3", endpoint_url=self.endpoint_url
-            )
+            s3_client = self.minio_credentials.get_s3_client()
 
         elif self.aws_credentials:
-            s3_client = self.aws_credentials.get_boto3_session().client(
-                service_name="s3"
-            )
+            s3_client = self.aws_credentials.get_s3_client()
         else:
             raise ValueError(
                 "S3 Bucket requires either a minio_credentials"
@@ -366,16 +418,24 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
         Retrieves boto3 resource object for the configured bucket
         """
         if self.minio_credentials:
+            params_override = (
+                self.minio_credentials.aws_client_parameters.get_params_override()
+            )
+            if "endpoint_url" not in params_override and self.endpoint_url:
+                params_override["endpoint_url"] = self.endpoint_url
             bucket = (
                 self.minio_credentials.get_boto3_session()
-                .resource("s3", endpoint_url=self.endpoint_url)
+                .resource("s3", **params_override)
                 .Bucket(self.bucket_name)
             )
 
         elif self.aws_credentials:
+            params_override = (
+                self.aws_credentials.aws_client_parameters.get_params_override()
+            )
             bucket = (
                 self.aws_credentials.get_boto3_session()
-                .resource("s3")
+                .resource("s3", **params_override)
                 .Bucket(self.bucket_name)
             )
         else:
@@ -401,8 +461,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
             local_path: Local path to download S3 contents to. Defaults to the current
                 working directory.
         """
+        bucket_folder = self.bucket_folder or self.basepath
         if from_path is None:
-            from_path = str(self.basepath) if self.basepath else ""
+            from_path = str(bucket_folder) if bucket_folder else ""
 
         if local_path is None:
             local_path = str(Path(".").absolute())
@@ -576,3 +637,443 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage):
         with io.BytesIO(data) as stream:
 
             s3_client.upload_fileobj(Fileobj=stream, Bucket=self.bucket_name, Key=key)
+
+    # NEW BLOCK INTERFACE METHODS BELOW
+    @staticmethod
+    def _list_objects_sync(page_iterator: PageIterator) -> List[Dict[str, Any]]:
+        """
+        Synchronous method to collect S3 objects into a list
+
+        Args:
+            page_iterator: AWS Paginator for S3 objects
+
+        Returns:
+            List[Dict]: List of object information
+        """
+        return [
+            content for page in page_iterator for content in page.get("Contents", [])
+        ]
+
+    def _join_bucket_folder(self, bucket_path: str = "") -> str:
+        """
+        Joins the base bucket folder to the bucket path.
+        NOTE: If a method reuses another method in this class, be careful to not
+        call this  twice because it'll join the bucket folder twice.
+        See https://github.com/PrefectHQ/prefect-aws/issues/141 for a past issue.
+        """
+        if not self.bucket_folder and not bucket_path:
+            # there's a difference between "." and "", at least in the tests
+            return ""
+
+        bucket_path = str(bucket_path)
+        if self.bucket_folder != "" and bucket_path.startswith(self.bucket_folder):
+            self.logger.info(
+                f"Bucket path {bucket_path!r} is already prefixed with "
+                f"bucket folder {self.bucket_folder!r}; is this intentional?"
+            )
+        return str(Path(self.bucket_folder) / bucket_path)
+
+    @sync_compatible
+    async def list_objects(
+        self,
+        folder: str = "",
+        delimiter: str = "",
+        page_size: Optional[int] = None,
+        max_items: Optional[int] = None,
+        jmespath_query: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Args:
+            folder: Folder to list objects from.
+            delimiter: Character used to group keys of listed objects.
+            page_size: Number of objects to return in each request to the AWS API.
+            max_items: Maximum number of objects that to be returned by task.
+            jmespath_query: Query used to filter objects based on object attributes refer to
+                the [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html#filtering-results-with-jmespath)
+                for more information on how to construct queries.
+
+        Returns:
+            List of objects and their metadata in the bucket.
+
+        Examples:
+            List objects under the `base_folder`.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.list_objects("base_folder")
+            ```
+        """  # noqa: E501
+        bucket_path = self._join_bucket_folder(folder)
+        client = self.credentials.get_s3_client()
+        paginator = client.get_paginator("list_objects_v2")
+        page_iterator = paginator.paginate(
+            Bucket=self.bucket_name,
+            Prefix=bucket_path,
+            Delimiter=delimiter,
+            PaginationConfig={"PageSize": page_size, "MaxItems": max_items},
+        )
+        if jmespath_query:
+            page_iterator = page_iterator.search(f"{jmespath_query} | {{Contents: @}}")
+
+        self.logger.info(f"Listing objects in bucket {bucket_path}.")
+        objects = await run_sync_in_worker_thread(
+            self._list_objects_sync, page_iterator
+        )
+        return objects
+
+    @sync_compatible
+    async def download_object_to_path(
+        self,
+        from_path: str,
+        to_path: Optional[Union[str, Path]],
+        **download_kwargs: Dict[str, Any],
+    ) -> Path:
+        """
+        Downloads an object from the S3 bucket to a path.
+
+        Args:
+            from_path: The path to the object to download; this gets prefixed
+                with the bucket_folder.
+            to_path: The path to download the object to. If not provided, the
+                object's name will be used.
+            **download_kwargs: Additional keyword arguments to pass to
+                `Client.download_file`.
+
+        Returns:
+            The absolute path that the object was downloaded to.
+
+        Examples:
+            Download my_folder/notes.txt object to notes.txt.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.download_object_to_path("my_folder/notes.txt", "notes.txt")
+            ```
+        """
+        if to_path is None:
+            to_path = Path(from_path).name
+
+        # making path absolute, but converting back to str here
+        # since !r looks nicer that way and filename arg expects str
+        to_path = str(Path(to_path).absolute())
+        bucket_path = self._join_bucket_folder(from_path)
+        client = self.credentials.get_s3_client()
+
+        self.logger.debug(
+            f"Preparing to download object from bucket {self.bucket_name!r} "
+            f"path {bucket_path!r} to {to_path!r}."
+        )
+        await run_sync_in_worker_thread(
+            client.download_file,
+            Bucket=self.bucket_name,
+            Key=from_path,
+            Filename=to_path,
+            **download_kwargs,
+        )
+        self.logger.info(
+            f"Downloaded object from bucket {self.bucket_name!r} path {bucket_path!r} "
+            f"to {to_path!r}."
+        )
+        return Path(to_path)
+
+    @sync_compatible
+    async def download_object_to_file_object(
+        self,
+        from_path: str,
+        to_file_object: BinaryIO,
+        **download_kwargs: Dict[str, Any],
+    ) -> BinaryIO:
+        """
+        Downloads an object from the object storage service to a file-like object,
+        which can be a BytesIO object or a BufferedWriter.
+
+        Args:
+            from_path: The path to the object to download from; this gets prefixed
+                with the bucket_folder.
+            to_file_object: The file-like object to download the object to.
+            **download_kwargs: Additional keyword arguments to pass to
+                `Client.download_fileobj`.
+
+        Returns:
+            The file-like object that the object was downloaded to.
+
+        Examples:
+            Download my_folder/notes.txt object to a BytesIO object.
+            ```python
+            from io import BytesIO
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            with BytesIO() as buf:
+                s3_bucket.download_object_to_file_object("my_folder/notes.txt", buf)
+            ```
+
+            Download my_folder/notes.txt object to a BufferedWriter.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            with open("notes.txt", "wb") as f:
+                s3_bucket.download_object_to_file_object("my_folder/notes.txt", f)
+            ```
+        """
+        client = self.credentials.get_s3_client()
+        bucket_path = self._join_bucket_folder(from_path)
+
+        self.logger.debug(
+            f"Preparing to download object from bucket {self.bucket_name!r} "
+            f"path {bucket_path!r} to file object."
+        )
+        await run_sync_in_worker_thread(
+            client.download_fileobj,
+            Bucket=self.bucket_name,
+            Key=bucket_path,
+            Fileobj=to_file_object,
+            **download_kwargs,
+        )
+        self.logger.info(
+            f"Downloaded object from bucket {self.bucket_name!r} path {bucket_path!r} "
+            f"to file object."
+        )
+        return to_file_object
+
+    @sync_compatible
+    async def download_folder_to_path(
+        self,
+        from_folder: str,
+        to_folder: Optional[Union[str, Path]] = None,
+        **download_kwargs: Dict[str, Any],
+    ) -> Path:
+        """
+        Downloads objects *within* a folder (excluding the folder itself)
+        from the S3 bucket to a folder.
+
+        Args:
+            from_folder: The path to the folder to download from.
+            to_folder: The path to download the folder to.
+            **download_kwargs: Additional keyword arguments to pass to
+                `Client.download_file`.
+
+        Returns:
+            The absolute path that the folder was downloaded to.
+
+        Examples:
+            Download my_folder to a local folder named my_folder.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.download_folder_to_path("my_folder", "my_folder")
+            ```
+        """
+        if to_folder is None:
+            to_folder = ""
+        to_folder = Path(to_folder).absolute()
+
+        client = self.credentials.get_s3_client()
+        objects = await self.list_objects(folder=from_folder)
+
+        # do not call self._join_bucket_folder for filter
+        # because it's built-in to that method already!
+        # however, we still need to do it because we're using relative_to
+        bucket_folder = self._join_bucket_folder(from_folder)
+
+        async_coros = []
+        for object in objects:
+            bucket_path = Path(object["Key"]).relative_to(bucket_folder)
+            # this skips the actual directory itself, e.g.
+            # `my_folder/` will be skipped
+            # `my_folder/notes.txt` will be downloaded
+            if bucket_path.is_dir():
+                continue
+            to_path = to_folder / bucket_path
+            to_path.parent.mkdir(parents=True, exist_ok=True)
+            to_path = str(to_path)  # must be string
+            self.logger.info(
+                f"Downloading object from bucket {self.bucket_name!r} path "
+                f"{str(bucket_path)!r} to {to_path!r}."
+            )
+            async_coros.append(
+                run_sync_in_worker_thread(
+                    client.download_file,
+                    Bucket=self.bucket_name,
+                    Key=object["Key"],
+                    Filename=to_path,
+                    **download_kwargs,
+                )
+            )
+        await asyncio.gather(*async_coros)
+
+        return Path(to_folder)
+
+    @sync_compatible
+    async def upload_from_path(
+        self,
+        from_path: Union[str, Path],
+        to_path: Optional[str] = None,
+        **upload_kwargs: Dict[str, Any],
+    ) -> str:
+        """
+        Uploads an object from a path to the S3 bucket.
+
+        Args:
+            from_path: The path to the file to upload from.
+            to_path: The path to upload the file to.
+            **upload_kwargs: Additional keyword arguments to pass to `Client.upload`.
+
+        Returns:
+            The path that the object was uploaded to.
+
+        Examples:
+            Upload notes.txt to my_folder/notes.txt.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.upload_from_path("notes.txt", "my_folder/notes.txt")
+            ```
+        """
+        from_path = str(Path(from_path).absolute())
+        if to_path is None:
+            to_path = Path(from_path).name
+
+        bucket_path = str(self._join_bucket_folder(to_path))
+        client = self.credentials.get_s3_client()
+
+        await run_sync_in_worker_thread(
+            client.upload_file,
+            Filename=from_path,
+            Bucket=self.bucket_name,
+            Key=bucket_path,
+            **upload_kwargs,
+        )
+        self.logger.info(
+            f"Uploaded from {from_path!r} to the bucket "
+            f"{self.bucket_name!r} path {bucket_path!r}."
+        )
+        return bucket_path
+
+    @sync_compatible
+    async def upload_from_file_object(
+        self, from_file_object: BinaryIO, to_path: str, **upload_kwargs
+    ) -> str:
+        """
+        Uploads an object to the S3 bucket from a file-like object,
+        which can be a BytesIO object or a BufferedReader.
+
+        Args:
+            from_file_object: The file-like object to upload from.
+            to_path: The path to upload the object to.
+            **upload_kwargs: Additional keyword arguments to pass to
+                `Client.upload_fileobj`.
+
+        Returns:
+            The path that the object was uploaded to.
+
+        Examples:
+            Upload BytesIO object to my_folder/notes.txt.
+            ```python
+            from io import BytesIO
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            with open("notes.txt", "rb") as f:
+                s3_bucket.upload_from_file_object(f, "my_folder/notes.txt")
+            ```
+
+            Upload BufferedReader object to my_folder/notes.txt.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            with open("notes.txt", "rb") as f:
+                s3_bucket.upload_from_file_object(
+                    f, "my_folder/notes.txt"
+                )
+            ```
+        """
+        bucket_path = str(self._join_bucket_folder(to_path))
+        client = self.credentials.get_s3_client()
+        await run_sync_in_worker_thread(
+            client.upload_fileobj,
+            Fileobj=from_file_object,
+            Bucket=self.bucket_name,
+            Key=bucket_path,
+            **upload_kwargs,
+        )
+        self.logger.info(
+            f"Uploaded from file object to the bucket "
+            f"{self.bucket_name!r} path {bucket_path!r}."
+        )
+        return bucket_path
+
+    @sync_compatible
+    async def upload_from_folder(
+        self,
+        from_folder: Union[str, Path],
+        to_folder: Optional[str] = None,
+        **upload_kwargs: Dict[str, Any],
+    ) -> str:
+        """
+        Uploads files *within* a folder (excluding the folder itself)
+        to the object storage service folder.
+
+        Args:
+            from_folder: The path to the folder to upload from.
+            to_folder: The path to upload the folder to.
+            **upload_kwargs: Additional keyword arguments to pass to
+                `Client.upload_fileobj`.
+
+        Returns:
+            The path that the folder was uploaded to.
+
+        Examples:
+            Upload contents from my_folder to new_folder.
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.upload_from_folder("my_folder", "new_folder")
+            ```
+        """
+        from_folder = Path(from_folder)
+        bucket_folder = self._join_bucket_folder(to_folder or "")
+
+        num_uploaded = 0
+        client = self.credentials.get_s3_client()
+
+        async_coros = []
+        for from_path in from_folder.rglob("**/*"):
+            # this skips the actual directory itself, e.g.
+            # `my_folder/` will be skipped
+            # `my_folder/notes.txt` will be uploaded
+            if from_path.is_dir():
+                continue
+            bucket_path = str(Path(bucket_folder) / from_path.relative_to(from_folder))
+            self.logger.info(
+                f"Uploading from {str(from_path)!r} to the bucket "
+                f"{self.bucket_name!r} path {bucket_path!r}."
+            )
+            async_coros.append(
+                run_sync_in_worker_thread(
+                    client.upload_file,
+                    Filename=str(from_path),
+                    Bucket=self.bucket_name,
+                    Key=bucket_path,
+                    **upload_kwargs,
+                )
+            )
+            num_uploaded += 1
+        await asyncio.gather(*async_coros)
+
+        if num_uploaded == 0:
+            self.logger.warning(f"No files were uploaded from {str(from_folder)!r}.")
+        else:
+            self.logger.info(
+                f"Uploaded {num_uploaded} files from {str(from_folder)!r} to "
+                f"the bucket {self.bucket_name!r} path {bucket_path!r}"
+            )
+
+        return to_folder
