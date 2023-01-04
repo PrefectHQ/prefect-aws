@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## 0.2.2
+
+Released on January 4th, 2022.
+
+### Added
+
 - `list_objects`, `download_object_to_path`, `download_object_to_file_object`, `download_folder_to_path`, `upload_from_path`, `upload_from_file_object`, `upload_from_folder` methods in `S3Bucket` - [#85](https://github.com/PrefectHQ/prefect-aws/pull/175)
 - `aws_client_parameters` as a field in `AwsCredentials` and `MinioCredentials` blocks - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
 - `get_client` and `get_s3_client` methods to `AwsCredentials` and `MinioCredentials` blocks  - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
@@ -25,11 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `basepath` field in S3Bucket; specify `bucket_folder` instead - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
 - `minio_credentials` and `aws_credentials` field in S3Bucket; use the `credentials` field instead  - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
 
-### Removed
-
-### Fixed
-
 ## 0.2.1
+
+Released on December 7th, 2022.
 
 ### Changed
 
