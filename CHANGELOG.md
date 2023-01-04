@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## 0.2.3
+
+Released on January 4th, 2022.
+
+### Fixed
+
+- Missing `mypy_boto3_s3` in requirements.txt - [#189](https://github.com/PrefectHQ/prefect-aws/pull/189)
+
 ## 0.2.2
 
 Released on January 4th, 2022.
