@@ -12,8 +12,14 @@
       
         <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/ecs/">
       
+      
+        <link rel="prev" href="../credentials/">
+      
+      
+        <link rel="next" href="../s3/">
+      
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.2">
     
     
       
@@ -21,15 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.975780f9.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f56500e0.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.2505c338.min.css">
-        
-          
-          
-          <meta name="theme-color" content="#2094f3">
-        
       
       
 
@@ -1032,10 +1033,9 @@
                 
                   
 
-  <a href="https://github.com/PrefectHQ/prefect-aws/edit/main/docs/ecs.md" title="Edit this page" class="md-content__button md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
-  </a>
+  
+  
+
 
 
 <div class="doc doc-object doc-module">
@@ -1141,6 +1141,7 @@ logs:CreateLogGroup, and logs:PutLogEvents.
 
 
 
+
 <h2 id="prefect_aws.ecs-classes">Classes</h2>
 
   <div class="doc doc-object doc-class">
@@ -1166,7 +1167,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ECSTask</span><span class="p">(</span><span class="n">Infrastructure</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Run a command as an ECS task.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1268,7 +1269,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
             <span class="s2">&quot;to the AWS CloudWatch logs service. This functionality requires an &quot;</span>
             <span class="s2">&quot;execution role with logs:CreateLogStream, logs:CreateLogGroup, and &quot;</span>
             <span class="s2">&quot;logs:PutLogEvents permissions. The default for this field is `False` &quot;</span>
-            <span class="s2">&quot;unless `stream_output` is set. &quot;</span>
+            <span class="s2">&quot;unless `stream_output` is set.&quot;</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">cloudwatch_logs_options</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1277,7 +1278,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
             <span class="s2">&quot;When `configure_cloudwatch_logs` is enabled, this setting may be used to &quot;</span>
             <span class="s2">&quot;pass additional options to the CloudWatch logs configuration or override &quot;</span>
             <span class="s2">&quot;the default options. See the AWS documentation for available options. &quot;</span>
-            <span class="s2">&quot;https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options&quot;</span>  <span class="c1"># noqa</span>
+            <span class="s2">&quot;https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options.&quot;</span>  <span class="c1"># noqa</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">stream_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1360,7 +1361,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
     <span class="nd">@root_validator</span><span class="p">(</span><span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">set_default_configure_cloudwatch_logs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Streaming output generally requires CloudWatch logs to be configured.</span>
 
 <span class="sd">        To avoid entangled arguments in the simple case, `configure_cloudwatch_logs`</span>
@@ -1375,7 +1376,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
     <span class="k">def</span> <span class="nf">configure_cloudwatch_logs_requires_execution_role_arn</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Enforces that an execution role arn is provided (or could be provided by a</span>
 <span class="sd">        runtime task definition) when configuring logging.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1397,7 +1398,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
     <span class="k">def</span> <span class="nf">cloudwatch_logs_options_requires_configure_cloudwatch_logs</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Enforces that an execution role arn is provided (or could be provided by a</span>
 <span class="sd">        runtime task definition) when configuring logging.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1412,7 +1413,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
     <span class="nd">@root_validator</span><span class="p">(</span><span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">image_is_required</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Enforces that an image is available if image is `None`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">has_image</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">))</span>
@@ -1442,7 +1443,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
     <span class="k">def</span> <span class="nf">cast_customizations_to_a_json_patch</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">JsonPatch</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonPatch</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Casts lists to JsonPatch instances.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1450,14 +1451,14 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="k">return</span> <span class="n">value</span>
 
     <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Configuration of pydantic.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configuration of pydantic.&quot;&quot;&quot;</span>
 
         <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
         <span class="n">arbitrary_types_allowed</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">json_encoders</span> <span class="o">=</span> <span class="p">{</span><span class="n">JsonPatch</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">patch</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convert to a dictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
@@ -1471,7 +1472,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="n">deployment</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Deployment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">flow</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Flow&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an copy of the block that is prepared to execute a flow run.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new_family</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1501,7 +1502,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
     <span class="nd">@sync_compatible</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TaskStatus</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ECSTaskResult</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run the configured task on ECS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">boto_session</span><span class="p">,</span> <span class="n">ecs_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
@@ -1554,7 +1555,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
     <span class="nd">@sync_compatible</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">kill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">grace_seconds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Kill a task running on ECS.</span>
 
 <span class="sd">        Args:</span>
@@ -1571,7 +1572,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stop_task</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_stop_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Stop a running ECS task.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cluster</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="p">:</span>
@@ -1605,7 +1606,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_log_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal property for generating a prefix for logs where `name` may be null</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1614,7 +1615,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
             <span class="k">return</span> <span class="s2">&quot;ECSTask&quot;</span>
 
     <span class="k">def</span> <span class="nf">_get_session_and_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span> <span class="n">_ECSClient</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieve a boto3 session and ECS client</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">boto_session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span>
@@ -1624,7 +1625,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
     <span class="k">def</span> <span class="nf">_create_task_and_wait_for_start</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Register the task definition, create the task run, and wait for it to start.</span>
 
 <span class="sd">        Returns a tuple of</span>
@@ -1647,30 +1648,45 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
         <span class="c1"># We must register the task definition if the arn is null or changes were made</span>
         <span class="k">if</span> <span class="n">task_definition</span> <span class="o">!=</span> <span class="n">requested_task_definition</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">task_definition_arn</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">task_definition_arn</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Settings require changes to the linked &quot;</span>
-                    <span class="s2">&quot;task definition. A new task definition will be registered. &quot;</span>
-                    <span class="o">+</span> <span class="p">(</span>
-                        <span class="s2">&quot;Enable DEBUG level logs to see the difference.&quot;</span>
-                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
-                        <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Diff for requested task definition&quot;</span>
-                    <span class="o">+</span> <span class="n">_pretty_diff</span><span class="p">(</span><span class="n">requested_task_definition</span><span class="p">,</span> <span class="n">task_definition</span><span class="p">)</span>
-                <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Registering task definition...&quot;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;Task definition payload</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">task_definition</span><span class="p">)</span>
-                <span class="p">)</span>
-
-            <span class="n">task_definition_arn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register_task_definition</span><span class="p">(</span>
-                <span class="n">ecs_client</span><span class="p">,</span> <span class="n">task_definition</span>
+            <span class="c1"># Before registering, check if the latest task definition in the family</span>
+            <span class="c1"># can be used</span>
+            <span class="n">latest_task_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_latest_task_definition</span><span class="p">(</span>
+                <span class="n">ecs_client</span><span class="p">,</span> <span class="n">task_definition</span><span class="p">[</span><span class="s2">&quot;family&quot;</span><span class="p">]</span>
             <span class="p">)</span>
-            <span class="n">new_task_definition_registered</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task_definitions_equal</span><span class="p">(</span><span class="n">latest_task_definition</span><span class="p">,</span> <span class="n">task_definition</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: The latest task definition matches the &quot;</span>
+                    <span class="s2">&quot;required task definition; using that instead of registering a new &quot;</span>
+                    <span class="s2">&quot; one.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">task_definition_arn</span> <span class="o">=</span> <span class="n">latest_task_definition</span><span class="p">[</span><span class="s2">&quot;taskDefinitionArn&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">task_definition_arn</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Settings require changes to the linked &quot;</span>
+                        <span class="s2">&quot;task definition. A new task definition will be registered. &quot;</span>
+                        <span class="o">+</span> <span class="p">(</span>
+                            <span class="s2">&quot;Enable DEBUG level logs to see the difference.&quot;</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
+                            <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Diff for requested task definition&quot;</span>
+                        <span class="o">+</span> <span class="n">_pretty_diff</span><span class="p">(</span><span class="n">requested_task_definition</span><span class="p">,</span> <span class="n">task_definition</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span><span class="si">}</span><span class="s2">: Registering task definition...&quot;</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="s2">&quot;Task definition payload</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">task_definition</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+                <span class="n">task_definition_arn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register_task_definition</span><span class="p">(</span>
+                    <span class="n">ecs_client</span><span class="p">,</span> <span class="n">task_definition</span>
+                <span class="p">)</span>
+                <span class="n">new_task_definition_registered</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="n">task_definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;networkMode&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;awsvpc&quot;</span><span class="p">:</span>
             <span class="n">network_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_vpc_network_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vpc_id</span><span class="p">,</span> <span class="n">boto_session</span><span class="p">)</span>
@@ -1708,7 +1724,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span>
         <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wait for the task run to complete and retrieve the exit code of the Prefect</span>
 <span class="sd">        container.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1733,8 +1749,60 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
         <span class="k">return</span> <span class="n">status_code</span>
 
+    <span class="k">def</span> <span class="nf">_task_definitions_equal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">taskdef_1</span><span class="p">,</span> <span class="n">taskdef_2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare two task definitions.</span>
+
+<span class="sd">        Since one may come from the AWS API and have populated defaults, we do our best</span>
+<span class="sd">        to homogenize the definitions without changing their meaning.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">taskdef_1</span> <span class="o">==</span> <span class="n">taskdef_2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">taskdef_1</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">taskdef_2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">taskdef_1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">taskdef_1</span><span class="p">)</span>
+        <span class="n">taskdef_2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">taskdef_2</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_set_aws_defaults</span><span class="p">(</span><span class="n">taskdef</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Set defaults that AWS would set after registration&quot;&quot;&quot;</span>
+            <span class="n">container_definitions</span> <span class="o">=</span> <span class="n">taskdef</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;containerDefinitions&quot;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">essential</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="n">container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;essential&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">container_definitions</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">essential</span><span class="p">:</span>
+                <span class="n">container_definitions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;essential&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">taskdef</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;networkMode&quot;</span><span class="p">,</span> <span class="s2">&quot;bridge&quot;</span><span class="p">)</span>
+
+        <span class="n">_set_aws_defaults</span><span class="p">(</span><span class="n">taskdef_1</span><span class="p">)</span>
+        <span class="n">_set_aws_defaults</span><span class="p">(</span><span class="n">taskdef_2</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_drop_empty_keys</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Recursively drop keys with &#39;empty&#39; values&quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="n">dict_</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">_drop_empty_keys</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                            <span class="n">_drop_empty_keys</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="n">_drop_empty_keys</span><span class="p">(</span><span class="n">taskdef_1</span><span class="p">)</span>
+        <span class="n">_drop_empty_keys</span><span class="p">(</span><span class="n">taskdef_2</span><span class="p">)</span>
+
+        <span class="c1"># Clear fields that change on registration for comparison</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">POST_REGISTRATION_FIELDS</span><span class="p">:</span>
+            <span class="n">taskdef_1</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">taskdef_2</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">taskdef_1</span> <span class="o">==</span> <span class="n">taskdef_2</span>
+
     <span class="k">def</span> <span class="nf">preview</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate a preview of the task definition and task run that will be sent to AWS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">preview</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -1773,7 +1841,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
     <span class="k">def</span> <span class="nf">_report_container_status_code</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Display a log for the given container status code.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">status_code</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1792,7 +1860,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
             <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_report_task_run_creation_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_run</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wrap common AWS task run creation failures with nicer user-facing messages.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># AWS generates exception types at runtime so they must be captured a bit</span>
@@ -1834,7 +1902,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="n">until_status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Watches an ECS task run by querying every `poll_interval` seconds. After each</span>
 <span class="sd">        query, the retrieved task is yielded. This function returns when the task run</span>
 <span class="sd">        reaches a STOPPED status or the provided `until_status`.</span>
@@ -1879,7 +1947,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
     <span class="k">def</span> <span class="nf">_wait_for_task_start</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">task_arn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cluster_arn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Waits for an ECS task run to reach a RUNNING status.</span>
 
 <span class="sd">        If a STOPPED status is reached instead, an exception is raised indicating the</span>
@@ -1907,7 +1975,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span>
         <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Watch an ECS task until it reaches a STOPPED status.</span>
 
 <span class="sd">        If configured, logs from the Prefect container are streamed to stderr.</span>
@@ -1977,7 +2045,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="n">log_stream</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">last_log_timestamp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Stream logs from the given log group and stream since the last log timestamp.</span>
 
 <span class="sd">        Will continue on paginated responses until all logs are returned.</span>
@@ -2026,10 +2094,23 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
         <span class="k">return</span> <span class="n">last_log_timestamp</span>
 
+    <span class="k">def</span> <span class="nf">_retrieve_latest_task_definition</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span> <span class="n">task_definition_family</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">latest_task_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_task_definition</span><span class="p">(</span>
+                <span class="n">ecs_client</span><span class="p">,</span> <span class="n">task_definition_family</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># The family does not exist...</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">latest_task_definition</span>
+
     <span class="k">def</span> <span class="nf">_retrieve_task_definition</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span> <span class="n">task_definition_arn</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieve an existing task definition from AWS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -2044,7 +2125,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
     <span class="k">def</span> <span class="nf">_register_task_definition</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span> <span class="n">task_definition</span><span class="p">:</span> <span class="nb">dict</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Register a new task definition with AWS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: Consider including a global cache for this task definition since</span>
@@ -2052,20 +2133,14 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="n">task_definition_request</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">task_definition</span><span class="p">)</span>
 
         <span class="c1"># We need to remove some fields here if copying an existing task definition</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_definition_arn</span><span class="p">:</span>
-            <span class="n">task_definition_request</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;compatibilities&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">task_definition_request</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;taskDefinitionArn&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">task_definition_request</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;revision&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">task_definition_request</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">task_definition_request</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;requiresAttributes&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">task_definition_request</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;registeredAt&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">task_definition_request</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;registeredBy&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">POST_REGISTRATION_FIELDS</span><span class="p">:</span>
+            <span class="n">task_definition_request</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="n">response</span> <span class="o">=</span> <span class="n">ecs_client</span><span class="o">.</span><span class="n">register_task_definition</span><span class="p">(</span><span class="o">**</span><span class="n">task_definition_request</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;taskDefinition&quot;</span><span class="p">][</span><span class="s2">&quot;taskDefinitionArn&quot;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_prepare_task_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_definition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">region</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Prepare a task definition by inferring any defaults and merging overrides.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">task_definition</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">task_definition</span><span class="p">)</span>
@@ -2152,7 +2227,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="k">return</span> <span class="n">task_definition</span>
 
     <span class="k">def</span> <span class="nf">_prepare_task_run_overrides</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Prepare the &#39;overrides&#39; payload for a task run request.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">overrides</span> <span class="o">=</span> <span class="p">{</span>
@@ -2195,7 +2270,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
     <span class="k">def</span> <span class="nf">_load_vpc_network_config</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">vpc_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load settings from a specific VPC or the default VPC and generate a task</span>
 <span class="sd">        run request&#39;s network configuration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2242,7 +2317,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="n">network_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
         <span class="n">task_definition_arn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Prepare a task run request payload.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">task_run</span> <span class="o">=</span> <span class="p">{</span>
@@ -2271,7 +2346,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
         <span class="k">return</span> <span class="n">task_run</span>
 
     <span class="k">def</span> <span class="nf">_run_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span> <span class="n">task_run</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run the task using the ECS client.</span>
 
 <span class="sd">        This is isolated as a separate method for testing purposes.</span>
@@ -2349,7 +2424,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
     <div class="doc doc-contents ">
 
-      <p>When <code>configure_cloudwatch_logs</code> is enabled, this setting may be used to pass additional options to the CloudWatch logs configuration or override the default options. See the AWS documentation for available options. https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options</p>
+      <p>When <code>configure_cloudwatch_logs</code> is enabled, this setting may be used to pass additional options to the CloudWatch logs configuration or override the default options. See the AWS documentation for available options. https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options.</p>
     </div>
 
   </div>
@@ -2393,7 +2468,7 @@ ECSTask            (<span title="prefect.infrastructure.base.Infrastructure">Inf
 
     <div class="doc doc-contents ">
 
-      <p>If <code>True</code>, the Prefect container will be configured to send its output to the AWS CloudWatch logs service. This functionality requires an execution role with logs:CreateLogStream, logs:CreateLogGroup, and logs:PutLogEvents permissions. The default for this field is <code>False</code> unless <code>stream_output</code> is set. </p>
+      <p>If <code>True</code>, the Prefect container will be configured to send its output to the AWS CloudWatch logs service. This functionality requires an execution role with logs:CreateLogStream, logs:CreateLogGroup, and logs:PutLogEvents permissions. The default for this field is <code>False</code> unless <code>stream_output</code> is set.</p>
     </div>
 
   </div>
@@ -2728,7 +2803,7 @@ Config        </code>
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Configuration of pydantic.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration of pydantic.&quot;&quot;&quot;</span>
 
     <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
     <span class="n">arbitrary_types_allowed</span> <span class="o">=</span> <span class="kc">True</span>
@@ -2811,7 +2886,7 @@ of the given arguments and keywords.</p>
 <span class="k">def</span> <span class="nf">cast_customizations_to_a_json_patch</span><span class="p">(</span>
     <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">JsonPatch</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonPatch</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Casts lists to JsonPatch instances.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -2849,7 +2924,7 @@ runtime task definition) when configuring logging.</p>
 <span class="k">def</span> <span class="nf">cloudwatch_logs_options_requires_configure_cloudwatch_logs</span><span class="p">(</span>
     <span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Enforces that an execution role arn is provided (or could be provided by a</span>
 <span class="sd">    runtime task definition) when configuring logging.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2893,7 +2968,7 @@ runtime task definition) when configuring logging.</p>
 <span class="k">def</span> <span class="nf">configure_cloudwatch_logs_requires_execution_role_arn</span><span class="p">(</span>
     <span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Enforces that an execution role arn is provided (or could be provided by a</span>
 <span class="sd">    runtime task definition) when configuring logging.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2935,7 +3010,7 @@ runtime task definition) when configuring logging.</p>
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert to a dictionary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Support serialization of the &#39;JsonPatch&#39; type</span>
@@ -2971,7 +3046,7 @@ runtime task definition) when configuring logging.</p>
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@root_validator</span><span class="p">(</span><span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">image_is_required</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Enforces that an image is available if image is `None`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">has_image</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">))</span>
@@ -3045,7 +3120,7 @@ yielded by <code>ECSTask.run</code>.</p></td>
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@sync_compatible</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">kill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">grace_seconds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Kill a task running on ECS.</span>
 
 <span class="sd">    Args:</span>
@@ -3090,7 +3165,7 @@ yielded by <code>ECSTask.run</code>.</p></td>
     <span class="n">deployment</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Deployment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">flow</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Flow&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return an copy of the block that is prepared to execute a flow run.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">new_family</span> <span class="o">=</span> <span class="kc">None</span>
@@ -3142,7 +3217,7 @@ yielded by <code>ECSTask.run</code>.</p></td>
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">preview</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a preview of the task definition and task run that will be sent to AWS.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">preview</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -3206,7 +3281,7 @@ yielded by <code>ECSTask.run</code>.</p></td>
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@sync_compatible</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TaskStatus</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ECSTaskResult</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Run the configured task on ECS.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">boto_session</span><span class="p">,</span> <span class="n">ecs_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
@@ -3287,7 +3362,7 @@ defaults to matching the value of <code>stream_output</code>.</p>
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@root_validator</span><span class="p">(</span><span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">set_default_configure_cloudwatch_logs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Streaming output generally requires CloudWatch logs to be configured.</span>
 
 <span class="sd">    To avoid entangled arguments in the simple case, `configure_cloudwatch_logs`</span>
@@ -3338,7 +3413,7 @@ ECSTaskResult            (<span title="prefect.infrastructure.base.Infrastructur
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ECSTaskResult</span><span class="p">(</span><span class="n">InfrastructureResult</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The result of a run of an ECS task&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The result of a run of an ECS task&quot;&quot;&quot;</span>
 </code></pre></div>
         </details>
 
@@ -3386,7 +3461,7 @@ If not found, <code>None</code> is returned.</p>
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_container</span><span class="p">(</span><span class="n">containers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract a container from a list of containers or container definitions.</span>
 <span class="sd">    If not found, `None` is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3420,7 +3495,7 @@ If not found, <code>None</code> is returned.</p>
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_prefect_container</span><span class="p">(</span><span class="n">containers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract the Prefect container from a list of containers or container definitions.</span>
 <span class="sd">    If not found, `None` is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3451,7 +3526,7 @@ input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").</p>
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">parse_task_identifier</span><span class="p">(</span><span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Splits identifier into its cluster and task components, e.g.</span>
 <span class="sd">    input &quot;cluster_name::task_arn&quot; outputs (&quot;cluster_name&quot;, &quot;task_arn&quot;).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3489,42 +3564,6 @@ input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").</p>
       
         <footer class="md-footer">
   
-    
-    <nav class="md-footer__inner md-grid" aria-label="Footer" >
-      
-        
-        <a href="../credentials/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Credentials" rel="prev">
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
-          </div>
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Previous
-              </span>
-              Credentials
-            </div>
-          </div>
-        </a>
-      
-      
-        
-        <a href="../s3/" class="md-footer__link md-footer__link--next" aria-label="Next: S3" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              S3
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
-          </div>
-        </a>
-      
-    </nav>
-  
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
       <div class="md-copyright">
@@ -3546,12 +3585,11 @@ input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.12658920.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.5a2dcb6a.min.js"></script>
+      <script src="../assets/javascripts/bundle.5cf534bf.min.js"></script>
       
-    
     
   </body>
 </html>

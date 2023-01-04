@@ -10,8 +10,12 @@
       
         <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/">
       
+      
+      
+        <link rel="next" href="batch/">
+      
       <link rel="icon" href="img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.2">
     
     
       
@@ -19,15 +23,10 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.975780f9.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.f56500e0.min.css">
       
         
         <link rel="stylesheet" href="assets/stylesheets/palette.2505c338.min.css">
-        
-          
-          
-          <meta name="theme-color" content="#2094f3">
-        
       
       
 
@@ -283,23 +282,29 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#write-and-run-a-flow-with-prefect-aws-tasks" class="md-nav__link">
-    Write and run a flow with prefect-aws tasks
+  <a href="#write-and-run-a-flow" class="md-nav__link">
+    Write and run a flow
+  </a>
+  
+    <nav class="md-nav" aria-label="Write and run a flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upload-and-download-from-s3bucket" class="md-nav__link">
+    Upload and download from S3Bucket
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#write-and-run-a-flow-with-awscredentials-and-s3bucket" class="md-nav__link">
-    Write and run a flow with AwsCredentials and S3Bucket
+  <a href="#use-with_options-to-customize-options-on-any-existing-task-or-flow" class="md-nav__link">
+    Use with_options to customize options on any existing task or flow
   </a>
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#write-and-run-an-async-flow-by-loading-a-miniocredentials-block-to-use-in-s3bucket" class="md-nav__link">
-    Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket
-  </a>
+      </ul>
+    </nav>
   
 </li>
         
@@ -316,6 +321,40 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#blocks-catalog" class="md-nav__link">
+    Blocks Catalog
+  </a>
+  
+    <nav class="md-nav" aria-label="Blocks Catalog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#credentials-module" class="md-nav__link">
+    Credentials Module
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#s3-module" class="md-nav__link">
+    S3 Module
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ecs-module" class="md-nav__link">
+    Ecs Module
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#resources" class="md-nav__link">
     Resources
   </a>
@@ -323,9 +362,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#development" class="md-nav__link">
-    Development
+  <a href="#contribute" class="md-nav__link">
+    Contribute
   </a>
+  
+    <nav class="md-nav" aria-label="Contribute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#contribution-steps" class="md-nav__link">
+    Contribution Steps:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -490,23 +542,29 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#write-and-run-a-flow-with-prefect-aws-tasks" class="md-nav__link">
-    Write and run a flow with prefect-aws tasks
+  <a href="#write-and-run-a-flow" class="md-nav__link">
+    Write and run a flow
+  </a>
+  
+    <nav class="md-nav" aria-label="Write and run a flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upload-and-download-from-s3bucket" class="md-nav__link">
+    Upload and download from S3Bucket
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#write-and-run-a-flow-with-awscredentials-and-s3bucket" class="md-nav__link">
-    Write and run a flow with AwsCredentials and S3Bucket
+  <a href="#use-with_options-to-customize-options-on-any-existing-task-or-flow" class="md-nav__link">
+    Use with_options to customize options on any existing task or flow
   </a>
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#write-and-run-an-async-flow-by-loading-a-miniocredentials-block-to-use-in-s3bucket" class="md-nav__link">
-    Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket
-  </a>
+      </ul>
+    </nav>
   
 </li>
         
@@ -523,6 +581,40 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#blocks-catalog" class="md-nav__link">
+    Blocks Catalog
+  </a>
+  
+    <nav class="md-nav" aria-label="Blocks Catalog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#credentials-module" class="md-nav__link">
+    Credentials Module
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#s3-module" class="md-nav__link">
+    S3 Module
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ecs-module" class="md-nav__link">
+    Ecs Module
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#resources" class="md-nav__link">
     Resources
   </a>
@@ -530,9 +622,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#development" class="md-nav__link">
-    Development
+  <a href="#contribute" class="md-nav__link">
+    Contribute
   </a>
+  
+    <nav class="md-nav" aria-label="Contribute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#contribution-steps" class="md-nav__link">
+    Contribution Steps:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -550,10 +655,9 @@
                 
                   
 
-  <a href="https://github.com/PrefectHQ/prefect-aws/edit/main/docs/README.md" title="Edit this page" class="md-content__button md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
-  </a>
+  
+  
+
 
 
 <h1 id="prefect-aws">prefect-aws</h1>
@@ -582,98 +686,103 @@
 <p>These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the <a href="https://orion-docs.prefect.io/">Prefect documentation</a>.</p>
 <h3 id="installation">Installation</h3>
 <p>Install <code>prefect-aws</code></p>
-<p><div class="highlight"><pre><span></span><code>pip install prefect-aws
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>prefect-aws
 </code></pre></div>
-Then, register to <a href="https://orion-docs.prefect.io/ui/blocks/">view the block</a> on Prefect Cloud:</p>
-<div class="highlight"><pre><span></span><code>prefect block register -m prefect_aws.credentials
-</code></pre></div>
-<p>Note, to use the <code>load</code> method on Blocks, you must already have a block document <a href="https://orion-docs.prefect.io/concepts/blocks/#saving-blocks">saved through code</a> or <a href="https://orion-docs.prefect.io/ui/blocks/">saved through the UI</a>.</p>
+<p>A list of available blocks in <code>prefect-aws</code> and their setup instructions can be found <a href="https://PrefectHQ.github.io/prefect-aws/#blocks-catalog">here</a>.</p>
 <h3 id="aws-authentication">AWS Authentication</h3>
 <p>You will need to obtain AWS credentials in order to use these tasks. Refer to the <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html">AWS documentation</a> for authentication methods available.</p>
-<h3 id="write-and-run-a-flow-with-prefect-aws-tasks">Write and run a flow with prefect-aws tasks</h3>
+<h3 id="write-and-run-a-flow">Write and run a flow</h3>
+<h4 id="upload-and-download-from-s3bucket">Upload and download from S3Bucket</h4>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
-<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">s3_upload</span>
-
-<span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">example_s3_upload_flow</span><span class="p">():</span>
-    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="p">(</span>
-        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;acccess_key_id&quot;</span><span class="p">,</span>
-        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;secret_access_key&quot;</span>
-    <span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;data.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="n">s3_upload</span><span class="p">(</span>
-            <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;bucket&quot;</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="s2">&quot;data.csv&quot;</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span>
-            <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span><span class="p">,</span>
-        <span class="p">)</span>
-
-<span class="n">example_s3_upload_flow</span><span class="p">()</span>
-</code></pre></div>
-<h3 id="write-and-run-a-flow-with-awscredentials-and-s3bucket">Write and run a flow with AwsCredentials and S3Bucket</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
-<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
-
-
-<span class="nd">@flow</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">aws_s3_bucket_roundtrip</span><span class="p">():</span>
-    <span class="c1"># create an AwsCredentials block here or through UI</span>
-    <span class="n">aws_creds</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="p">(</span>
-        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;AWS_ACCESS_KEY_ID&quot;</span><span class="p">,</span>
-        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;AWS_SECRET_ACCESS_KEY&quot;</span>
-    <span class="p">)</span>
-
-    <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="p">(</span>
-        <span class="n">bucket_name</span><span class="o">=</span><span class="s2">&quot;bucket&quot;</span><span class="p">,</span>  <span class="c1"># must exist</span>
-        <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_creds</span><span class="p">,</span>
-        <span class="n">basepath</span><span class="o">=</span><span class="s2">&quot;subfolder&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-
-    <span class="n">key</span> <span class="o">=</span> <span class="k">await</span> <span class="n">s3_bucket</span><span class="o">.</span><span class="n">write_path</span><span class="p">(</span><span class="s2">&quot;data.csv&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="k">await</span> <span class="n">s3_bucket</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-
-<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">aws_s3_bucket_roundtrip</span><span class="p">())</span>
-</code></pre></div>
-<h3 id="write-and-run-an-async-flow-by-loading-a-miniocredentials-block-to-use-in-s3bucket">Write and run an async flow by loading a MinIOCredentials block to use in S3Bucket</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">MinIOCredentials</span>
 <span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
 
 <span class="nd">@flow</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">minio_s3_bucket_roundtrip</span><span class="p">():</span>
+<span class="k">def</span> <span class="nf">example_flow</span><span class="p">():</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;hello.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;print(&#39;Hello world!&#39;)&quot;</span><span class="p">)</span>
 
-    <span class="n">minio_creds</span> <span class="o">=</span> <span class="n">MinIOCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
+    <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket-test&quot;</span><span class="p">)</span>
+    <span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_path</span><span class="p">(</span><span class="s2">&quot;hello.py&quot;</span><span class="p">)</span>
+    <span class="n">s3_bucket</span><span class="o">.</span><span class="n">download_object_to_path</span><span class="p">(</span><span class="s2">&quot;hello.py&quot;</span><span class="p">,</span> <span class="s2">&quot;downloaded_hello.py&quot;</span><span class="p">)</span>
 
-    <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="p">(</span>
-        <span class="n">bucket_name</span><span class="o">=</span><span class="s2">&quot;bucket&quot;</span><span class="p">,</span>  <span class="c1"># must exist</span>
-        <span class="n">minio_credentials</span><span class="o">=</span><span class="n">minio_creds</span><span class="p">,</span>
-        <span class="n">endpoint_url</span><span class="o">=</span><span class="s2">&quot;http://localhost:9000&quot;</span>
-    <span class="p">)</span>
-
-    <span class="n">path_to_file</span> <span class="o">=</span> <span class="k">await</span> <span class="n">s3_bucket</span><span class="o">.</span><span class="n">write_path</span><span class="p">(</span><span class="s2">&quot;/data.csv&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="k">await</span> <span class="n">s3_bucket</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
-
-<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">minio_s3_bucket_roundtrip</span><span class="p">())</span>
+<span class="n">example_flow</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="use-with_options-to-customize-options-on-any-existing-task-or-flow">Use <code>with_options</code> to customize options on any existing task or flow</h4>
+<div class="highlight"><pre><span></span><code><span class="n">custom_example_flow</span> <span class="o">=</span> <span class="n">example_flow</span><span class="o">.</span><span class="n">with_options</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My custom task name&quot;</span><span class="p">,</span>
+    <span class="n">retries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">retry_delay_seconds</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="p">)</span> 
 </code></pre></div>
 <h2 id="next-steps">Next steps</h2>
 <p>Refer to the API documentation in the side menu to explore all the capabilities of Prefect AWS!</p>
-<h2 id="resources">Resources</h2>
-<p>If you encounter and bugs while using <code>prefect-aws</code>, feel free to open an issue in the <a href="https://github.com/PrefectHQ/prefect-aws">prefect-aws</a> repository.</p>
-<p>If you have any questions or issues while using <code>prefect-aws</code>, you can find help in either the <a href="https://discourse.prefect.io/">Prefect Discourse forum</a> or the <a href="https://prefect.io/slack">Prefect Slack community</a></p>
-<p>Feel free to ⭐️ or watch <a href="https://github.com/PrefectHQ/prefect-aws"><code>prefect-aws</code></a> for updates too!</p>
-<h2 id="development">Development</h2>
-<p>If you'd like to install a version of <code>prefect-aws</code> for development, first clone the repository and then perform an editable install with <code>pip</code>:</p>
-<div class="highlight"><pre><span></span><code>git clone https://github.com/PrefectHQ/prefect-aws.git
-
-<span class="nb">cd</span> prefect-aws/
-
-pip install -e <span class="s2">&quot;.[dev]&quot;</span>
+<p>For more tips on how to use tasks and flows in a Collection, check out <a href="https://orion-docs.prefect.io/collections/usage/">Using Collections</a>!</p>
+<h2 id="blocks-catalog">Blocks Catalog</h2>
+<p>Below is a list of Blocks available for registration in
+<code>prefect-aws</code>.</p>
+<p>To register blocks in this module to
+<a href="https://orion-docs.prefect.io/ui/blocks/">view and edit them</a>
+on Prefect Cloud:
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>block<span class="w"> </span>register<span class="w"> </span>-m<span class="w"> </span>prefect_aws
 </code></pre></div>
+Note, to use the <code>load</code> method on Blocks, you must already have a block document <a href="https://orion-docs.prefect.io/concepts/blocks/#saving-blocks">saved through code</a> or <a href="https://orion-docs.prefect.io/ui/blocks/">saved through the UI</a>.</p>
+<h3 id="credentials-module">Credentials Module</h3>
+<p><strong><a class="autorefs autorefs-internal" href="credentials/#prefect_aws.credentials.AwsCredentials">AwsCredentials</a></strong>
+<strong><a class="autorefs autorefs-internal" href="credentials/#prefect_aws.credentials.MinIOCredentials">MinIOCredentials</a></strong></p>
+<p>To load the MinIOCredentials:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.credentials</span> <span class="kn">import</span> <span class="n">MinIOCredentials</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">MinIOCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
+
+<span class="n">my_flow</span><span class="p">()</span>
+</code></pre></div></p>
+<h3 id="s3-module">S3 Module</h3>
+<p><strong><a class="autorefs autorefs-internal" href="s3/#prefect_aws.s3.S3Bucket">S3Bucket</a></strong></p>
+<p>To load the S3Bucket:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
+
+<span class="n">my_flow</span><span class="p">()</span>
+</code></pre></div></p>
+<h3 id="ecs-module">Ecs Module</h3>
+<p><strong><a class="autorefs autorefs-internal" href="ecs/#prefect_aws.ecs.ECSTask">ECSTask</a></strong></p>
+<p>To load the ECSTask:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.ecs</span> <span class="kn">import</span> <span class="n">ECSTask</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">ECSTask</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
+
+<span class="n">my_flow</span><span class="p">()</span>
+</code></pre></div></p>
+<h2 id="resources">Resources</h2>
+<p>If you have any questions or issues while using <code>prefect-aws</code>, you can find help in either the <a href="https://discourse.prefect.io/">Prefect Discourse forum</a> or the <a href="https://prefect.io/slack">Prefect Slack community</a>.</p>
+<p>Feel free to star or watch <a href="https://github.com/PrefectHQ/prefect-aws"><code>prefect-aws</code></a> for updates too!</p>
+<h2 id="contribute">Contribute</h2>
+<p>If you'd like to help contribute to fix an issue or add a feature to <code>prefect-aws</code>, please <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork">propose changes through a pull request from a fork of the repository</a>.</p>
+<h3 id="contribution-steps">Contribution Steps:</h3>
+<ol>
+<li><a href="https://docs.github.com/en/get-started/quickstart/fork-a-repo#forking-a-repository">Fork the repository</a></li>
+<li><a href="https://docs.github.com/en/get-started/quickstart/fork-a-repo#cloning-your-forked-repository">Clone the forked repository</a></li>
+<li>Install the repository and its dependencies:
+<div class="highlight"><pre><span></span><code>pip install -e &quot;.[dev]&quot;
+</code></pre></div></li>
+<li>Make desired changes.</li>
+<li>Add tests.</li>
+<li>Insert an entry to <a href="https://github.com/PrefectHQ/prefect-aws/blob/main/CHANGELOG.md">CHANGELOG.md</a></li>
+<li>Install <code>pre-commit</code> to perform quality checks prior to commit:
+<div class="highlight"><pre><span></span><code>pre-commit install
+</code></pre></div></li>
+<li><code>git commit</code>, <code>git push</code>, and create a pull request.</li>
+</ol>
 
 
 
@@ -689,27 +798,6 @@ pip install -e <span class="s2">&quot;.[dev]&quot;</span>
       </main>
       
         <footer class="md-footer">
-  
-    
-    <nav class="md-footer__inner md-grid" aria-label="Footer" >
-      
-      
-        
-        <a href="batch/" class="md-footer__link md-footer__link--next" aria-label="Next: Batch" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              Batch
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
-          </div>
-        </a>
-      
-    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -732,12 +820,11 @@ pip install -e <span class="s2">&quot;.[dev]&quot;</span>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.12658920.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.5a2dcb6a.min.js"></script>
+      <script src="assets/javascripts/bundle.5cf534bf.min.js"></script>
       
-    
     
   </body>
 </html>
