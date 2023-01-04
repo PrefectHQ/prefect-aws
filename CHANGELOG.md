@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.2.2
 
+Released on January 4th, 2022.
+
 ### Added
 
 - `list_objects`, `download_object_to_path`, `download_object_to_file_object`, `download_folder_to_path`, `upload_from_path`, `upload_from_file_object`, `upload_from_folder` methods in `S3Bucket` - [#85](https://github.com/PrefectHQ/prefect-aws/pull/175)
@@ -38,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `minio_credentials` and `aws_credentials` field in S3Bucket; use the `credentials` field instead  - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
 
 ## 0.2.1
+
+Released on December 7th, 2022.
 
 ### Changed
 
