@@ -33,6 +33,8 @@ def find_module_blocks():
 
 def insert_blocks_catalog(generated_file):
     module_blocks = find_module_blocks()
+    if len(module_blocks) == 0:
+        return
     generated_file.write("## Blocks Catalog\n")
     generated_file.write(
         dedent(
@@ -87,6 +89,8 @@ docs_index_path = Path("index.md")
 with open(readme_path, "r") as readme:
     with mkdocs_gen_files.open(docs_index_path, "w") as generated_file:
         for line in readme:
+            if line.startswith("Visit the full docs [here]("):
+                continue  # prevent linking to itself
             if line.startswith("## Resources"):
                 insert_blocks_catalog(generated_file)
             generated_file.write(line)

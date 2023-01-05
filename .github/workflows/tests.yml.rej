@@ -1,0 +1,9 @@
+diff a/.github/workflows/tests.yml b/.github/workflows/tests.yml	(rejected hunks)
+@@ -35,3 +35,7 @@ jobs:
+         run: |
+           coverage run --branch -m pytest tests -vv
+           coverage report
++
++      - name: Run mkdocs build
++        run: |
++          mkdocs build --verbose --clean
