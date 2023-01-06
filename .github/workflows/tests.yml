@@ -36,3 +36,7 @@ jobs:
           prefect orion database reset -y
           coverage run --branch -m pytest tests -vv
           coverage report
+
+      - name: Run mkdocs build
+        run: |
+          mkdocs build --verbose --clean
