@@ -1154,6 +1154,132 @@ async def test_deregister_task_definition(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_latest_task_definition_used_if_equal(aws_credentials):
+    task = ECSTask(aws_credentials=aws_credentials)
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn_1 = await run_then_stop_task(task)
+    task_arn_2 = await run_then_stop_task(task)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] == task_2["taskDefinitionArn"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_latest_task_definition_not_used_if_in_another_family(
+    aws_credentials,
+):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_1 = ECSTask(aws_credentials=aws_credentials, family="test1")
+    task_2 = ECSTask(aws_credentials=aws_credentials, family="test2")
+
+    task_arn_1 = await run_then_stop_task(task_1)
+    task_arn_2 = await run_then_stop_task(task_2)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] != task_2["taskDefinitionArn"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_latest_task_definition_not_used_if_inequal(
+    aws_credentials,
+):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    # Place it in the same family
+    task_1 = ECSTask(
+        aws_credentials=aws_credentials,
+        family="test",
+        image="image1",
+        auto_deregister_task_definition=False,
+    )
+    task_2 = ECSTask(
+        aws_credentials=aws_credentials,
+        family="test",
+        image="image2",
+        auto_deregister_task_definition=False,
+    )
+
+    task_arn_1 = await run_then_stop_task(task_1)
+    task_arn_2 = await run_then_stop_task(task_2)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] != task_2["taskDefinitionArn"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("launch_type", ["EC2", "FARGATE"])
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"env": {"FOO": "BAR"}},
+        {"command": ["test"]},
+        {"labels": {"FOO": "BAR"}},
+        {"stream_output": True, "configure_cloudwatch_logs": False},
+        {"cluster": "test"},
+        {"task_role_arn": "test"},
+        # Note: null environment variables can cause override, but not when missing
+        # from the base task definition
+        {"env": {"FOO": None}},
+        # The following would not result in a copy when using a task_definition_arn
+        # but will be eagerly set on the new task definition and result in a cache miss
+        # {"cpu": 2048},
+        # {"memory": 4096},
+        # {"execution_role_arn": "test"},
+        # {"launch_type": "EXTERNAL"},
+    ],
+    ids=lambda item: str(set(item.keys())),
+)
+async def test_latest_task_definition_with_overrides_that_do_not_require_copy(
+    aws_credentials, overrides, launch_type
+):
+    """
+    Any of these overrides should be configured at runtime and not require a new
+    task definition to be registered
+    """
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    if "cluster" in overrides:
+        create_test_ecs_cluster(ecs_client, overrides["cluster"])
+        add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
+
+    task_1 = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        family="test",
+        launch_type=launch_type,
+    )
+    task_2 = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        family="test",
+        launch_type=launch_type,
+        **overrides,
+    )
+    task_arn_1 = await run_then_stop_task(task_1)
+    task_arn_2 = await run_then_stop_task(task_2)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+    assert (
+        task_1["taskDefinitionArn"] == task_2["taskDefinitionArn"]
+    ), "The existing task definition should be used"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_task_definition_arn(aws_credentials):
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
