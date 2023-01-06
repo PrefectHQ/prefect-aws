@@ -391,7 +391,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         bucket_folder = self.bucket_folder or self.basepath
         # If basepath provided, it means we won't write to the root dir of
         # the bucket. So we need to add it on the front of the path.
-        path = str(Path(bucket_folder) / path) if bucket_folder else path
+        #
+        # AWS object key naming guidelines require '/' for bucket folders.
+        # Get POSIX path to prevent `pathlib` from inferring '\' on Windows OS
+        path = (Path(bucket_folder) / path).as_posix() if bucket_folder else path
 
         return path
 
