@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix bug where ECSTask could fail to stream logs - [#186](https://github.com/PrefectHQ/prefect-aws/pull/186)
+
 ## 0.2.3
 
 Released on January 4th, 2022.
