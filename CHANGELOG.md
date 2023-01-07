@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `S3Bucket._resolve_path` joins basepath and path with '/' instead of system default
+- Object keys sent in S3 requests use '/' delimiters instead of system default
 
 ### Deprecated
 
