@@ -1,0 +1,26 @@
+diff a/mkdocs.yml b/mkdocs.yml	(rejected hunks)
+@@ -67,3 +67,24 @@ nav:
+     - Tasks: tasks.md
+     - Flows: flows.md
+ 
++extra:
++    social:
++        - icon: fontawesome/brands/slack
++          link: https://www.prefect.io/slack/
++        - icon: fontawesome/brands/discourse
++          link: https://discourse.prefect.io/
++        - icon: fontawesome/brands/youtube
++          link: https://www.youtube.com/c/PrefectIO/videos
++        - icon: fontawesome/regular/newspaper
++          link: https://prefect.io/guide/
++        - icon: fontawesome/brands/twitter
++          link: https://twitter.com/PrefectIO
++        - icon: fontawesome/brands/linkedin
++          link: https://www.linkedin.com/company/prefect/
++        - icon: fontawesome/brands/github
++          link: https://github.com/PrefectHQ/prefect
++        - icon: fontawesome/brands/docker
++          link: https://hub.docker.com/r/prefecthq/prefect/
++        - icon: fontawesome/brands/python
++          link: https://pypi.org/project/prefect/
++
