@@ -29,8 +29,6 @@ setup(
     entry_points={
         "prefect.collections": [
             "prefect_aws = prefect_aws",
-            "prefect_aws_s3 = prefect_aws.s3",
-            "prefect_aws_ecs = prefect_aws.ecs",
         ]
     },
     extras_require={"dev": dev_requires},

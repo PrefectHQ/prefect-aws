@@ -2,7 +2,7 @@ import json
 import logging
 import textwrap
 from functools import partial
-from typing import Callable, Dict, List
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 from unittest.mock import MagicMock
 
 import anyio
@@ -88,6 +88,58 @@ def patch_calculate_task_resource_requirements(
     return _calculate_task_resource_requirements(task_definition)
 
 
+def create_log_stream(session, run_task, *args, **kwargs):
+    """
+    When running a task, create the log group and stream if logging is configured on
+    containers.
+
+    See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html
+    """
+    tasks = run_task(*args, **kwargs)
+    if not tasks:
+        return tasks
+    task = tasks[0]
+
+    ecs_client = session.client("ecs")
+    logs_client = session.client("logs")
+
+    task_definition = ecs_client.describe_task_definition(
+        taskDefinition=task.task_definition_arn
+    )["taskDefinition"]
+
+    for container in task_definition.get("containerDefinitions", []):
+        log_config = container.get("logConfiguration", {})
+        if log_config:
+            if log_config.get("logDriver") != "awslogs":
+                continue
+
+            options = log_config.get("options", {})
+            if not options:
+                raise ValueError("logConfiguration does not include options.")
+
+            group_name = options.get("awslogs-group")
+            if not group_name:
+                raise ValueError(
+                    "logConfiguration.options does not include awslogs-group"
+                )
+
+            if options.get("awslogs-create-group") == "true":
+                logs_client.create_log_group(logGroupName=group_name)
+
+            stream_prefix = options.get("awslogs-stream-prefix")
+            if not stream_prefix:
+                raise ValueError(
+                    "logConfiguration.options does not include awslogs-stream-prefix"
+                )
+
+            logs_client.create_log_stream(
+                logGroupName=group_name,
+                logStreamName=f"{stream_prefix}/{container['name']}/{task.id}",
+            )
+
+    return tasks
+
+
 def add_ec2_instance_to_ecs_cluster(session, cluster_name):
     ecs_client = session.client("ecs")
     ec2_client = session.client("ec2")
@@ -143,12 +195,17 @@ def describe_task_definition(ecs_client, task):
     )["taskDefinition"]
 
 
-async def run_then_stop_task(task: ECSTask) -> str:
+async def run_then_stop_task(
+    task: ECSTask, after_start: Optional[Callable[[str], Awaitable[Any]]] = None
+) -> str:
     """
     Run an ECS Task then stop it.
 
     Moto will not advance the state of tasks, so `ECSTask.run` would hang forever if
     the run is created successfully and not stopped.
+
+    `after_start` can be used to run something after the task starts but before it is
+    stopped. It will be passed the task arn.
     """
     session = task.aws_credentials.get_boto3_session()
 
@@ -156,6 +213,10 @@ async def run_then_stop_task(task: ECSTask) -> str:
         async with anyio.create_task_group() as tg:
             identifier = await tg.start(task.run)
             cluster, task_arn = parse_task_identifier(identifier)
+
+            if after_start:
+                await after_start(task_arn)
+
             # Stop the task after it starts to prevent the test from running forever
             tg.start_soon(
                 partial(stop_task, session.client("ecs"), task_arn, cluster=cluster)
@@ -174,26 +235,30 @@ def patch_task_watch_poll_interval(monkeypatch):
 def ecs_mocks(aws_credentials):
     with mock_ecs() as ecs:
         with mock_ec2():
-            inject_moto_patches(
-                ecs,
-                {
-                    # Add a container when describing any task
-                    "describe_tasks": [patch_describe_tasks_add_prefect_container],
-                    # Fix moto internal resource requirement calculations
-                    "_calculate_task_resource_requirements": [
-                        patch_calculate_task_resource_requirements
-                    ],
-                },
-            )
+            with mock_logs():
+                session = aws_credentials.get_boto3_session()
 
-            session = aws_credentials.get_boto3_session()
-            create_test_ecs_cluster(session.client("ecs"), "default")
+                inject_moto_patches(
+                    ecs,
+                    {
+                        # Add a container when describing any task
+                        "describe_tasks": [patch_describe_tasks_add_prefect_container],
+                        # Fix moto internal resource requirement calculations
+                        "_calculate_task_resource_requirements": [
+                            patch_calculate_task_resource_requirements
+                        ],
+                        # Add log group creation
+                        "run_task": [partial(create_log_stream, session)],
+                    },
+                )
 
-            # NOTE: Even when using FARGATE, moto requires container instances to be
-            #       registered. This differs from AWS behavior.
-            add_ec2_instance_to_ecs_cluster(session, "default")
+                create_test_ecs_cluster(session.client("ecs"), "default")
 
-            yield ecs
+                # NOTE: Even when using FARGATE, moto requires container instances to be
+                #       registered. This differs from AWS behavior.
+                add_ec2_instance_to_ecs_cluster(session, "default")
+
+                yield ecs
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -1043,14 +1108,13 @@ async def test_configure_cloudwatch_logging(aws_credentials):
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
 
-    with mock_logs():
-        task = ECSTask(
-            aws_credentials=aws_credentials,
-            auto_deregister_task_definition=False,
-            command=["prefect", "version"],
-            configure_cloudwatch_logs=True,
-            execution_role_arn="test",
-        )
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["prefect", "version"],
+        configure_cloudwatch_logs=True,
+        execution_role_arn="test",
+    )
 
     task_arn = await run_then_stop_task(task)
     task = describe_task(ecs_client, task_arn)
@@ -1074,22 +1138,69 @@ async def test_configure_cloudwatch_logging(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_stream_output(aws_credentials, caplog):
+    session = aws_credentials.get_boto3_session()
+    logs_client = session.client("logs")
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["prefect", "version"],
+        configure_cloudwatch_logs=True,
+        stream_output=True,
+        execution_role_arn="test",
+        # Override the family so it does not match the container name
+        family="test-family",
+        # Override the prefix so it does not match the container name
+        cloudwatch_logs_options={"awslogs-stream-prefix": "test-prefix"},
+        # Avoid slow polling during the test
+        task_watch_poll_interval=0.1,
+    )
+
+    async def write_fake_log(task_arn):
+        # TODO: moto does not appear to support actually reading these logs
+        #       as they do not appear during `get_log_event` calls
+        # prefix/container-name/task-id
+        stream_name = f"test-prefix/prefect/{task_arn.rsplit('/')[-1]}"
+        logs_client.put_log_events(
+            logGroupName="prefect",
+            logStreamName=stream_name,
+            logEvents=[
+                {"timestamp": i, "message": f"test-message-{i}"} for i in range(100)
+            ],
+        )
+
+    await run_then_stop_task(task, after_start=write_fake_log)
+
+    logs_client = session.client("logs")
+    streams = logs_client.describe_log_streams(logGroupName="prefect")["logStreams"]
+
+    assert len(streams) == 1
+
+    # Ensure we did not encounter any logging errors
+    assert "Failed to read log events" not in caplog.text
+
+    # TODO: When moto supports reading logs, fix this
+    # out, err = capsys.readouterr()
+    # assert "test-message-{i}" in err
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_cloudwatch_log_options(aws_credentials):
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
 
-    with mock_logs():
-        task = ECSTask(
-            aws_credentials=aws_credentials,
-            auto_deregister_task_definition=False,
-            command=["prefect", "version"],
-            configure_cloudwatch_logs=True,
-            execution_role_arn="test",
-            cloudwatch_logs_options={
-                "awslogs-stream-prefix": "override-prefix",
-                "max-buffer-size": "2m",
-            },
-        )
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["prefect", "version"],
+        configure_cloudwatch_logs=True,
+        execution_role_arn="test",
+        cloudwatch_logs_options={
+            "awslogs-stream-prefix": "override-prefix",
+            "max-buffer-size": "2m",
+        },
+    )
 
     task_arn = await run_then_stop_task(task)
     task = describe_task(ecs_client, task_arn)
@@ -1151,6 +1262,132 @@ async def test_deregister_task_definition(aws_credentials):
     with pytest.raises(Exception, match="is not a task_definition"):
         # Oh no it's gone
         describe_task_definition(ecs_client, task)
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_latest_task_definition_used_if_equal(aws_credentials):
+    task = ECSTask(aws_credentials=aws_credentials)
+    print(task.preview())
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_arn_1 = await run_then_stop_task(task)
+    task_arn_2 = await run_then_stop_task(task)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] == task_2["taskDefinitionArn"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_latest_task_definition_not_used_if_in_another_family(
+    aws_credentials,
+):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_1 = ECSTask(aws_credentials=aws_credentials, family="test1")
+    task_2 = ECSTask(aws_credentials=aws_credentials, family="test2")
+
+    task_arn_1 = await run_then_stop_task(task_1)
+    task_arn_2 = await run_then_stop_task(task_2)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] != task_2["taskDefinitionArn"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_latest_task_definition_not_used_if_inequal(
+    aws_credentials,
+):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    # Place it in the same family
+    task_1 = ECSTask(
+        aws_credentials=aws_credentials,
+        family="test",
+        image="image1",
+        auto_deregister_task_definition=False,
+    )
+    task_2 = ECSTask(
+        aws_credentials=aws_credentials,
+        family="test",
+        image="image2",
+        auto_deregister_task_definition=False,
+    )
+
+    task_arn_1 = await run_then_stop_task(task_1)
+    task_arn_2 = await run_then_stop_task(task_2)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] != task_2["taskDefinitionArn"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("launch_type", ["EC2", "FARGATE"])
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"env": {"FOO": "BAR"}},
+        {"command": ["test"]},
+        {"labels": {"FOO": "BAR"}},
+        {"stream_output": True, "configure_cloudwatch_logs": False},
+        {"cluster": "test"},
+        {"task_role_arn": "test"},
+        # Note: null environment variables can cause override, but not when missing
+        # from the base task definition
+        {"env": {"FOO": None}},
+        # The following would not result in a copy when using a task_definition_arn
+        # but will be eagerly set on the new task definition and result in a cache miss
+        # {"cpu": 2048},
+        # {"memory": 4096},
+        # {"execution_role_arn": "test"},
+        # {"launch_type": "EXTERNAL"},
+    ],
+    ids=lambda item: str(set(item.keys())),
+)
+async def test_latest_task_definition_with_overrides_that_do_not_require_copy(
+    aws_credentials, overrides, launch_type
+):
+    """
+    Any of these overrides should be configured at runtime and not require a new
+    task definition to be registered
+    """
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    if "cluster" in overrides:
+        create_test_ecs_cluster(ecs_client, overrides["cluster"])
+        add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
+
+    task_1 = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        family="test",
+        launch_type=launch_type,
+    )
+    task_2 = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        family="test",
+        launch_type=launch_type,
+        **overrides,
+    )
+    task_arn_1 = await run_then_stop_task(task_1)
+    task_arn_2 = await run_then_stop_task(task_2)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+    assert (
+        task_1["taskDefinitionArn"] == task_2["taskDefinitionArn"]
+    ), "The existing task definition should be used"
 
 
 @pytest.mark.usefixtures("ecs_mocks")

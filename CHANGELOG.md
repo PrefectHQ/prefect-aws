@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
 ### Changed
+
+- Object keys sent in S3 requests use '/' delimiters instead of system default - [#192](https://github.com/PrefectHQ/prefect-aws/pull/192)
 
 ### Deprecated
 
@@ -15,7 +19,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix bug where ECSTask could fail to stream logs - [#186](https://github.com/PrefectHQ/prefect-aws/pull/186)
+
+## 0.2.3
+
+Released on January 4th, 2022.
+
+### Fixed
+
+- Missing `mypy_boto3_s3` in requirements.txt - [#189](https://github.com/PrefectHQ/prefect-aws/pull/189)
+
+## 0.2.2
+
+Released on January 4th, 2022.
+
+### Added
+
+- `list_objects`, `download_object_to_path`, `download_object_to_file_object`, `download_folder_to_path`, `upload_from_path`, `upload_from_file_object`, `upload_from_folder` methods in `S3Bucket` - [#85](https://github.com/PrefectHQ/prefect-aws/pull/175)
+- `aws_client_parameters` as a field in `AwsCredentials` and `MinioCredentials` blocks - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+- `get_client` and `get_s3_client` methods to `AwsCredentials` and `MinioCredentials` blocks  - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+
+### Changed
+
+- `S3Bucket` additionally inherits from `ObjectStorageBlock` - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+- Exposed all existing blocks to the top level init - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+- Inherit `CredentialsBlock` for `AwsCredentials` and `MinIOCredentials` - [#183](https://github.com/PrefectHQ/prefect-aws/pull/183)
+
+### Deprecated
+
+- `endpoint_url` field in S3Bucket; specify `aws_client_parameters` in `AwsCredentials` or `MinIOCredentials` instead - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+- `basepath` field in S3Bucket; specify `bucket_folder` instead - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+- `minio_credentials` and `aws_credentials` field in S3Bucket; use the `credentials` field instead  - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+
 ## 0.2.1
+
+Released on December 7th, 2022.
 
 ### Changed
 

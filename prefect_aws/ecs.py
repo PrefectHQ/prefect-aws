@@ -143,6 +143,15 @@ PREFECT_ECS_CONTAINER_NAME = "prefect"
 ECS_DEFAULT_CPU = 1024
 ECS_DEFAULT_MEMORY = 2048
 ECS_DEFAULT_FAMILY = "prefect"
+POST_REGISTRATION_FIELDS = [
+    "compatibilities",
+    "taskDefinitionArn",
+    "revision",
+    "status",
+    "requiresAttributes",
+    "registeredAt",
+    "registeredBy",
+]
 
 
 def get_prefect_container(containers: List[dict]) -> Optional[dict]:
@@ -285,7 +294,7 @@ class ECSTask(Infrastructure):
             "to the AWS CloudWatch logs service. This functionality requires an "
             "execution role with logs:CreateLogStream, logs:CreateLogGroup, and "
             "logs:PutLogEvents permissions. The default for this field is `False` "
-            "unless `stream_output` is set. "
+            "unless `stream_output` is set."
         ),
     )
     cloudwatch_logs_options: Dict[str, str] = Field(
@@ -294,7 +303,7 @@ class ECSTask(Infrastructure):
             "When `configure_cloudwatch_logs` is enabled, this setting may be used to "
             "pass additional options to the CloudWatch logs configuration or override "
             "the default options. See the AWS documentation for available options. "
-            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options"  # noqa
+            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options."  # noqa
         ),
     )
     stream_output: bool = Field(
@@ -664,30 +673,45 @@ class ECSTask(Infrastructure):
 
         # We must register the task definition if the arn is null or changes were made
         if task_definition != requested_task_definition or not task_definition_arn:
-            if task_definition_arn:
-                self.logger.warning(
-                    f"{self._log_prefix}: Settings require changes to the linked "
-                    "task definition. A new task definition will be registered. "
-                    + (
-                        "Enable DEBUG level logs to see the difference."
-                        if self.logger.level > logging.DEBUG
-                        else ""
-                    )
-                )
-                self.logger.debug(
-                    f"{self._log_prefix}: Diff for requested task definition"
-                    + _pretty_diff(requested_task_definition, task_definition)
-                )
-            else:
-                self.logger.info(f"{self._log_prefix}: Registering task definition...")
-                self.logger.debug(
-                    "Task definition payload\n" + yaml.dump(task_definition)
-                )
-
-            task_definition_arn = self._register_task_definition(
-                ecs_client, task_definition
+            # Before registering, check if the latest task definition in the family
+            # can be used
+            latest_task_definition = self._retrieve_latest_task_definition(
+                ecs_client, task_definition["family"]
             )
-            new_task_definition_registered = True
+            if self._task_definitions_equal(latest_task_definition, task_definition):
+                self.logger.debug(
+                    f"{self._log_prefix}: The latest task definition matches the "
+                    "required task definition; using that instead of registering a new "
+                    " one."
+                )
+                task_definition_arn = latest_task_definition["taskDefinitionArn"]
+            else:
+                if task_definition_arn:
+                    self.logger.warning(
+                        f"{self._log_prefix}: Settings require changes to the linked "
+                        "task definition. A new task definition will be registered. "
+                        + (
+                            "Enable DEBUG level logs to see the difference."
+                            if self.logger.level > logging.DEBUG
+                            else ""
+                        )
+                    )
+                    self.logger.debug(
+                        f"{self._log_prefix}: Diff for requested task definition"
+                        + _pretty_diff(requested_task_definition, task_definition)
+                    )
+                else:
+                    self.logger.info(
+                        f"{self._log_prefix}: Registering task definition..."
+                    )
+                    self.logger.debug(
+                        "Task definition payload\n" + yaml.dump(task_definition)
+                    )
+
+                task_definition_arn = self._register_task_definition(
+                    ecs_client, task_definition
+                )
+                new_task_definition_registered = True
 
         if task_definition.get("networkMode") == "awsvpc":
             network_config = self._load_vpc_network_config(self.vpc_id, boto_session)
@@ -749,6 +773,58 @@ class ECSTask(Infrastructure):
         self._report_container_status_code(PREFECT_ECS_CONTAINER_NAME, status_code)
 
         return status_code
+
+    def _task_definitions_equal(self, taskdef_1, taskdef_2) -> bool:
+        """
+        Compare two task definitions.
+
+        Since one may come from the AWS API and have populated defaults, we do our best
+        to homogenize the definitions without changing their meaning.
+        """
+        if taskdef_1 == taskdef_2:
+            return True
+
+        if taskdef_1 is None or taskdef_2 is None:
+            return False
+
+        taskdef_1 = copy.deepcopy(taskdef_1)
+        taskdef_2 = copy.deepcopy(taskdef_2)
+
+        def _set_aws_defaults(taskdef):
+            """Set defaults that AWS would set after registration"""
+            container_definitions = taskdef.get("containerDefinitions", [])
+            essential = any(
+                container.get("essential") for container in container_definitions
+            )
+            if not essential:
+                container_definitions[0].setdefault("essential", True)
+
+            taskdef.setdefault("networkMode", "bridge")
+
+        _set_aws_defaults(taskdef_1)
+        _set_aws_defaults(taskdef_2)
+
+        def _drop_empty_keys(dict_):
+            """Recursively drop keys with 'empty' values"""
+            for key, value in tuple(dict_.items()):
+                if not value:
+                    dict_.pop(key)
+                if isinstance(value, dict):
+                    _drop_empty_keys(value)
+                if isinstance(value, list):
+                    for v in value:
+                        if isinstance(v, dict):
+                            _drop_empty_keys(v)
+
+        _drop_empty_keys(taskdef_1)
+        _drop_empty_keys(taskdef_2)
+
+        # Clear fields that change on registration for comparison
+        for field in POST_REGISTRATION_FIELDS:
+            taskdef_1.pop(field, None)
+            taskdef_2.pop(field, None)
+
+        return taskdef_1 == taskdef_2
 
     def preview(self) -> str:
         """
@@ -960,11 +1036,11 @@ class ECSTask(Infrastructure):
                 can_stream_output = True
                 # Track the last log timestamp to prevent double display
                 last_log_timestamp: Optional[int] = None
-                # Determine the name of the stream as "prefix/family/run"
+                # Determine the name of the stream as "prefix/container/run-id"
                 stream_name = "/".join(
                     [
                         log_config["awslogs-stream-prefix"],
-                        task_definition["family"],
+                        PREFECT_ECS_CONTAINER_NAME,
                         task_arn.rsplit("/")[-1],
                     ]
                 )
@@ -1022,7 +1098,15 @@ class ECSTask(Infrastructure):
                 # Bump the timestamp by one ms to avoid retrieving the last log again
                 request["startTime"] = last_log_timestamp + 1
 
-            response = logs_client.get_log_events(**request)
+            try:
+                response = logs_client.get_log_events(**request)
+            except Exception:
+                self.logger.error(
+                    f"{self._log_prefix}: Failed to read log events with request "
+                    f"{request}",
+                    exc_info=True,
+                )
+                return last_log_timestamp
 
             log_events = response["events"]
             for log_event in log_events:
@@ -1040,8 +1124,24 @@ class ECSTask(Infrastructure):
                     last_log_timestamp = log_event["timestamp"]
 
             next_log_stream_token = response.get("nextForwardToken")
+            if not log_events:
+                # Stop reading pages if there was no data
+                break
 
         return last_log_timestamp
+
+    def _retrieve_latest_task_definition(
+        self, ecs_client: _ECSClient, task_definition_family: str
+    ) -> Optional[dict]:
+        try:
+            latest_task_definition = self._retrieve_task_definition(
+                ecs_client, task_definition_family
+            )
+        except Exception:
+            # The family does not exist...
+            return None
+
+        return latest_task_definition
 
     def _retrieve_task_definition(
         self, ecs_client: _ECSClient, task_definition_arn: str
@@ -1069,14 +1169,8 @@ class ECSTask(Infrastructure):
         task_definition_request = copy.deepcopy(task_definition)
 
         # We need to remove some fields here if copying an existing task definition
-        if self.task_definition_arn:
-            task_definition_request.pop("compatibilities", None)
-            task_definition_request.pop("taskDefinitionArn", None)
-            task_definition_request.pop("revision", None)
-            task_definition_request.pop("status", None)
-            task_definition_request.pop("requiresAttributes", None)
-            task_definition_request.pop("registeredAt", None)
-            task_definition_request.pop("registeredBy", None)
+        for field in POST_REGISTRATION_FIELDS:
+            task_definition_request.pop(field, None)
 
         response = ecs_client.register_task_definition(**task_definition_request)
         return response["taskDefinition"]["taskDefinitionArn"]
