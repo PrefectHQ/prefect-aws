@@ -4,7 +4,7 @@ import io
 import os
 import uuid
 import warnings
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any, BinaryIO, Dict, List, Optional, Union
 from uuid import uuid4
 
@@ -305,8 +305,8 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         when the S3Bucket block is instantiated.
         """
 
-        if isinstance(value, Path):
-            return str(value)
+        if issubclass(value.__class__, PurePath):
+            return value.as_posix()
         return value
 
     @validator("basepath", pre=True)
@@ -391,7 +391,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         bucket_folder = self.bucket_folder or self.basepath
         # If basepath provided, it means we won't write to the root dir of
         # the bucket. So we need to add it on the front of the path.
-        path = str(Path(bucket_folder) / path) if bucket_folder else path
+        #
+        # AWS object key naming guidelines require '/' for bucket folders.
+        # Get POSIX path to prevent `pathlib` from inferring '\' on Windows OS
+        path = (Path(bucket_folder) / path).as_posix() if bucket_folder else path
 
         return path
 
@@ -530,7 +533,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                 with open(local_file_path, "rb") as local_file:
                     local_file_content = local_file.read()
 
-                await self.write_path(str(remote_file_path), content=local_file_content)
+                await self.write_path(
+                    remote_file_path.as_posix(), content=local_file_content
+                )
                 uploaded_file_count += 1
 
         return uploaded_file_count
@@ -671,7 +676,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                 f"Bucket path {bucket_path!r} is already prefixed with "
                 f"bucket folder {self.bucket_folder!r}; is this intentional?"
             )
-        return str(Path(self.bucket_folder) / bucket_path)
+        return (Path(self.bucket_folder) / bucket_path).as_posix()
 
     @sync_compatible
     async def list_objects(
@@ -893,7 +898,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             to_path = str(to_path)  # must be string
             self.logger.info(
                 f"Downloading object from bucket {self.bucket_name!r} path "
-                f"{str(bucket_path)!r} to {to_path!r}."
+                f"{bucket_path.as_posix()!r} to {to_path!r}."
             )
             async_coros.append(
                 run_sync_in_worker_thread(
@@ -1051,7 +1056,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             # `my_folder/notes.txt` will be uploaded
             if from_path.is_dir():
                 continue
-            bucket_path = str(Path(bucket_folder) / from_path.relative_to(from_folder))
+            bucket_path = (
+                Path(bucket_folder) / from_path.relative_to(from_folder)
+            ).as_posix()
             self.logger.info(
                 f"Uploading from {str(from_path)!r} to the bucket "
                 f"{self.bucket_name!r} path {bucket_path!r}."
