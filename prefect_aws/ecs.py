@@ -1036,11 +1036,11 @@ class ECSTask(Infrastructure):
                 can_stream_output = True
                 # Track the last log timestamp to prevent double display
                 last_log_timestamp: Optional[int] = None
-                # Determine the name of the stream as "prefix/family/run"
+                # Determine the name of the stream as "prefix/container/run-id"
                 stream_name = "/".join(
                     [
                         log_config["awslogs-stream-prefix"],
-                        task_definition["family"],
+                        PREFECT_ECS_CONTAINER_NAME,
                         task_arn.rsplit("/")[-1],
                     ]
                 )
@@ -1098,7 +1098,15 @@ class ECSTask(Infrastructure):
                 # Bump the timestamp by one ms to avoid retrieving the last log again
                 request["startTime"] = last_log_timestamp + 1
 
-            response = logs_client.get_log_events(**request)
+            try:
+                response = logs_client.get_log_events(**request)
+            except Exception:
+                self.logger.error(
+                    f"{self._log_prefix}: Failed to read log events with request "
+                    f"{request}",
+                    exc_info=True,
+                )
+                return last_log_timestamp
 
             log_events = response["events"]
             for log_event in log_events:
@@ -1116,6 +1124,9 @@ class ECSTask(Infrastructure):
                     last_log_timestamp = log_event["timestamp"]
 
             next_log_stream_token = response.get("nextForwardToken")
+            if not log_events:
+                # Stop reading pages if there was no data
+                break
 
         return last_log_timestamp
 
