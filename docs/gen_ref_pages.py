@@ -62,7 +62,7 @@ def insert_blocks_catalog(generated_file):
         generated_file.write(f"### {module_title} Module\n")
         for block_name in block_names:
             generated_file.write(
-                f"**[{block_name}][{COLLECTION_SLUG}.{module_path}.{block_name}]**\n"
+                f"- **[{block_name}][{COLLECTION_SLUG}.{module_path}.{block_name}]**\n"
             )
         generated_file.write(
             dedent(
