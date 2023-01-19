@@ -194,6 +194,75 @@ def _pretty_diff(d1: dict, d2: dict) -> str:
 class ECSTask(Infrastructure):
     """
     Run a command as an ECS task.
+
+    Attributes:
+        type: The slug for this task type with a default value of "ecs-task".
+        aws_credentials: The AWS credentials to use to connect to ECS with a
+            default factory of AwsCredentials.
+        task_definition_arn: An optional identifier for an existing task definition
+            to use. If fields are set on the ECSTask that conflict with the task
+            definition, a new copy will be registered with the required values.
+            Cannot be used with task_definition. If not provided, Prefect will
+            generate and register a minimal task definition.
+        task_definition: An optional ECS task definition to use. Prefect may set
+            defaults or override fields on this task definition to match other
+            ECSTask fields. Cannot be used with task_definition_arn.
+            If not provided, Prefect will generate and register
+            a minimal task definition.
+        family: An optional family for the task definition. If not provided,
+            it will be inferred from the task definition. If the task definition
+            does not have a family, the name will be generated. When flow and
+            deployment metadata is available, the generated name will include
+            their names. Values for this field will be slugified to match
+            AWS character requirements.
+        image: An optional image to use for the Prefect container in the task.
+            If this value is not null, it will override the value in the task
+            definition. This value defaults to a Prefect base image matching
+            your local versions.
+        auto_deregister_task_definition: A boolean that controls if any task
+            definitions that are created by this block will be deregistered
+            or not. Existing task definitions linked by ARN will never be
+            deregistered. Deregistering a task definition does not remove
+            it from your AWS account, instead it will be marked as INACTIVE.
+        cpu: The amount of CPU to provide to the ECS task. Valid amounts are
+            specified in the AWS documentation. If not provided, a default
+            value of ECS_DEFAULT_CPU will be used unless present on
+            the task definition.
+        memory: The amount of memory to provide to the ECS task.
+            Valid amounts are specified in the AWS documentation.
+            If not provided, a default value of ECS_DEFAULT_MEMORY
+            will be used unless present on the task definition.
+        execution_role_arn: An execution role to use for the task.
+            This controls the permissions of the task when it is launching.
+            If this value is not null, it will override the value in the task
+            definition. An execution role must be provided to capture logs
+            from the container.
+        configure_cloudwatch_logs: A boolean that controls if the Prefect
+            container will be configured to send its output to the
+            AWS CloudWatch logs service or not. This functionality requires
+            an execution role with permissions to create log streams and groups.
+        cloudwatch_logs_options: A dictionary of options to pass to
+            the CloudWatch logs configuration.
+        stream_output: A boolean indicating whether logs will be
+            streamed from the Prefect container to the local console.
+        launch_type: An optional launch type for the ECS task run infrastructure.
+        vpc_id: An optional VPC ID to link the task run to.
+            This is only applicable when using the 'awsvpc' network mode for your task.
+        cluster: An optional ECS cluster to run the task in.
+            The ARN or name may be provided. If not provided,
+            the default cluster will be used.
+        env: A dictionary of environment variables to provide to
+            the task run. These variables are set on the
+            Prefect container at task runtime.
+        task_role_arn: An optional role to attach to the task run.
+            This controls the permissions of the task while it is running.
+        task_customizations: A list of JSON 6902 patches to apply to the task
+            run request.
+        task_start_timeout_seconds: The amount of time to watch for the
+            start of the ECS task before marking it as failed. The task must
+            enter a RUNNING state to be considered started.
+        task_watch_poll_interval: The amount of time to wait between AWS API
+            calls while monitoring the state of an ECS task.
     """
 
     _block_type_slug = "ecs-task"
@@ -508,7 +577,6 @@ class ECSTask(Infrastructure):
             and not self.task_definition_arn
             and not (self.task_definition and self.task_definition.get("family"))
         ):
-
             if flow and deployment:
                 new_family = f"{ECS_DEFAULT_FAMILY}__{flow.name}__{deployment.name}"
             elif flow and not deployment:
@@ -908,9 +976,8 @@ class ECSTask(Infrastructure):
             and "AccessDeniedException" in str(exc)
             and self.configure_cloudwatch_logs
         ):
-
             raise RuntimeError(
-                f"Failed to run ECS task, the attached execution role does not appear "
+                "Failed to run ECS task, the attached execution role does not appear "
                 "to have sufficient permissions. Ensure that the execution role "
                 f"{self.execution_role!r} has permissions logs:CreateLogStream, "
                 "logs:CreateLogGroup, and logs:PutLogEvents."
@@ -1102,8 +1169,10 @@ class ECSTask(Infrastructure):
                 response = logs_client.get_log_events(**request)
             except Exception:
                 self.logger.error(
-                    f"{self._log_prefix}: Failed to read log events with request "
-                    f"{request}",
+                    (
+                        f"{self._log_prefix}: Failed to read log events with request "
+                        f"{request}"
+                    ),
                     exc_info=True,
                 )
                 return last_log_timestamp
@@ -1150,8 +1219,7 @@ class ECSTask(Infrastructure):
         Retrieve an existing task definition from AWS.
         """
         self.logger.info(
-            f"{self._log_prefix}: "
-            f"Retrieving task definition {task_definition_arn!r}..."
+            f"{self._log_prefix}: Retrieving task definition {task_definition_arn!r}..."
         )
         response = ecs_client.describe_task_definition(
             taskDefinition=task_definition_arn
