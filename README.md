@@ -65,6 +65,22 @@ def example_flow():
 example_flow()
 ```
 
+#### Write, read, and delete secret from AWS Secrets Manager
+```python
+from prefect import flow
+from prefect_aws import AwsCredentials, SecretsManager
+
+@flow
+def example_flow():
+    secrets_manager = SecretsManager.load("my-block")
+    secrets_manager.write_secret("my-secret-value")
+    secret = secrets_manager.read_secret()
+    print(secret)
+    secrets_manager.delete_secret()
+
+example_flow()
+```
+
 #### Use `with_options` to customize options on any existing task or flow
 
 ```python

@@ -1,10 +1,10 @@
 """Tasks for interacting with AWS Secrets Manager"""
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from botocore.exceptions import ClientError
 from prefect import get_run_logger, task
 from prefect.blocks.abstract import SecretBlock
-from prefect.utilities.asyncutils import run_sync_in_worker_thread
+from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from pydantic import Field
 
 from prefect_aws import AwsCredentials, MinIOCredentials
@@ -362,9 +362,13 @@ class SecretsManager(SecretBlock):
     aws_credentials: Union[AwsCredentials, MinIOCredentials]
     secret_name: str = Field(default=..., description="The name of the secret.")
 
+    @sync_compatible
     async def read_secret(
-        self, version_id: str = None, version_stage: str = None
-    ) -> Union[str, bytes]:
+        self,
+        version_id: str = None,
+        version_stage: str = None,
+        **read_kwargs: Dict[str, Any],
+    ) -> bytes:
         """
         Reads the secret from the secret storage service.
 
@@ -373,61 +377,83 @@ class SecretsManager(SecretBlock):
                 version will be read.
             version_stage: The version stage of the secret to read. If not provided,
                 the latest version will be read.
+            read_kwargs: Additional keyword arguments to pass to the
+                `get_secret_value` method of the boto3 client.
 
         Returns:
             The secret data.
+
+        Examples:
+            Reads a secret.
+            ```python
+            secrets_manager = SecretsManager.load("MY_BLOCK")
+            secrets_manager.read_secret()
+            ```
         """
         client = self.aws_credentials.get_secrets_manager_client()
+        if version_id is not None:
+            read_kwargs["VersionId"] = version_id
+        if version_stage is not None:
+            read_kwargs["VersionStage"] = version_stage
         response = await run_sync_in_worker_thread(
-            client.get_secret_value,
-            SecretId=self.secret_name,
-            VersionId=version_id,
-            version_stage=version_stage,
+            client.get_secret_value, SecretId=self.secret_name, **read_kwargs
         )
-        secret = response.get("SecretString") or response.get("SecretBinary")
+        secret = response["SecretBinary"]
+        arn = response["ARN"]
+        self.logger.info(f"The secret {arn!r} data was successfully read.")
         return secret
 
-    async def write_secret(self, secret_data: bytes) -> str:
+    @sync_compatible
+    async def write_secret(
+        self, secret_data: bytes, **put_or_create_secret_kwargs: Dict[str, Any]
+    ) -> str:
         """
-        Writes the secret to the secret storage service.
+        Writes the secret to the secret storage service as a SecretBinary;
+        if it doesn't exist, it will be created.
 
         Args:
             secret_data: The secret data to write.
+            **put_or_create_secret_kwargs: Additional keyword arguments to pass to
+                put_secret_value or create_secret method of the boto3 client.
 
         Returns:
             The path that the secret was written to.
+
+        Examples:
+            Write some secret data.
+            ```python
+            secrets_manager = SecretsManager.load("MY_BLOCK")
+            secrets_manager.write_secret(b"my_secret_data")
+            ```
         """
         client = self.aws_credentials.get_secrets_manager_client()
-        response = await run_sync_in_worker_thread(
-            client.put_secret_value, SecretId=self.secret_name, SecretBinary=secret_data
-        )
-        return response["name"]
+        try:
+            response = await run_sync_in_worker_thread(
+                client.put_secret_value,
+                SecretId=self.secret_name,
+                SecretBinary=secret_data,
+                **put_or_create_secret_kwargs,
+            )
+        except client.exceptions.ResourceNotFoundException:
+            self.logger.info(
+                f"The secret {self.secret_name!r} does not exist yet, creating it now."
+            )
+            response = await run_sync_in_worker_thread(
+                client.create_secret,
+                Name=self.secret_name,
+                SecretBinary=secret_data,
+                **put_or_create_secret_kwargs,
+            )
+        arn = response["ARN"]
+        self.logger.info(f"The secret data was written successfully to {arn!r}.")
+        return arn
 
-    async def update_secret(
-        self, secret_data: bytes, description: Optional[str] = None
-    ) -> str:
-        """
-        Updates the secret to the secret storage service.
-
-        Args:
-            secret_data: The secret data to update.
-
-        Returns:
-            The path that the secret was updated to.
-        """
-        client = self.aws_credentials.get_secrets_manager_client()
-        response = await run_sync_in_worker_thread(
-            client.update_secret,
-            SecretId=self.secret_name,
-            SecretBinary=secret_data,
-            Description=description,
-        )
-        return response["name"]
-
+    @sync_compatible
     async def delete_secret(
         self,
-        recovery_window_in_days: Optional[int] = None,
+        recovery_window_in_days: int = 30,
         force_delete_without_recovery: bool = False,
+        **delete_kwargs: Dict[str, Any],
     ) -> str:
         """
         Deletes the secret from the secret storage service.
@@ -437,22 +463,37 @@ class SecretsManager(SecretBlock):
                 deleting the secret. Must be between 7 and 30 days.
             force_delete_without_recovery: If True, the secret will be deleted
                 immediately without a recovery window.
+            **delete_kwargs: Additional keyword arguments to pass to the
+                delete_secret method of the boto3 client.
 
         Returns:
             The path that the secret was deleted from.
+
+        Examples:
+            Deletes the secret with a recovery window of 15 days.
+            ```python
+            secrets_manager = SecretsManager.load("MY_BLOCK")
+            secrets_manager.delete_secret(recovery_window_in_days=15)
+            ```
         """
         if force_delete_without_recovery and recovery_window_in_days:
             raise ValueError(
                 "Cannot specify recovery window and force delete without recovery."
             )
-        elif 7 <= recovery_window_in_days <= 30:
-            raise ValueError("Recovery window must be between 7 and 30 days.")
+        elif not (7 <= recovery_window_in_days <= 30):
+            raise ValueError(
+                f"Recovery window must be between 7 and 30 days, got "
+                f"{recovery_window_in_days}."
+            )
 
         client = self.aws_credentials.get_secrets_manager_client()
-        await run_sync_in_worker_thread(
+        response = await run_sync_in_worker_thread(
             client.delete_secret,
             SecretId=self.secret_name,
             RecoveryWindowInDays=recovery_window_in_days,
             ForceDeleteWithoutRecovery=force_delete_without_recovery,
+            **delete_kwargs,
         )
-        return self.secret_name
+        arn = response["ARN"]
+        self.logger.info(f"The secret {arn} was deleted successfully.")
+        return arn

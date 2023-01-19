@@ -6,6 +6,7 @@ from moto import mock_secretsmanager
 from prefect import flow
 
 from prefect_aws.secrets_manager import (
+    SecretsManager,
     create_secret,
     delete_secret,
     read_secret,
@@ -161,3 +162,40 @@ async def test_delete_secret(
             )
         else:
             assert deletion_date.date() == datetime.utcnow().date()
+
+
+class TestSecretsManager:
+    @pytest.fixture
+    def secrets_manager(self, aws_credentials, secretsmanager_client):
+        yield SecretsManager(aws_credentials=aws_credentials, secret_name="my-test")
+
+    def test_roundtrip_read_write_delete(self, secrets_manager):
+        arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret"
+        assert secrets_manager.write_secret("my-secret").startswith(arn)
+        assert secrets_manager.read_secret() == b"my-secret"
+        assert secrets_manager.write_secret("my-updated-secret").startswith(arn)
+        assert secrets_manager.read_secret() == b"my-updated-secret"
+        assert secrets_manager.delete_secret().startswith(arn)
+
+    def test_read_secret_version_id(self, secrets_manager: SecretsManager):
+        client = secrets_manager.aws_credentials.get_secrets_manager_client()
+        client.create_secret(Name="my-test", SecretBinary="my-secret")
+        response = client.update_secret(
+            SecretId="my-test", SecretBinary="my-updated-secret"
+        )
+        assert (
+            secrets_manager.read_secret(version_id=response["VersionId"])
+            == b"my-updated-secret"
+        )
+
+    def test_delete_secret_conflict(self, secrets_manager: SecretsManager):
+        with pytest.raises(ValueError, match="Cannot specify recovery window"):
+            secrets_manager.delete_secret(
+                force_delete_without_recovery=True, recovery_window_in_days=10
+            )
+
+    def test_delete_secret_recovery_window(self, secrets_manager: SecretsManager):
+        with pytest.raises(
+            ValueError, match="Recovery window must be between 7 and 30 days"
+        ):
+            secrets_manager.delete_secret(recovery_window_in_days=42)

@@ -963,7 +963,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     @sync_compatible
     async def upload_from_file_object(
-        self, from_file_object: BinaryIO, to_path: str, **upload_kwargs
+        self, from_file_object: BinaryIO, to_path: str, **upload_kwargs: Dict[str, Any]
     ) -> str:
         """
         Uploads an object to the S3 bucket from a file-like object,
