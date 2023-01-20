@@ -354,16 +354,16 @@ async def delete_secret(
         raise
 
 
-class SecretsManager(SecretBlock):
+class AwsSecret(SecretBlock):
     """
-    Block that represents a resource that can store and retrieve secrets.
+    Manages a secret in AWS's Secrets Manager.
 
     Attributes:
         aws_credentials: The credentials to use for authentication with AWS.
         secret_name: The name of the secret.
     """
 
-    aws_credentials: Union[AwsCredentials, MinIOCredentials]
+    aws_credentials: AwsCredentials
     secret_name: str = Field(default=..., description="The name of the secret.")
 
     @sync_compatible
