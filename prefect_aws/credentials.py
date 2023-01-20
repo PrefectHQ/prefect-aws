@@ -241,12 +241,3 @@ class MinIOCredentials(CredentialsBlock):
             An authenticated S3 client.
         """
         return self.get_client(client_type=ClientType.S3)
-
-    def get_secrets_manager_client(self) -> SecretsManagerClient:
-        """
-        Gets an authenticated Secrets Manager client.
-
-        Returns:
-            An authenticated Secrets Manager client.
-        """
-        return self.get_client(client_type=ClientType.SECRETS_MANAGER)
