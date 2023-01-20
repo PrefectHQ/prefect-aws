@@ -5,6 +5,7 @@ from typing import Any, Optional, Union
 
 import boto3
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_secretsmanager import SecretsManagerClient
 from prefect.blocks.abstract import CredentialsBlock
 from pydantic import Field, SecretStr
 
@@ -127,6 +128,15 @@ class AwsCredentials(CredentialsBlock):
             An authenticated S3 client.
         """
         return self.get_client(client_type=ClientType.S3)
+
+    def get_secrets_manager_client(self) -> SecretsManagerClient:
+        """
+        Gets an authenticated Secrets Manager client.
+
+        Returns:
+            An authenticated Secrets Manager client.
+        """
+        return self.get_client(client_type=ClientType.SECRETS_MANAGER)
 
 
 class MinIOCredentials(CredentialsBlock):

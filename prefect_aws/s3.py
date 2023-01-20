@@ -808,6 +808,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             Download my_folder/notes.txt object to a BytesIO object.
             ```python
             from io import BytesIO
+
             from prefect_aws.s3 import S3Bucket
 
             s3_bucket = S3Bucket.load("my-bucket")
@@ -962,7 +963,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     @sync_compatible
     async def upload_from_file_object(
-        self, from_file_object: BinaryIO, to_path: str, **upload_kwargs
+        self, from_file_object: BinaryIO, to_path: str, **upload_kwargs: Dict[str, Any]
     ) -> str:
         """
         Uploads an object to the S3 bucket from a file-like object,
@@ -981,6 +982,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             Upload BytesIO object to my_folder/notes.txt.
             ```python
             from io import BytesIO
+
             from prefect_aws.s3 import S3Bucket
 
             s3_bucket = S3Bucket.load("my-bucket")
