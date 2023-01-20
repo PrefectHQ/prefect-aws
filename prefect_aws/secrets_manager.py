@@ -7,7 +7,7 @@ from prefect.blocks.abstract import SecretBlock
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from pydantic import Field
 
-from prefect_aws import AwsCredentials, MinIOCredentials
+from prefect_aws import AwsCredentials
 
 
 @task
