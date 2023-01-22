@@ -238,6 +238,20 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     """
     Block used to store data using AWS S3 or S3-compatible object storage like MinIO.
+
+    Attributes:
+        bucket_name: Name of your bucket.
+        minio_credentials: [DEPRECATED; use the credentials field instead]
+            A block containing your credentials (choose this or AWS Credentials)
+        aws_credentials: [DEPRECATED; use the credentials field instead]
+            A block containing your credentials (choose this or MinIO Credentials)
+        basepath: [DEPRECATED; use the bucket_folder field instead]
+            The base path to use when storing data in this bucket.
+        endpoint_url: [DEPRECATED; pass AwsClientParameters in AwsCredentials instead]
+            The URL of the S3-compatible object storage service.
+        credentials: A block containing your credentials to AWS or MinIO.
+        bucket_folder: A default path to a folder within the S3 bucket to use
+            for reading and writing objects.
     """
 
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
