@@ -1,8 +1,8 @@
-# prefect-aws
-
-Visit the full docs [here](https://PrefectHQ.github.io/prefect-aws) to see additional examples and the API reference.
+# Coordinate and incorporate AWS in your dataflow with prefect-aws
 
 <p align="center">
+    <img src="https://user-images.githubusercontent.com/15331990/214123296-4cfa69ed-d105-4ca2-a351-4c21917086c7.png">
+    <br>
     <a href="https://pypi.python.org/pypi/prefect-aws/" alt="PyPI version">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/prefect-aws?color=0052FF&labelColor=090422"></a>
     <a href="https://github.com/prefecthq/prefect-aws/" alt="Stars">
@@ -18,33 +18,37 @@ Visit the full docs [here](https://PrefectHQ.github.io/prefect-aws) to see addit
         <img src="https://img.shields.io/badge/discourse-browse_forum-red.svg?color=0052FF&labelColor=090422&logo=discourse" /></a>
 </p>
 
+Visit the full docs [here](https://PrefectHQ.github.io/prefect-aws) to see additional examples and the API reference.
+
 ## Welcome!
 
 `prefect-aws` is a collection of pre-built Prefect tasks that can be used to quickly construct Prefect flows that interact with Amazon Web Services.
 
 ## Getting Started
 
-### Python setup
+### Saving credentials to a block
 
-Requires an installation of Python 3.7+
+You will need to obtain AWS credentials in order to use `prefect-aws`.
 
-We recommend using a Python virtual environment manager such as pipenv, conda or virtualenv.
+1. Refer to the [AWS Configuration documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds) on how to retrieve your access key ID and secret access key
+2. Copy the access key ID and secret access key
+3. Create a short script, replacing the placeholders (or do so in the UI)
 
-These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the [Prefect documentation](https://orion-docs.prefect.io/).
-
-### Installation
-
-Install `prefect-aws`
-
-```bash
-pip install prefect-aws
+```python
+from prefect_aws import AwsCredentials
+AwsCredentials(
+    aws_access_key_id="PLACEHOLDER",
+    aws_secret_access_key="PLACEHOLDER",
+    aws_session_token=None,  # replace this with token if necessary
+).save("BLOCK_NAME_PLACEHOLDER")
 ```
 
-A list of available blocks in `prefect-aws` and their setup instructions can be found [here](https://PrefectHQ.github.io/prefect-aws/#blocks-catalog).
-
-### AWS Authentication
-
-You will need to obtain AWS credentials in order to use these tasks. Refer to the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for authentication methods available.
+Congrats! You can now easily load the saved block, which holds your credentials:
+ 
+```python
+from prefect_aws import AwsCredentials
+AwsCredentials.load("BLOCK_NAME_PLACEHOLDER")
+```
 
 ### Write and run a flow
 
@@ -91,19 +95,41 @@ custom_example_flow = example_flow.with_options(
 ) 
 ```
 
-## Next steps
+## Resources
 
-Refer to the API documentation in the side menu to explore all the capabilities of Prefect AWS!
+Refer to the API documentation on the sidebar to explore all the capabilities of Prefect AWS!
 
 For more tips on how to use tasks and flows in a Collection, check out [Using Collections](https://orion-docs.prefect.io/collections/usage/)!
 
-## Resources
+### Recipes
+
+A tutorial on `ECSTask` can be found [here](https://towardsdatascience.com/prefect-aws-ecs-fargate-github-actions-make-serverless-dataflows-as-easy-as-py-f6025335effc).
+
+For additional recipes and examples, check out [`prefect-recipes`](https://github.com/PrefectHQ/prefect-recipes).
+
+### Feedback
 
 If you have any questions or issues while using `prefect-aws`, you can find help in either the [Prefect Discourse forum](https://discourse.prefect.io/) or the [Prefect Slack community](https://prefect.io/slack).
  
 Feel free to star or watch [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) for updates too!
 
-## Contributing
+### Installation
+
+Install `prefect-aws`
+
+```bash
+pip install prefect-aws
+```
+
+A list of available blocks in `prefect-aws` and their setup instructions can be found [here](https://PrefectHQ.github.io/prefect-aws/#blocks-catalog).
+
+Requires an installation of Python 3.7+
+
+We recommend using a Python virtual environment manager such as pipenv, conda or virtualenv.
+
+These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the [Prefect documentation](https://orion-docs.prefect.io/).
+
+### Contributing
 
 If you'd like to help contribute to fix an issue or add a feature to `prefect-aws`, please [propose changes through a pull request from a fork of the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
 
