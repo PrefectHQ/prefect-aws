@@ -46,8 +46,8 @@ AwsCredentials(
 Congrats! You can now easily load the saved block, which holds your credentials:
  
 ```python
-from prefect_aws import Block
-Block.load("BLOCK_NAME_PLACEHOLDER")
+from prefect_aws import AwsCredentials
+AwsCredentials.load("BLOCK_NAME_PLACEHOLDER")
 ```
 
 ### Write and run a flow
