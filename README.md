@@ -1,7 +1,7 @@
 # Coordinate and incorporate AWS in your dataflow with prefect-aws
 
 <p align="center">
-    <!--- Insert a cover image here -->
+    ![img-UJ9T4GlX3txZ2e7XQ4b9l0p0](https://user-images.githubusercontent.com/15331990/214123296-4cfa69ed-d105-4ca2-a351-4c21917086c7.png)
     <br>
     <a href="https://pypi.python.org/pypi/prefect-aws/" alt="PyPI version">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/prefect-aws?color=0052FF&labelColor=090422"></a>
