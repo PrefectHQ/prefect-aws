@@ -72,11 +72,11 @@ example_flow()
 #### Write, read, and delete secret from AWS Secrets Manager
 ```python
 from prefect import flow
-from prefect_aws import AwsCredentials, SecretsManager
+from prefect_aws import AwsCredentials, AwsSecret
 
 @flow
 def example_flow():
-    secrets_manager = SecretsManager.load("my-block")
+    secrets_manager = AwsSecret.load("my-block")
     secrets_manager.write_secret("my-secret-value")
     secret = secrets_manager.read_secret()
     print(secret)

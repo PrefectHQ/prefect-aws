@@ -23,7 +23,7 @@ Released on January 23rd, 2023.
 
 ### Added
 
-- `SecretsManager` block with `read_secret`, `write_secret`, and `delete_secret` methods - [#176](https://github.com/PrefectHQ/prefect-aws/pull/176)
+- `AwsSecret` block with `read_secret`, `write_secret`, and `delete_secret` methods - [#176](https://github.com/PrefectHQ/prefect-aws/pull/176)
 
 ### Changed
 
