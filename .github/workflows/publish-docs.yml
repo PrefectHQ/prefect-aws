@@ -23,7 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade --upgrade-strategy eager -e ".[dev]"
           mkdocs build
- 
+      
       - name: Publish docs
         uses: JamesIves/github-pages-deploy-action@v4.4.1
         with:

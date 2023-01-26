@@ -17,11 +17,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## 0.2.4
+
+Released on January 23rd, 2023.
+
+### Added
+
+- `SecretsManager` block with `read_secret`, `write_secret`, and `delete_secret` methods - [#176](https://github.com/PrefectHQ/prefect-aws/pull/176)
+
+### Changed
+
+- Object keys sent in S3 requests use '/' delimiters instead of system default - [#192](https://github.com/PrefectHQ/prefect-aws/pull/192)
+
+### Fixed
+
 - Fix bug where ECSTask could fail to stream logs - [#186](https://github.com/PrefectHQ/prefect-aws/pull/186)
 
 ## 0.2.3
 
-Released on January 4th, 2022.
+Released on January 4th, 2023.
 
 ### Fixed
 
@@ -29,7 +43,7 @@ Released on January 4th, 2022.
 
 ## 0.2.2
 
-Released on January 4th, 2022.
+Released on January 4th, 2023.
 
 ### Added
 

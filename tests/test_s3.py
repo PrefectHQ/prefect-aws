@@ -1,6 +1,6 @@
 import io
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import boto3
 import pytest
@@ -363,20 +363,31 @@ async def test_read_fails_does_not_exist(s3_bucket):
         await s3_bucket.read_path("test_bucket/foo/bar")
 
 
-async def test_aws_basepath(s3_bucket, aws_creds_block):
-
+@pytest.mark.parametrize("type_", [PureWindowsPath, PurePosixPath, str])
+@pytest.mark.parametrize("delimiter", ["\\", "/"])
+async def test_aws_basepath(s3_bucket, aws_creds_block, delimiter, type_):
     """Test the basepath functionality."""
 
     # create a new block with a subfolder
     s3_bucket_block = S3Bucket(
         bucket_name=BUCKET_NAME,
         aws_credentials=aws_creds_block,
-        basepath="subfolder",
+        basepath=type_(f"subfolder{delimiter}subsubfolder"),
     )
 
     key = await s3_bucket_block.write_path("test.txt", content=b"hello")
     assert await s3_bucket_block.read_path("test.txt") == b"hello"
-    assert key == "subfolder/test.txt"
+
+    expected: str = "subfolder/subsubfolder/test.txt"
+    if (
+        delimiter == "\\"
+        and type_ != PureWindowsPath
+        and (os.sep != "\\" and os.altsep != "\\")
+    ):
+        # In this case, \\ will not be recognized as a delimiter
+        # This case is triggered on POSIX systems
+        expected = "subfolder\\subsubfolder/test.txt"
+    assert key == expected
 
 
 async def test_get_directory(
