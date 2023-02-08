@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed errors raised when using `write_path` and `read_path` with `credentials` field on `S3Bucket` - [#208](https://github.com/PrefectHQ/prefect-aws/pull/208)
+
 ## 0.2.4
 
 Released on January 23rd, 2023.

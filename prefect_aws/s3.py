@@ -256,6 +256,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _block_type_name = "S3 Bucket"
+    _documentation_url = (
+        "https://prefecthq.github.io/prefect-aws/s3/#prefect_aws.s3.S3Bucket"  # noqa
+    )
 
     bucket_name: str = Field(default=..., description="Name of your bucket.")
 
@@ -418,7 +421,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         Authenticate MinIO credentials or AWS credentials and return an S3 client.
         This is a helper function called by read_path() or write_path().
         """
-        if self.minio_credentials:
+        if self.credentials:
+            s3_client = self.credentials.get_s3_client()
+        elif self.minio_credentials:
             s3_client = self.minio_credentials.get_s3_client()
 
         elif self.aws_credentials:
@@ -434,7 +439,18 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         """
         Retrieves boto3 resource object for the configured bucket
         """
-        if self.minio_credentials:
+        if self.credentials:
+            params_override = (
+                self.credentials.aws_client_parameters.get_params_override()
+            )
+            if "endpoint_url" not in params_override and self.endpoint_url:
+                params_override["endpoint_url"] = self.endpoint_url
+            bucket = (
+                self.credentials.get_boto3_session()
+                .resource("s3", **params_override)
+                .Bucket(self.bucket_name)
+            )
+        elif self.minio_credentials:
             params_override = (
                 self.minio_credentials.aws_client_parameters.get_params_override()
             )
