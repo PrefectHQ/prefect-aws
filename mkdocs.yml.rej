@@ -1,0 +1,24 @@
+diff a/mkdocs.yml b/mkdocs.yml	(rejected hunks)
+@@ -70,8 +73,12 @@ watch:
+ 
+ nav:
+     - Home: index.md
+-    - Tasks: tasks.md
+-    - Flows: flows.md
++    - Blocks Catalog: blocks_catalog.md
++    - Examples Catalog: examples_catalog.md
++    - API Reference:
++        - Tasks: tasks.md
++        - Flows: flows.md
++
+ 
+ extra:
+     social:
+@@ -94,6 +101,6 @@ extra:
+         - icon: fontawesome/brands/python
+           link: https://pypi.org/project/prefect/
+     analytics:
+-        provider: google
++        provider: custom
+         property: G-8CSMBCQDKN
+ 
