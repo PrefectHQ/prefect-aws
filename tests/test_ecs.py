@@ -13,7 +13,7 @@ from moto.ec2.utils import generate_instance_identity_document
 from prefect.docker import get_prefect_image_name
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.logging.configuration import setup_logging
-from prefect.orion.schemas.core import Deployment, Flow, FlowRun
+from prefect.server.schemas.core import Deployment, Flow, FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from pydantic import ValidationError
 

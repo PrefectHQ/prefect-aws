@@ -31,7 +31,7 @@ jobs:
 
       - name: Run tests
         env:
-          PREFECT_ORION_DATABASE_CONNECTION_URL: "sqlite+aiosqlite:///./collection-tests.db"
+          PREFECT_SERVER_DATABASE_CONNECTION_URL: "sqlite+aiosqlite:///./collection-tests.db"
         run: |
           prefect server database reset -y
           coverage run --branch -m pytest tests -vv

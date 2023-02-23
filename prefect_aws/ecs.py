@@ -132,7 +132,7 @@ _ECSClient = Any
 
 if TYPE_CHECKING:
     from prefect.client.schemas import FlowRun
-    from prefect.orion.schemas.core import Deployment, Flow
+    from prefect.server.schemas.core import Deployment, Flow
 
 
 class ECSTaskResult(InfrastructureResult):
