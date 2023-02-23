@@ -315,9 +315,9 @@ def s3_bucket(s3, request, aws_creds_block, minio_creds_block):
     key = request.param
 
     if key == "aws_credentials":
-        fs = S3Bucket(bucket_name=BUCKET_NAME, aws_credentials=aws_creds_block)
+        fs = S3Bucket(bucket_name=BUCKET_NAME, credentials=aws_creds_block)
     elif key == "minio_credentials":
-        fs = S3Bucket(bucket_name=BUCKET_NAME, minio_credentials=minio_creds_block)
+        fs = S3Bucket(bucket_name=BUCKET_NAME, credentials=minio_creds_block)
 
     s3.create_bucket(Bucket=BUCKET_NAME)
 

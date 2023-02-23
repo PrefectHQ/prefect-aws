@@ -269,6 +269,9 @@ class ECSTask(Infrastructure):
     _block_type_name = "ECS Task"
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
     _description = "Run a command as an ECS task."  # noqa
+    _documentation_url = (
+        "https://prefecthq.github.io/prefect-aws/ecs/#prefect_aws.ecs.ECSTask"  # noqa
+    )
 
     type: Literal["ecs-task"] = Field(
         "ecs-task", description="The slug for this task type."
