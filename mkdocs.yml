@@ -4,6 +4,7 @@ repo_url: https://github.com/PrefectHQ/prefect-aws
 edit_uri: edit/main/docs/
 theme:
   name: material
+  custom_dir: docs/overrides
   favicon: img/favicon.ico
   palette:
     - media: "(prefers-color-scheme)"
@@ -53,7 +54,9 @@ plugins:
   - search
   - gen-files:
       scripts:
-        - docs/gen_ref_pages.py
+        - docs/gen_home_page.py
+        - docs/gen_examples_catalog.py
+        - docs/gen_blocks_catalog.py
   - mkdocstrings:
       handlers:
         python:
@@ -70,12 +73,15 @@ watch:
 
 nav:
     - Home: index.md
-    - Batch: batch.md
-    - Client Waiter: client_waiter.md
-    - Credentials: credentials.md
-    - ECS: ecs.md
-    - S3: s3.md
-    - Secrets Manager: secrets_manager.md
+    - Blocks Catalog: blocks_catalog.md
+    - Examples Catalog: examples_catalog.md
+    - API Reference:
+        - Batch: batch.md
+        - Client Waiter: client_waiter.md
+        - Credentials: credentials.md
+        - ECS: ecs.md
+        - S3: s3.md
+        - Secrets Manager: secrets_manager.md
 
 extra:
     social:
@@ -98,5 +104,5 @@ extra:
         - icon: fontawesome/brands/python
           link: https://pypi.org/project/prefect/
     analytics:
-        provider: google
+        provider: custom
         property: G-8CSMBCQDKN

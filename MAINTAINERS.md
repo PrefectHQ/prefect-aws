@@ -66,7 +66,7 @@ To verify the setup was successful you can run the following:
 
 ## Developing tasks and flows
 
-For information about the use and development of tasks and flow, check out the [flows](https://orion-docs.prefect.io/concepts/flows/) and [tasks](https://orion-docs.prefect.io/concepts/tasks/) concepts docs in the Prefect docs.
+For information about the use and development of tasks and flow, check out the [flows](https://docs.prefect.io/concepts/flows/) and [tasks](https://docs.prefect.io/concepts/tasks/) concepts docs in the Prefect docs.
 
 ## Writing documentation
 
@@ -98,7 +98,7 @@ To publish a new version of your collection, [create a new GitHub release](https
 
 Upon publishing, a `docs` branch is automatically created. To hook this up to GitHub Pages, simply head over to https://github.com/PrefectHQ/prefect-aws/settings/pages, select `docs` under the dropdown menu, keep the default `/root` folder, `Save`, and upon refresh, you should see a prompt stating "Your site is published at https://PrefectHQ.github.io/prefect-aws". Don't forget to add this link to the repo's "About" section, under "Website" so users can access the docs easily.
 
-Feel free to [submit your collection](https://orion-docs.prefect.io/collections/overview/#listing-in-the-collections-catalog) to the Prefect [Collections Catalog](https://orion-docs.prefect.io/collections/catalog/)!
+Feel free to [submit your collection](https://docs.prefect.io/collections/overview/#listing-in-the-collections-catalog) to the Prefect [Collections Catalog](https://docs.prefect.io/collections/catalog/)!
 
 ## Further guidance
 
