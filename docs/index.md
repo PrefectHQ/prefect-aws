@@ -61,9 +61,9 @@ AwsCredentials.load("BLOCK-NAME-PLACEHOLDER")
     prefect block register -m prefect_aws
     ```
 
-### Using Prefect with Amazon ECS
+### Using Prefect with AWS ECS
 
-`prefect_aws` allows you to interact with Amazon ECS Tasks with Prefect flows.
+`prefect_aws` allows you to interact with AWS ECS Tasks with Prefect flows.
 
 The snippets below show how you can use `prefect_aws` to run a task on ECS. It uses the `ECSTask` block as [Prefect infrastructure](https://docs.prefect.io/concepts/infrastructure/) or simply within a flow.
 
