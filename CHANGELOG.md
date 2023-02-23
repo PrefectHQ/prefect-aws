@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed errors raised when using `write_path` and `read_path` with `credentials` field on `S3Bucket` - [#208](https://github.com/PrefectHQ/prefect-aws/pull/208)
-- Resolving paths in `S3Bucket` unintentionally generating an arbitrary UUID when path is an empty string - [#209](https://github.com/PrefectHQ/prefect-gcp/pull/209)
+- Resolving paths in `S3Bucket` unintentionally generating an arbitrary UUID when path is an empty string - [#212](https://github.com/PrefectHQ/prefect-gcp/pull/212)
 
 ## 0.2.4
 
