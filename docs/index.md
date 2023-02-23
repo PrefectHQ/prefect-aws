@@ -40,6 +40,7 @@ AwsCredentials(
     aws_access_key_id="PLACEHOLDER",
     aws_secret_access_key="PLACEHOLDER",
     aws_session_token=None,  # replace this with token if necessary
+    region_name="us-east-2"
 ).save("BLOCK-NAME-PLACEHOLDER")
 ```
 
@@ -75,10 +76,10 @@ You can also use ECS Tasks as infrastructure to execute your deployed flows.
 To expedite copy/paste without the needing to update placeholders manually, update and execute the following.
 
 ```bash
-export CREDENTIALS_BLOCK_NAME="BLOCK-NAME-PLACEHOLDER"
+export CREDENTIALS_BLOCK_NAME="aws-credentials"
+export VPC_ID="vpc-id"
 export ECS_TASK_BLOCK_NAME="ecs-task-example"
-export ECS_TASK_REGION="us-east-1"
-export GCS_BUCKET_BLOCK_NAME="ecs-task-bucket-example"
+export S3_BUCKET_BLOCK_NAME="ecs-task-bucket-example"
 ```
 
 ##### Save an infrastructure and storage block
@@ -92,20 +93,23 @@ from prefect_aws import AwsCredentials, ECSTask, S3Bucket
 aws_credentials = AwsCredentials.load(os.environ["CREDENTIALS_BLOCK_NAME"])
 
 ecs_task = ECSTask(
-    image="",
-    credentials=aws_credentials,
-    region=os.environ["ECS_TASK_REGION"],
+    image="prefecthq/prefect:2-python3.10",
+    aws_credentials=aws_credentials,
+    vpc_id=os.environ["VPC_ID"],
 )
 ecs_task.save(os.environ["ECS_TASK_BLOCK_NAME"], overwrite=True)
 
-bucket_name = "ecs-task-bucket"
-cloud_storage_client = aws_credentials.get_cloud_storage_client()
-cloud_storage_client.create_bucket(bucket_name)
+bucket_name = "ecs-task-bucket-example"
+s3_client = aws_credentials.get_s3_client()
+s3_client.create_bucket(
+    Bucket=bucket_name,
+    CreateBucketConfiguration={"LocationConstraint": aws_credentials.region_name}
+)
 s3_bucket = S3Bucket(
-    bucket=bucket_name,
+    bucket_name=bucket_name,
     aws_credentials=aws_credentials,
 )
-s3_bucket.save(os.environ["GCS_BUCKET_BLOCK_NAME"], overwrite=True)
+s3_bucket.save(os.environ["S3_BUCKET_BLOCK_NAME"], overwrite=True)
 ```
 
 ##### Write a flow
@@ -131,7 +135,8 @@ If the script was named "ecs_task_script.py", build a deployment manifest with t
 prefect deployment build ecs_task_script.py:ecs_task_flow \
     -n ecs-task-deployment \
     -ib ecs-task/${ECS_TASK_BLOCK_NAME} \
-    -sb s3-bucket/${GCS_BUCKET_BLOCK_NAME}
+    -sb s3-bucket/${GCS_BUCKET_BLOCK_NAME} \
+    --override env.EXTRA_PIP_PACKAGES=prefect-aws
 ```
 
 Now apply the deployment!
@@ -161,6 +166,8 @@ Once the flow run has completed, you will see `Hello, Prefect!` logged in the Pr
     If you encounter an error message like `KeyError: "No class found for dispatch key 'ecs-task' in registry for type 'Block'."`,
     ensure `prefect-aws` is installed in the environment that your agent is running!
 
+Another tutorial on `ECSTask` can be found [here](https://towardsdatascience.com/prefect-aws-ecs-fargate-github-actions-make-serverless-dataflows-as-easy-as-py-f6025335effc).
+
 #### Within Flow
 
 You can execute commands through ECS Task directly within a Prefect flow.
@@ -173,9 +180,9 @@ from prefect_aws.ecs import ECSTask
 @flow
 def ecs_task_flow():
     ecs_task = ECSTask(
-        image="",
+        image="prefecthq/prefect:2-python3.10",
         credentials=AwsCredentials.load("BLOCK-NAME-PLACEHOLDER"),
-        region="us-east-1",
+        region="us-east-2",
         command=["echo", "Hello, Prefect!"],
     )
     return ecs_task.run()
@@ -186,6 +193,8 @@ def ecs_task_flow():
 `prefect_aws` allows you to read and write objects with AWS S3 within your Prefect flows.
 
 The provided code snippet shows how you can use `prefect_aws` to upload a file to a AWS S3 bucket and download the same file under a different file name.
+
+Note, the following code assumes that the bucket already exists.
 
 ```python
 from pathlib import Path
@@ -200,7 +209,7 @@ def s3_flow():
 
     aws_credentials = AwsCredentials.load("BLOCK-NAME-PLACEHOLDER")
     s3_bucket = S3Bucket(
-        bucket="BUCKET-NAME-PLACEHOLDER",
+        bucket_name="BUCKET-NAME-PLACEHOLDER",
         aws_credentials=aws_credentials
     )
 
@@ -242,8 +251,6 @@ Refer to the API documentation on the sidebar to explore all the capabilities of
 For more tips on how to use tasks and flows in a Collection, check out [Using Collections](https://docs.prefect.io/collections/usage/)!
 
 ### Recipes
-
-A tutorial on `ECSTaskTask` can be found [here](https://towardsdatascience.com/prefect-aws-ecs-fargate-github-actions-make-serverless-dataflows-as-easy-as-py-f6025335effc).
 
 For additional recipes and examples, check out [`prefect-recipes`](https://github.com/PrefectHQ/prefect-recipes).
 
