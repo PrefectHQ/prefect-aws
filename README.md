@@ -99,7 +99,7 @@ custom_example_flow = example_flow.with_options(
 
 Refer to the API documentation on the sidebar to explore all the capabilities of Prefect AWS!
 
-For more tips on how to use tasks and flows in a Collection, check out [Using Collections](https://orion-docs.prefect.io/collections/usage/)!
+For more tips on how to use tasks and flows in a Collection, check out [Using Collections](https://docs.prefect.io/collections/usage/)!
 
 ### Recipes
 
@@ -127,7 +127,7 @@ Requires an installation of Python 3.7+
 
 We recommend using a Python virtual environment manager such as pipenv, conda or virtualenv.
 
-These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the [Prefect documentation](https://orion-docs.prefect.io/).
+These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the [Prefect documentation](https://docs.prefect.io/).
 
 ### Contributing
 
