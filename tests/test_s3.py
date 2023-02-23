@@ -594,6 +594,10 @@ def test_deployment_set_basepath(aws_creds_block, type_):
     assert deployment.location == "home/"
 
 
+def test_resolve_path(s3_bucket):
+    assert s3_bucket._resolve_path("") == ""
+
+
 class TestS3Bucket:
     @pytest.fixture(
         params=[
