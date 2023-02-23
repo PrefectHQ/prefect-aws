@@ -254,12 +254,6 @@ For more tips on how to use tasks and flows in a Collection, check out [Using Co
 
 For additional recipes and examples, check out [`prefect-recipes`](https://github.com/PrefectHQ/prefect-recipes).
 
-### Feedback
-
-If you have any questions or issues while using `prefect-aws`, you can find help in either the [Prefect Discourse forum](https://discourse.prefect.io/) or the [Prefect Slack community](https://prefect.io/slack).
- 
-Feel free to star or watch [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) for updates too!
-
 ### Installation
 
 Install `prefect-aws`
@@ -276,23 +270,10 @@ We recommend using a Python virtual environment manager such as pipenv, conda or
 
 These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the [Prefect documentation](https://docs.prefect.io/).
 
-### Contributing
+### Feedback
 
-If you'd like to help contribute to fix an issue or add a feature to `prefect-aws`, please [propose changes through a pull request from a fork of the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
+If you encounter any bugs while using `prefect-aws`, feel free to open an issue in the [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) repository.
 
-Here are the steps:
-
-1. [Fork the repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo#forking-a-repository)
-2. [Clone the forked repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo#cloning-your-forked-repository)
-3. Install the repository and its dependencies:
-```
-pip install -e ".[dev]"
-```
-4. Make desired changes
-5. Add tests
-6. Insert an entry to [CHANGELOG.md](https://github.com/PrefectHQ/prefect-aws/blob/main/CHANGELOG.md)
-7. Install `pre-commit` to perform quality checks prior to commit:
-```
-pre-commit install
-```
-8. `git commit`, `git push`, and create a pull request
+If you have any questions or issues while using `prefect-aws`, you can find help in either the [Prefect Discourse forum](https://discourse.prefect.io/) or the [Prefect Slack community](https://prefect.io/slack).
+ 
+Feel free to star or watch [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) for updates too!

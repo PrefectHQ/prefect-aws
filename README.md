@@ -24,31 +24,14 @@ The `prefect-aws` collection makes it easy to leverage the capabilities of AWS i
 
 Visit the full docs [here](https://PrefectHQ.github.io/prefect-aws).
 
-### Feedback
+### Installation
 
-If you encounter any bugs while using `prefect-aws`, feel free to open an issue in the [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) repository.
+To start using `prefect-aws`:
 
-If you have any questions or issues while using `prefect-aws`, you can find help in either the [Prefect Discourse forum](https://discourse.prefect.io/) or the [Prefect Slack community](https://prefect.io/slack).
-
-Feel free to star or watch [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) for updates too!
+```bash
+pip install prefect-aws
+```
 
 ### Contributing
 
-If you'd like to help contribute to fix an issue or add a feature to `prefect-aws`, please [propose changes through a pull request from a fork of the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
-
-Here are the steps:
-
-1. [Fork the repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo#forking-a-repository)
-2. [Clone the forked repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo#cloning-your-forked-repository)
-3. Install the repository and its dependencies:
-```
-pip install -e ".[dev]"
-```
-4. Make desired changes
-5. Add tests
-6. Insert an entry to [CHANGELOG.md](https://github.com/PrefectHQ/prefect-aws/blob/main/CHANGELOG.md)
-7. Install `pre-commit` to perform quality checks prior to commit:
-```
-pre-commit install
-```
-8. `git commit`, `git push`, and create a pull request
+Thanks for thinking about chipping in! Check out this [step-by-step guide](https://prefecthq.github.io/prefect-gcp/#installation) on how to get started.

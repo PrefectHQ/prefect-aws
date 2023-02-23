@@ -75,6 +75,7 @@ nav:
     - Home: index.md
     - Blocks Catalog: blocks_catalog.md
     - Examples Catalog: examples_catalog.md
+    - Contributing: contributing.md
     - API Reference:
         - Batch: batch.md
         - Client Waiter: client_waiter.md
