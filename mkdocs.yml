@@ -54,7 +54,6 @@ plugins:
   - search
   - gen-files:
       scripts:
-        - docs/gen_home_page.py
         - docs/gen_examples_catalog.py
         - docs/gen_blocks_catalog.py
   - mkdocstrings:
