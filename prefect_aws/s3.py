@@ -6,7 +6,6 @@ import uuid
 import warnings
 from pathlib import Path, PurePath
 from typing import Any, BinaryIO, Dict, List, Optional, Union
-from uuid import uuid4
 
 import boto3
 from botocore.paginate import PageIterator
@@ -402,9 +401,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                 bucket has a unique key (or key name).
 
         """
-
-        path = path or str(uuid4())
-
         bucket_folder = self.bucket_folder or self.basepath
         # If basepath provided, it means we won't write to the root dir of
         # the bucket. So we need to add it on the front of the path.
