@@ -18,7 +18,7 @@ jobs:
           app_id: ${{ secrets.SYNC_APP_ID }}
           private_key: ${{ secrets.SYNC_APP_PRIVATE_KEY }}
 
-      - uses: actions/add-to-project@v0.4.0
+      - uses: actions/add-to-project@v0.4.1
         with:
           project-url: ${{ secrets.ADD_TO_PROJECT_URL }}
           github-token: ${{ steps.generate-token.outputs.token }}
