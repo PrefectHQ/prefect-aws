@@ -6,24 +6,22 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Task for waiting on a long-running AWS job">
       
       
-      
-        <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/client_waiter/">
-      
-      
-        <link rel="prev" href="../batch/">
+        <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/blocks_catalog/">
       
       
-        <link rel="next" href="../credentials/">
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../examples_catalog/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.2">
     
     
       
-        <title>Client Waiter - prefect-aws</title>
+        <title>Blocks Catalog - prefect-aws</title>
       
     
     
@@ -101,7 +99,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#prefect_aws.client_waiter" class="md-skip">
+        <a href="#credentials-module" class="md-skip">
           Skip to content
         </a>
       
@@ -135,7 +133,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Client Waiter
+              Blocks Catalog
             
           </span>
         </div>
@@ -285,11 +283,69 @@
 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../blocks_catalog/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Blocks Catalog
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Blocks Catalog
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#credentials-module" class="md-nav__link">
+    Credentials Module
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s3-module" class="md-nav__link">
+    S3 Module
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecs-module" class="md-nav__link">
+    Ecs Module
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secrets-manager-module" class="md-nav__link">
+    Secrets Manager Module
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -315,16 +371,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
       
       
       
@@ -333,7 +387,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           API Reference
@@ -358,65 +412,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Client Waiter
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../client_waiter/" class="md-nav__link">
         Client Waiter
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#prefect_aws.client_waiter-functions" class="md-nav__link">
-    Functions
-  </a>
-  
-    <nav class="md-nav" aria-label="Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prefect_aws.client_waiter.client_waiter" class="md-nav__link">
-    client_waiter()
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -501,8 +501,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -511,22 +509,30 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prefect_aws.client_waiter-functions" class="md-nav__link">
-    Functions
-  </a>
-  
-    <nav class="md-nav" aria-label="Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prefect_aws.client_waiter.client_waiter" class="md-nav__link">
-    client_waiter()
+  <a href="#credentials-module" class="md-nav__link">
+    Credentials Module
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#s3-module" class="md-nav__link">
+    S3 Module
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecs-module" class="md-nav__link">
+    Ecs Module
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secrets-manager-module" class="md-nav__link">
+    Secrets Manager Module
+  </a>
   
 </li>
       
@@ -544,207 +550,89 @@
                 
                   
 
-  
-  
 
+  <h1>Blocks Catalog</h1>
 
-<div class="doc doc-object doc-module">
-
-
-
-<h1 id="prefect_aws.client_waiter" class="doc doc-heading">
-        <code>prefect_aws.client_waiter</code>
-
-
-
-</h1>
-
-    <div class="doc doc-contents first">
-
-      <p>Task for waiting on a long-running AWS job</p>
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-<h2 id="prefect_aws.client_waiter-functions">Functions</h2>
-
-  <div class="doc doc-object doc-function">
-
-
-
-<h3 id="prefect_aws.client_waiter.client_waiter" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">client_waiter</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-async"><code>async</code></small>
-  </span>
-
-</h3>
-
-    <div class="doc doc-contents ">
-
-      <p>Uses the underlying boto3 waiter functionality.</p>
-
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td><code>client</code></td>
-        <td><code>str</code></td>
-        <td><p>The AWS client on which to wait (e.g., 'client_wait', 'ec2', etc).</p></td>
-        <td><em>required</em></td>
-      </tr>
-      <tr>
-        <td><code>waiter_name</code></td>
-        <td><code>str</code></td>
-        <td><p>The name of the waiter to instantiate.
-You may also use a custom waiter name, if you supply
-an accompanying waiter definition dict.</p></td>
-        <td><em>required</em></td>
-      </tr>
-      <tr>
-        <td><code>aws_credentials</code></td>
-        <td><code>AwsCredentials</code></td>
-        <td><p>Credentials to use for authentication with AWS.</p></td>
-        <td><em>required</em></td>
-      </tr>
-      <tr>
-        <td><code>waiter_definition</code></td>
-        <td><code>Optional[Dict[str, Any]]</code></td>
-        <td><p>A valid custom waiter model, as a dict. Note that if
-you supply a custom definition, it is assumed that the provided
-'waiter_name' is contained within the waiter definition dict.</p></td>
-        <td><code>None</code></td>
-      </tr>
-      <tr>
-        <td><code>**waiter_kwargs</code></td>
-        <td><code>Optional[Dict[str, Any]]</code></td>
-        <td><p>Arguments to pass to the <code>waiter.wait(...)</code> method. Will
-depend upon the specific waiter being called.</p></td>
-        <td><code>{}</code></td>
-      </tr>
-  </tbody>
-</table>
-<p><strong>Examples:</strong></p>
-    <p>Run an ec2 waiter until instance_exists.
+<p>Below is a list of Blocks available for registration in
+<code>prefect-aws</code>.</p>
+<p>To register blocks in this module to
+<a href="https://docs.prefect.io/ui/blocks/">view and edit them</a>
+on Prefect Cloud, first <a href="https://PrefectHQ.github.io/prefect-aws/#installation">install the required packages</a>,
+then
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>block<span class="w"> </span>register<span class="w"> </span>-m<span class="w"> </span>prefect_aws
+</code></pre></div>
+Note, to use the <code>load</code> method on Blocks, you must already have a block document <a href="https://docs.prefect.io/concepts/blocks/#saving-blocks">saved through code</a> or <a href="https://docs.prefect.io/ui/blocks/">saved through the UI</a>.</p>
+<h2 id="credentials-module"><a class="autorefs autorefs-internal" href="../credentials/#prefect_aws.credentials">Credentials Module</a></h2>
+<p><a class="autorefs autorefs-internal" href="../credentials/#prefect_aws.credentials.AwsCredentials">AwsCredentials</a></p>
+<p>Block used to manage authentication with AWS. AWS authentication is
+handled via the <code>boto3</code> module. Refer to the
+<a href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html">boto3 docs</a>
+for more info about the possible credential configurations.</p>
+<p>To load the AwsCredentials:
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
-<span class="kn">from</span> <span class="nn">prefect_aws.client_wait</span> <span class="kn">import</span> <span class="n">client_waiter</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.credentials</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
 
 <span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">example_client_wait_flow</span><span class="p">():</span>
-    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="p">(</span>
-        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;acccess_key_id&quot;</span><span class="p">,</span>
-        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;secret_access_key&quot;</span>
-    <span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
 
-    <span class="n">waiter</span> <span class="o">=</span> <span class="n">client_waiter</span><span class="p">(</span>
-        <span class="s2">&quot;ec2&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;instance_exists&quot;</span><span class="p">,</span>
-        <span class="n">aws_credentials</span>
-    <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">waiter</span>
-<span class="n">example_client_wait_flow</span><span class="p">()</span>
-</code></pre></div></p>
-
-        <details class="quote">
-          <summary>Source code in <code>prefect_aws/client_waiter.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="nd">@task</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">client_waiter</span><span class="p">(</span>
-    <span class="n">client</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">waiter_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">aws_credentials</span><span class="p">:</span> <span class="n">AwsCredentials</span><span class="p">,</span>
-    <span class="n">waiter_definition</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">waiter_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
-<span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Uses the underlying boto3 waiter functionality.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        client: The AWS client on which to wait (e.g., &#39;client_wait&#39;, &#39;ec2&#39;, etc).</span>
-<span class="sd">        waiter_name: The name of the waiter to instantiate.</span>
-<span class="sd">            You may also use a custom waiter name, if you supply</span>
-<span class="sd">            an accompanying waiter definition dict.</span>
-<span class="sd">        aws_credentials: Credentials to use for authentication with AWS.</span>
-<span class="sd">        waiter_definition: A valid custom waiter model, as a dict. Note that if</span>
-<span class="sd">            you supply a custom definition, it is assumed that the provided</span>
-<span class="sd">            &#39;waiter_name&#39; is contained within the waiter definition dict.</span>
-<span class="sd">        **waiter_kwargs: Arguments to pass to the `waiter.wait(...)` method. Will</span>
-<span class="sd">            depend upon the specific waiter being called.</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        Run an ec2 waiter until instance_exists.</span>
-<span class="sd">        ```python</span>
-<span class="sd">        from prefect import flow</span>
-<span class="sd">        from prefect_aws import AwsCredentials</span>
-<span class="sd">        from prefect_aws.client_wait import client_waiter</span>
-
-<span class="sd">        @flow</span>
-<span class="sd">        def example_client_wait_flow():</span>
-<span class="sd">            aws_credentials = AwsCredentials(</span>
-<span class="sd">                aws_access_key_id=&quot;acccess_key_id&quot;,</span>
-<span class="sd">                aws_secret_access_key=&quot;secret_access_key&quot;</span>
-<span class="sd">            )</span>
-
-<span class="sd">            waiter = client_waiter(</span>
-<span class="sd">                &quot;ec2&quot;,</span>
-<span class="sd">                &quot;instance_exists&quot;,</span>
-<span class="sd">                aws_credentials</span>
-<span class="sd">            )</span>
-
-<span class="sd">            return waiter</span>
-<span class="sd">        example_client_wait_flow()</span>
-<span class="sd">        ```</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting on </span><span class="si">%s</span><span class="s2"> job&quot;</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
-
-    <span class="n">boto_client</span> <span class="o">=</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">waiter_definition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># Use user-provided waiter definition</span>
-        <span class="n">waiter_model</span> <span class="o">=</span> <span class="n">WaiterModel</span><span class="p">(</span><span class="n">waiter_definition</span><span class="p">)</span>
-        <span class="n">waiter</span> <span class="o">=</span> <span class="n">create_waiter_with_client</span><span class="p">(</span><span class="n">waiter_name</span><span class="p">,</span> <span class="n">waiter_model</span><span class="p">,</span> <span class="n">boto_client</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">waiter_name</span> <span class="ow">in</span> <span class="n">boto_client</span><span class="o">.</span><span class="n">waiter_names</span><span class="p">:</span>
-        <span class="n">waiter</span> <span class="o">=</span> <span class="n">boto_client</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="n">waiter_name</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;The waiter name, </span><span class="si">{</span><span class="n">waiter_name</span><span class="si">}</span><span class="s2">, is not a valid boto waiter; &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;if using a custom waiter, you must provide a waiter definition&quot;</span>
-        <span class="p">)</span>
-
-    <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span><span class="n">waiter</span><span class="o">.</span><span class="n">wait</span><span class="p">,</span> <span class="o">**</span><span class="n">waiter_kwargs</span><span class="p">)</span>
+<span class="n">my_flow</span><span class="p">()</span>
 </code></pre></div>
-        </details>
-    </div>
+<a class="autorefs autorefs-internal" href="../credentials/#prefect_aws.credentials.MinIOCredentials">MinIOCredentials</a></p>
+<p>Block used to manage authentication with MinIO. Refer to the MinIO docs: https://docs.min.io/docs/minio-server-configuration-guide.html for more info about the possible credential configurations.</p>
+<p>To load the MinIOCredentials:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.credentials</span> <span class="kn">import</span> <span class="n">MinIOCredentials</span>
 
-  </div>
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">MinIOCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
 
+<span class="n">my_flow</span><span class="p">()</span>
+</code></pre></div>
+For additional examples, check out the <a href="../examples_catalog/#credentials-module">Credentials Module</a> under Examples Catalog.</p>
+<h2 id="s3-module"><a class="autorefs autorefs-internal" href="../s3/#prefect_aws.s3">S3 Module</a></h2>
+<p><a class="autorefs autorefs-internal" href="../s3/#prefect_aws.s3.S3Bucket">S3Bucket</a></p>
+<p>Block used to store data using AWS S3 or S3-compatible object storage like MinIO.</p>
+<p>To load the S3Bucket:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
 
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
 
+<span class="n">my_flow</span><span class="p">()</span>
+</code></pre></div>
+For additional examples, check out the <a href="../examples_catalog/#s3-module">S3 Module</a> under Examples Catalog.</p>
+<h2 id="ecs-module"><a class="autorefs autorefs-internal" href="../ecs/#prefect_aws.ecs">Ecs Module</a></h2>
+<p><a class="autorefs autorefs-internal" href="../ecs/#prefect_aws.ecs.ECSTask">ECSTask</a></p>
+<p>Run a command as an ECS task.</p>
+<p>To load the ECSTask:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.ecs</span> <span class="kn">import</span> <span class="n">ECSTask</span>
 
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">ECSTask</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
 
+<span class="n">my_flow</span><span class="p">()</span>
+</code></pre></div>
+For additional examples, check out the <a href="../examples_catalog/#ecs-module">Ecs Module</a> under Examples Catalog.</p>
+<h2 id="secrets-manager-module"><a class="autorefs autorefs-internal" href="../secrets_manager/#prefect_aws.secrets_manager">Secrets Manager Module</a></h2>
+<p><a class="autorefs autorefs-internal" href="../secrets_manager/#prefect_aws.secrets_manager.AwsSecret">AwsSecret</a></p>
+<p>Manages a secret in AWS's Secrets Manager.</p>
+<p>To load the AwsSecret:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.secrets_manager</span> <span class="kn">import</span> <span class="n">AwsSecret</span>
 
-  </div>
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">AwsSecret</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
 
-    </div>
-
-  </div>
+<span class="n">my_flow</span><span class="p">()</span>
+</code></pre></div>
+For additional examples, check out the <a href="../examples_catalog/#secrets_manager-module">Secrets Manager Module</a> under Examples Catalog.</p>
 
 
   
