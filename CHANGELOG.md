@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support for unsigned AWS requests - [#219](https://github.com/PrefectHQ/prefect-aws/issues/219)
+
 ### Changed
 
 ### Deprecated
