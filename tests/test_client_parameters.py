@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 import pytest
+from botocore import UNSIGNED
 from botocore.client import Config
 
 from prefect_aws.client_parameters import AwsClientParameters
@@ -45,15 +46,17 @@ class TestAwsClientParameters:
         [
             (
                 AwsClientParameters(
-                    config=Config(
+                    config=dict(
                         region_name="eu_west_1",
                         retries={"max_attempts": 10, "mode": "standard"},
+                        signature_version="unsigned",
                     )
                 ),
                 {
                     "config": {
                         "region_name": "eu_west_1",
                         "retries": {"max_attempts": 10, "mode": "standard"},
+                        "signature_version": UNSIGNED,
                     },
                 },
             ),
