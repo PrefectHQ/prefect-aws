@@ -22,17 +22,16 @@
 
 The `prefect-aws` collection makes it easy to leverage the capabilities of AWS in your flows, featuring support for ECSTask, S3, Secrets Manager, Batch Job, and Client Waiter.
 
-Visit the full docs [here](https://PrefectHQ.github.io/prefect-aws).
 
 ## Getting Started
 
 ### Saving credentials to a block
 
-You will need to obtain AWS credentials in order to use `prefect-aws`.
+You will need an AWS account and credentials in order to use `prefect-aws`.
 
 1. Refer to the [AWS Configuration documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds) on how to retrieve your access key ID and secret access key
 2. Copy the access key ID and secret access key
-3. Create a short script, replacing the placeholders (or do so in the UI)
+3. Create a short script and replace the placeholders with your credential information and desired block name:
 
 ```python
 from prefect_aws import AwsCredentials
@@ -44,7 +43,7 @@ AwsCredentials(
 ).save("BLOCK-NAME-PLACEHOLDER")
 ```
 
-Congrats! You can now easily load the saved block, which holds your credentials:
+Congrats! You can now load the saved block to use your credentials in your Python code:
  
 ```python
 from prefect_aws import AwsCredentials
@@ -63,13 +62,12 @@ AwsCredentials.load("BLOCK-NAME-PLACEHOLDER")
 
 ### Using Prefect with AWS ECS
 
-`prefect_aws` allows you to interact with AWS ECS Tasks with Prefect flows.
+`prefect_aws` allows you to use [AWS ECS](https://aws.amazon.com/ecs/) as infrastructure for your deployments. Using ECS for scheduled flow runs enabled the dynamic provisioning of infrastructure for containers and unlocked greater scalability.
 
 The snippets below show how you can use `prefect_aws` to run a task on ECS. It uses the `ECSTask` block as [Prefect infrastructure](https://docs.prefect.io/concepts/infrastructure/) or simply within a flow.
 
-#### As Infrastructure
+#### As deployment Infrastructure
 
-You can also use ECS Tasks as infrastructure to execute your deployed flows.
 
 ##### Set variables
 
@@ -135,7 +133,7 @@ If the script was named "ecs_task_script.py", build a deployment manifest with t
 prefect deployment build ecs_task_script.py:ecs_task_flow \
     -n ecs-task-deployment \
     -ib ecs-task/${ECS_TASK_BLOCK_NAME} \
-    -sb s3-bucket/${GCS_BUCKET_BLOCK_NAME} \
+    -sb s3-bucket/${S3_BUCKET_BLOCK_NAME} \
     --override env.EXTRA_PIP_PACKAGES=prefect-aws
 ```
 
@@ -170,7 +168,7 @@ Another tutorial on `ECSTask` can be found [here](https://towardsdatascience.com
 
 #### Within Flow
 
-You can execute commands through ECS Task directly within a Prefect flow.
+You can also execute commands through ECS Task directly within a Prefect flow. Running containers via ECS in your flows is useful for executing non-python code in a distributed manner via Prefect.
 
 ```python
 from prefect import flow
