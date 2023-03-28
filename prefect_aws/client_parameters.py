@@ -3,6 +3,7 @@
 import warnings
 from typing import Any, Dict, Optional, Union
 
+from botocore import UNSIGNED
 from botocore.client import Config
 from pydantic import BaseModel, Field, FilePath, root_validator, validator
 
@@ -128,6 +129,10 @@ class AwsClientParameters(BaseModel):
                 continue
             elif key == "config":
                 params_override[key] = Config(**value)
+                # botocore UNSIGNED is an instance while actual signers can
+                # be fetched as strings
+                if params_override[key].signature_version == "unsigned":
+                    params_override[key].signature_version = UNSIGNED
             elif key == "verify_cert_path":
                 params_override["verify"] = value
             else:
