@@ -646,7 +646,7 @@ class ECSTask(Infrastructure):
             identifier=identifier,
             # If the container does not start the exit code can be null but we must
             # still report a status code. We use a -1 to indicate a special code.
-            status_code=status_code or -1,
+            status_code=status_code if status_code is not None else -1,
         )
 
     @sync_compatible
