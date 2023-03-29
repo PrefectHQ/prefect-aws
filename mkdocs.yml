@@ -54,7 +54,6 @@ plugins:
   - search
   - gen-files:
       scripts:
-        - docs/gen_home_page.py
         - docs/gen_examples_catalog.py
         - docs/gen_blocks_catalog.py
   - mkdocstrings:
@@ -75,6 +74,7 @@ nav:
     - Home: index.md
     - Blocks Catalog: blocks_catalog.md
     - Examples Catalog: examples_catalog.md
+    - Contributing: contributing.md
     - API Reference:
         - Batch: batch.md
         - Client Waiter: client_waiter.md
