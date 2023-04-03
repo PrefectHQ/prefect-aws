@@ -1,12 +1,11 @@
 import os
 from pathlib import Path, PurePosixPath
+
 import boto3
 import pytest
 from moto import mock_s3
-from prefect_aws.projects.steps import (
-    push_project_to_s3,
-    pull_project_from_s3,
-)
+
+from prefect_aws.projects.steps import pull_project_from_s3, push_project_to_s3
 
 
 @pytest.fixture
@@ -28,10 +27,12 @@ def tmp_files(tmp_path: Path):
         "testdir2/testfile5.txt",
     ]
 
-    (tmp_path / ".prefectignore").write_text("""
+    (tmp_path / ".prefectignore").write_text(
+        """
     testdir1/*
     .prefectignore
-    """)
+    """
+    )
 
     for file in files:
         filepath = tmp_path / file
@@ -39,6 +40,7 @@ def tmp_files(tmp_path: Path):
         filepath.write_text("Sample text")
 
     return tmp_path
+
 
 @pytest.fixture
 def mock_aws_credentials(monkeypatch):
@@ -98,6 +100,7 @@ def test_pull_project_from_s3(s3_setup, tmp_path, mock_aws_credentials):
         assert target.exists()
         assert target.read_text() == content
 
+
 def test_push_pull_empty_folders(s3_setup, tmp_path, mock_aws_credentials):
     s3, bucket_name = s3_setup
     folder = "my-project"
@@ -129,6 +132,7 @@ def test_push_pull_empty_folders(s3_setup, tmp_path, mock_aws_credentials):
     assert not (tmp_path / "empty1_copy").exists()
     assert not (tmp_path / "empty2_copy").exists()
 
+
 def test_custom_credentials_and_client_parameters(s3_setup, tmp_files):
     s3, bucket_name = s3_setup
     folder = "my-project"
@@ -141,6 +145,7 @@ def test_custom_credentials_and_client_parameters(s3_setup, tmp_files):
 
     custom_client_parameters = {
         "region_name": "us-west-1",
+        "config": {"signature_version": "s3v4"},
     }
 
     os.chdir(tmp_files)
@@ -194,7 +199,9 @@ def test_without_prefectignore_file(s3_setup, tmp_files: Path, mock_aws_credenti
             assert (tmp_path / file.name).exists()
 
 
-def test_prefectignore_with_comments_and_empty_lines(s3_setup, tmp_files: Path, mock_aws_credentials):
+def test_prefectignore_with_comments_and_empty_lines(
+    s3_setup, tmp_files: Path, mock_aws_credentials
+):
     s3, bucket_name = s3_setup
     folder = "my-project"
 

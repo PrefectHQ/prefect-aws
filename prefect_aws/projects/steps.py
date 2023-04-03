@@ -5,6 +5,7 @@ from pathlib import Path, PurePosixPath
 from typing import Dict, Optional
 
 import boto3
+from botocore.client import Config
 from prefect.utilities.filesystem import filter_files
 from typing_extensions import TypedDict
 
@@ -76,7 +77,10 @@ def push_project_to_s3(
         credentials = {}
     if client_parameters is None:
         client_parameters = {}
-    client = boto3.client("s3", **credentials, **client_parameters)
+    advanced_config = client_parameters.pop("config", {})
+    client = boto3.client(
+        "s3", **credentials, **client_parameters, config=Config(**advanced_config)
+    )
 
     local_path = Path.cwd()
 
@@ -148,7 +152,12 @@ def pull_project_from_s3(
         credentials = {}
     if client_parameters is None:
         client_parameters = {}
-    bucket_resource = boto3.Session(**credentials).resource("s3").Bucket(bucket)
+    advanced_config = client_parameters.pop("config", {})
+    bucket_resource = (
+        boto3.Session(**credentials)
+        .resource("s3", **client_parameters, config=Config(**advanced_config))
+        .Bucket(bucket)
+    )
 
     local_path = Path.cwd()
     for obj in bucket_resource.objects.filter(Prefix=folder):
