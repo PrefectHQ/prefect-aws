@@ -1,15 +1,28 @@
+"""
+Prefect project steps for code storage and retrieval in S3 and S3 compatible services.
+"""
 from pathlib import Path, PurePosixPath
 from typing import Dict, Optional
-from typing_extensions import TypedDict
+
 import boto3
 from prefect.utilities.filesystem import filter_files
+from typing_extensions import TypedDict
 
 
 class PushProjectToS3Output(TypedDict):
+    """
+    The output of the `push_project_to_s3` step.
+    """
+
     bucket: str
     folder: str
 
+
 class PullProjectFromS3Output(TypedDict):
+    """
+    The output of the `pull_project_from_s3` step.
+    """
+
     bucket: str
     folder: str
     directory: str
@@ -22,6 +35,43 @@ def push_project_to_s3(
     client_parameters: Optional[Dict] = None,
     ignore_file: Optional[str] = ".prefectignore",
 ) -> PushProjectToS3Output:
+    """
+    Pushes the contents of the current working directory to an S3 bucket,
+    excluding files and folders specified in the ignore_file.
+
+    Args:
+        bucket: The name of the S3 bucket where the project files will be uploaded.
+        folder: The folder in the S3 bucket where the project files will be uploaded.
+        credentials: A dictionary of AWS credentials (aws_access_key_id,
+            aws_secret_access_key, aws_session_token).
+        client_parameters: A dictionary of additional parameters to pass to the boto3
+            client.
+        ignore_file: The name of the file containing ignore patterns.
+
+    Returns:
+        A dictionary containing the bucket and folder where the project was uploaded.
+
+    Examples:
+        Push a project to an S3 bucket:
+        ```yaml
+        build:
+            - prefect_aws.projects.steps.push_project_to_s3:
+                requires: prefect-aws
+                bucket: my-bucket
+                folder: my-project
+        ```
+
+        Push a project to an S3 bucket using credentials stored in a block:
+        ```yaml
+        build:
+            - prefect_aws.projects.steps.push_project_to_s3:
+                requires: prefect-aws
+                bucket: my-bucket
+                folder: my-project
+                credentials: "{{ prefect.blocks.aws-credentials.dev-credentials }}"
+        ```
+
+    """
     if credentials is None:
         credentials = {}
     if client_parameters is None:
@@ -59,13 +109,47 @@ def pull_project_from_s3(
     credentials: Optional[Dict] = None,
     client_parameters: Optional[Dict] = None,
 ) -> PullProjectFromS3Output:
+    """
+    Pulls the contents of a project from an S3 bucket to the current working directory.
 
+    Args:
+        bucket: The name of the S3 bucket where the project files are stored.
+        folder: The folder in the S3 bucket where the project files are stored.
+        credentials: A dictionary of AWS credentials (aws_access_key_id,
+            aws_secret_access_key, aws_session_token).
+        client_parameters: A dictionary of additional parameters to pass to the
+            boto3 client.
+
+    Returns:
+        A dictionary containing the bucket, folder, and local directory where the
+            project files were downloaded.
+
+    Examples:
+        Pull a project from S3 using the default credentials and client parameters:
+        ```yaml
+        build:
+            - prefect_aws.projects.steps.pull_project_from_s3:
+                requires: prefect-aws
+                bucket: my-bucket
+                folder: my-project
+        ```
+
+        Pull a project from S3 using credentials stored in a block:
+        ```yaml
+        build:
+            - prefect_aws.projects.steps.pull_project_from_s3:
+                requires: prefect-aws
+                bucket: my-bucket
+                folder: my-project
+                credentials: "{{ prefect.blocks.aws-credentials.dev-credentials }}"
+        ```
+    """
     if credentials is None:
         credentials = {}
     if client_parameters is None:
         client_parameters = {}
     bucket_resource = boto3.Session(**credentials).resource("s3").Bucket(bucket)
-    
+
     local_path = Path.cwd()
     for obj in bucket_resource.objects.filter(Prefix=folder):
         if obj.key[-1] == "/":
@@ -80,4 +164,3 @@ def pull_project_from_s3(
         "folder": folder,
         "directory": str(local_path),
     }
-
