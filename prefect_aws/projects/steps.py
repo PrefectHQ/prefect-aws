@@ -31,7 +31,7 @@ def push_project_to_s3(
     local_path = Path.cwd()
 
     included_files = None
-    if ignore_file:
+    if ignore_file and Path(ignore_file).exists():
         with open(ignore_file, "r") as f:
             ignore_patterns = f.readlines()
 
