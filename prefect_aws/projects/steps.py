@@ -164,8 +164,8 @@ def pull_project_from_s3(
         if obj.key[-1] == "/":
             # object is a folder and will be created if it contains any objects
             continue
-        target = local_path / PurePosixPath(obj.key).relative_to(folder)
-        Path.mkdir(target.parent, parents=True, exist_ok=True)
+        target = PurePosixPath(local_path / PurePosixPath(obj.key).relative_to(folder))
+        Path.mkdir(Path(target.parent), parents=True, exist_ok=True)
         bucket_resource.download_file(obj.key, str(target))
 
     return {
