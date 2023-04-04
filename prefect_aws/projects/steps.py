@@ -6,7 +6,7 @@ from typing import Dict, Optional
 
 import boto3
 from botocore.client import Config
-from prefect.utilities.filesystem import filter_files
+from prefect.utilities.filesystem import filter_files, relative_path_to_current_platform
 from typing_extensions import TypedDict
 
 
@@ -164,7 +164,9 @@ def pull_project_from_s3(
         if obj.key[-1] == "/":
             # object is a folder and will be created if it contains any objects
             continue
-        target = PurePosixPath(local_path / PurePosixPath(obj.key).relative_to(folder))
+        target = PurePosixPath(
+            local_path / relative_path_to_current_platform(obj.key).relative_to(folder)
+        )
         Path.mkdir(Path(target.parent), parents=True, exist_ok=True)
         bucket_resource.download_file(obj.key, str(target))
 

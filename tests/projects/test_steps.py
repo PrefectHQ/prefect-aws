@@ -1,5 +1,5 @@
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePath, PurePosixPath
 
 import boto3
 import pytest
@@ -67,7 +67,7 @@ def test_push_project_to_s3(s3_setup, tmp_files, mock_aws_credentials):
     push_project_to_s3(bucket_name, folder)
 
     s3_objects = s3.list_objects_v2(Bucket=bucket_name)
-    object_keys = [item["Key"] for item in s3_objects["Contents"]]
+    object_keys = [PurePath(item["Key"]).as_posix() for item in s3_objects["Contents"]]
 
     expected_keys = [
         f"{folder}/testfile1.txt",
