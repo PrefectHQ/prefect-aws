@@ -80,6 +80,8 @@ nav:
         - Client Waiter: client_waiter.md
         - Credentials: credentials.md
         - ECS: ecs.md
+        - Projects:
+          - Steps: projects/steps.md
         - S3: s3.md
         - Secrets Manager: secrets_manager.md
 
