@@ -258,7 +258,7 @@ class ECSTask(Infrastructure):
         task_role_arn: An optional role to attach to the task run.
             This controls the permissions of the task while it is running.
         task_customizations: A list of JSON 6902 patches to apply to the task
-            run request. Can be a string to support deployment cli overrides.
+            run request. If a string is given, it will parsed as a JSON expression.
         task_start_timeout_seconds: The amount of time to watch for the
             start of the ECS task before marking it as failed. The task must
             enter a RUNNING state to be considered started.
