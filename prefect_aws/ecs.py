@@ -435,7 +435,7 @@ class ECSTask(Infrastructure):
             "task while it is running."
         ),
     )
-    task_customizations: Union[List[Dict], JsonPatch, str] = Field(
+    task_customizations: JsonPatch = Field(
         default_factory=lambda: JsonPatch([]),
         description="A list of JSON 6902 patches to apply to the task run request.",
     )
