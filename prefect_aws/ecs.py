@@ -206,7 +206,7 @@ class ECSTask(Infrastructure):
             generate and register a minimal task definition.
         allow_task_definition_registration: An optional boolean that allows
             the block to manage task definition registration.  Setting to False
-            will disable task definition registration.  If false, task_definition_arn
+            will disable task definition registration.  If False, task_definition_arn
             cannot be null.  Defaults to True.
         task_definition: An optional ECS task definition to use. Prefect may set
             defaults or override fields on this task definition to match other
@@ -301,9 +301,9 @@ class ECSTask(Infrastructure):
     allow_task_definition_registration: Optional[bool] = Field(
         default=True,
         description=(
-            "An optional boolean that allows"
-            "the block to manage task definition registration.  Setting to False"
-            "will disable task definition registration.  If false, task_definition_arn"
+            "An optional boolean that allows "
+            "the block to manage task definition registration.  Setting to False "
+            "will disable task definition registration.  If False, task_definition_arn "
             "cannot be null.  Defaults to True."
         ),
     )
@@ -756,16 +756,23 @@ class ECSTask(Infrastructure):
         if not self.allow_task_definition_registration:
             if not task_definition_arn:
                 raise ValueError(
-                    "A task_definition_arn value must be provided to"
+                    "A task_definition_arn value must be provided to "
                     "disable task definition registration"
                 )
-            network_config = None
+            self.logger.info(
+                f"{self._log_prefix}: Task definition registration is disabled..."
+            )
+            self.logger.info(
+                f"{self._log_prefix}: Predefined task definition will be used as is..."
+            )
+            task_definition = requested_task_definition
         else:
+            # If task registration is allowed...
+            # We must register the task definition if the arn is null or changes were made
             task_definition = self._prepare_task_definition(
                 requested_task_definition, region=ecs_client.meta.region_name
             )
 
-            # We must register the task definition if the arn is null or changes were made
             if task_definition != requested_task_definition or not task_definition_arn:
                 # Before registering, check if the latest task definition in the family
                 # can be used
@@ -809,12 +816,10 @@ class ECSTask(Infrastructure):
                     )
                     new_task_definition_registered = True
 
-            if task_definition.get("networkMode") == "awsvpc":
-                network_config = self._load_vpc_network_config(
-                    self.vpc_id, boto_session
-                )
-            else:
-                network_config = None
+        if task_definition.get("networkMode") == "awsvpc":
+            network_config = self._load_vpc_network_config(self.vpc_id, boto_session)
+        else:
+            network_config = None
 
         task_run = self._prepare_task_run(
             network_config=network_config,

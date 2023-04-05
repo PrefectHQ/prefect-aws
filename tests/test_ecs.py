@@ -1840,6 +1840,139 @@ async def test_family_from_task_definition_arn(aws_credentials, prepare_for_flow
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("prepare_for_flow_run", [True, False])
+async def test_allow_task_definition_registration_false(
+    aws_credentials, prepare_for_flow_run
+):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(
+        **{
+            **BASE_TASK_DEFINITION,
+            "family": "test-family",
+            "containerDefinitions": [
+                {
+                    "name": "prefect",
+                    "logConfiguration": {
+                        "logDriver": "awslogs",
+                        "options": {
+                            "awslogs-create-group": "true",
+                            "awslogs-group": "test-group",
+                            "awslogs-region": "us-east-1",
+                            "awslogs-stream-prefix": "test-family",
+                        },
+                    },
+                }
+            ],
+        }
+    )["taskDefinition"]["taskDefinitionArn"]
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+        image=None,
+        allow_task_definition_registration=False,
+    )
+    if prepare_for_flow_run:
+        task = task.prepare_for_flow_run(
+            flow_run=FlowRun.construct(),
+            flow=Flow(name="foo"),
+            deployment=Deployment.construct(name="bar"),
+        )
+
+    print(task.preview())
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    # if allow is False then revision number will not increase
+    assert (
+        task_definition["taskDefinitionArn"]
+        == "arn:aws:ecs:us-east-1:123456789012:task-definition/test-family:1"
+    )
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("prepare_for_flow_run", [True, False])
+async def test_allow_task_definition_registration_true(
+    aws_credentials, prepare_for_flow_run
+):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(
+        **{
+            **BASE_TASK_DEFINITION,
+            "family": "test-family",
+            "containerDefinitions": [
+                {
+                    "name": "prefect",
+                    "logConfiguration": {
+                        "logDriver": "awslogs",
+                        "options": {
+                            "awslogs-create-group": "true",
+                            "awslogs-group": "test-group",
+                            "awslogs-region": "us-east-1",
+                            "awslogs-stream-prefix": "test-family",
+                        },
+                    },
+                }
+            ],
+        }
+    )["taskDefinition"]["taskDefinitionArn"]
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+        image=None,
+        allow_task_definition_registration=True,
+    )
+    if prepare_for_flow_run:
+        task = task.prepare_for_flow_run(
+            flow_run=FlowRun.construct(),
+            flow=Flow(name="foo"),
+            deployment=Deployment.construct(name="bar"),
+        )
+
+    print(task.preview())
+
+    task_arn = await run_then_stop_task(task)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    # if allow is True then revision number will increase to 2
+    assert (
+        task_definition["taskDefinitionArn"]
+        == "arn:aws:ecs:us-east-1:123456789012:task-definition/test-family:2"
+    )
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_allow_task_definition_registration_no_arn(aws_credentials, caplog):
+    with pytest.raises(ValueError) as excinfo:
+
+        task = ECSTask(
+            aws_credentials=aws_credentials,
+            auto_deregister_task_definition=False,
+            launch_type="EC2",
+            image=None,
+            allow_task_definition_registration=False,
+        )
+        print(task.preview())
+        task_arn = await run_then_stop_task(task)
+    assert str(excinfo.value) == (
+        "A task_definition_arn value must be provided "
+        "to disable task definition registration"
+    )
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize(
     "cluster", [None, "default", "second-cluster", "second-cluster-arn"]
 )
