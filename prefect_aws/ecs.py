@@ -204,6 +204,10 @@ class ECSTask(Infrastructure):
             definition, a new copy will be registered with the required values.
             Cannot be used with task_definition. If not provided, Prefect will
             generate and register a minimal task definition.
+        allow_task_definition_registration: An optional boolean that allows
+            the block to manage task definition registration.  Setting to False
+            will disable task definition registration.  If false, task_definition_arn
+            cannot be null.  Defaults to True.
         task_definition: An optional ECS task definition to use. Prefect may set
             defaults or override fields on this task definition to match other
             ECSTask fields. Cannot be used with task_definition_arn.
@@ -294,6 +298,16 @@ class ECSTask(Infrastructure):
             "generate and register a minimal task definition."
         ),
     )
+    allow_task_definition_registration: Optional[bool] = Field(
+        default=True,
+        description=(
+            "An optional boolean that allows"
+            "the block to manage task definition registration.  Setting to False"
+            "will disable task definition registration.  If false, task_definition_arn"
+            "cannot be null.  Defaults to True."
+        ),
+    )
+
     task_definition: Optional[dict] = Field(
         default=None,
         description=(
@@ -738,56 +752,69 @@ class ECSTask(Infrastructure):
         ) or {}
         task_definition_arn = requested_task_definition.get("taskDefinitionArn", None)
 
-        task_definition = self._prepare_task_definition(
-            requested_task_definition, region=ecs_client.meta.region_name
-        )
-
-        # We must register the task definition if the arn is null or changes were made
-        if task_definition != requested_task_definition or not task_definition_arn:
-            # Before registering, check if the latest task definition in the family
-            # can be used
-            latest_task_definition = self._retrieve_latest_task_definition(
-                ecs_client, task_definition["family"]
-            )
-            if self._task_definitions_equal(latest_task_definition, task_definition):
-                self.logger.debug(
-                    f"{self._log_prefix}: The latest task definition matches the "
-                    "required task definition; using that instead of registering a new "
-                    " one."
+        # ignore task definition handling if allow_task_definition_registration is False
+        if not self.allow_task_definition_registration:
+            if not task_definition_arn:
+                raise ValueError(
+                    "A task_definition_arn value must be provided to"
+                    "disable task definition registration"
                 )
-                task_definition_arn = latest_task_definition["taskDefinitionArn"]
-            else:
-                if task_definition_arn:
-                    self.logger.warning(
-                        f"{self._log_prefix}: Settings require changes to the linked "
-                        "task definition. A new task definition will be registered. "
-                        + (
-                            "Enable DEBUG level logs to see the difference."
-                            if self.logger.level > logging.DEBUG
-                            else ""
-                        )
-                    )
-                    self.logger.debug(
-                        f"{self._log_prefix}: Diff for requested task definition"
-                        + _pretty_diff(requested_task_definition, task_definition)
-                    )
-                else:
-                    self.logger.info(
-                        f"{self._log_prefix}: Registering task definition..."
-                    )
-                    self.logger.debug(
-                        "Task definition payload\n" + yaml.dump(task_definition)
-                    )
-
-                task_definition_arn = self._register_task_definition(
-                    ecs_client, task_definition
-                )
-                new_task_definition_registered = True
-
-        if task_definition.get("networkMode") == "awsvpc":
-            network_config = self._load_vpc_network_config(self.vpc_id, boto_session)
-        else:
             network_config = None
+        else:
+            task_definition = self._prepare_task_definition(
+                requested_task_definition, region=ecs_client.meta.region_name
+            )
+
+            # We must register the task definition if the arn is null or changes were made
+            if task_definition != requested_task_definition or not task_definition_arn:
+                # Before registering, check if the latest task definition in the family
+                # can be used
+                latest_task_definition = self._retrieve_latest_task_definition(
+                    ecs_client, task_definition["family"]
+                )
+                if self._task_definitions_equal(
+                    latest_task_definition, task_definition
+                ):
+                    self.logger.debug(
+                        f"{self._log_prefix}: The latest task definition matches the "
+                        "required task definition; using that instead of registering a new "
+                        " one."
+                    )
+                    task_definition_arn = latest_task_definition["taskDefinitionArn"]
+                else:
+                    if task_definition_arn:
+                        self.logger.warning(
+                            f"{self._log_prefix}: Settings require changes to the linked "
+                            "task definition. A new task definition will be registered. "
+                            + (
+                                "Enable DEBUG level logs to see the difference."
+                                if self.logger.level > logging.DEBUG
+                                else ""
+                            )
+                        )
+                        self.logger.debug(
+                            f"{self._log_prefix}: Diff for requested task definition"
+                            + _pretty_diff(requested_task_definition, task_definition)
+                        )
+                    else:
+                        self.logger.info(
+                            f"{self._log_prefix}: Registering task definition..."
+                        )
+                        self.logger.debug(
+                            "Task definition payload\n" + yaml.dump(task_definition)
+                        )
+
+                    task_definition_arn = self._register_task_definition(
+                        ecs_client, task_definition
+                    )
+                    new_task_definition_registered = True
+
+            if task_definition.get("networkMode") == "awsvpc":
+                network_config = self._load_vpc_network_config(
+                    self.vpc_id, boto_session
+                )
+            else:
+                network_config = None
 
         task_run = self._prepare_task_run(
             network_config=network_config,
