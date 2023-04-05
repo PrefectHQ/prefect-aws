@@ -1534,9 +1534,7 @@ async def test_task_definition_arn_with_overrides_that_do_not_require_copy(
         create_test_ecs_cluster(ecs_client, overrides["cluster"])
         add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
 
-    task_definition_arn = ecs_client.register_task_definition(
-        **BASE_TASK_DEFINITION,
-    )[
+    task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION,)[
         "taskDefinition"
     ]["taskDefinitionArn"]
 
@@ -1712,8 +1710,8 @@ async def test_custom_subnets_in_the_network_configuration(aws_credentials):
 @pytest.mark.usefixtures("ecs_mocks")
 async def test_task_customizations_as_string(aws_credentials):
     tc = (
-        '[{"op": "replace", "path": "/overrides/cpu", "value": "512"}, ',
-        '{"op": "replace", "path": "/overrides/memory", "value": "1024"}]',
+        '[{"op": "replace", "path": "/overrides/cpu", "value": "512"}, '
+        '{"op": "replace", "path": "/overrides/memory", "value": "1024"}]'
     )
 
     task = ECSTask(

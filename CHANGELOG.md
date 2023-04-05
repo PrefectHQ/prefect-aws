@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added string support to `JsonPatch` implementation for task customizations Link [#233](https://github.com/PrefectHQ/prefect-aws/pull/233)
+
 ### Deprecated
 
 ### Removed
@@ -213,7 +215,3 @@ Released on March 9th, 2022.
 - `read_secret` task - [#6](https://github.com/PrefectHQ/prefect-aws/pull/6)
 - `update_secret` task - [#12](https://github.com/PrefectHQ/prefect-aws/pull/12)
 - `create_secret` and `delete_secret` tasks - [#13](https://github.com/PrefectHQ/prefect-aws/pull/13)
-
-### Changed
-
-- Added string support to `JsonPatch` implementation for task customizations Link TBD

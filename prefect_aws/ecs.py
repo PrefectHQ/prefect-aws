@@ -437,7 +437,10 @@ class ECSTask(Infrastructure):
     )
     task_customizations: JsonPatch = Field(
         default_factory=lambda: JsonPatch([]),
-        description="A list of JSON 6902 patches to apply to the task run request.",
+        description=(
+            "A list of JSON 6902 patches to apply to the task run request. "
+            "If a string is given, it will parsed as a JSON expression."
+        ),
     )
 
     # Execution settings
