@@ -105,6 +105,7 @@ Examples:
 """
 import copy
 import difflib
+import json
 import logging
 import pprint
 import sys
@@ -261,7 +262,7 @@ class ECSTask(Infrastructure):
         task_role_arn: An optional role to attach to the task run.
             This controls the permissions of the task while it is running.
         task_customizations: A list of JSON 6902 patches to apply to the task
-            run request.
+            run request. If a string is given, it will parsed as a JSON expression.
         task_start_timeout_seconds: The amount of time to watch for the
             start of the ECS task before marking it as failed. The task must
             enter a RUNNING state to be considered started.
@@ -450,7 +451,10 @@ class ECSTask(Infrastructure):
     )
     task_customizations: JsonPatch = Field(
         default_factory=lambda: JsonPatch([]),
-        description="A list of JSON 6902 patches to apply to the task run request.",
+        description=(
+            "A list of JSON 6902 patches to apply to the task run request. "
+            "If a string is given, it will parsed as a JSON expression."
+        ),
     )
 
     # Execution settings
@@ -552,14 +556,16 @@ class ECSTask(Infrastructure):
 
     @validator("task_customizations", pre=True)
     def cast_customizations_to_a_json_patch(
-        cls, value: Union[List[Dict], JsonPatch]
+        cls, value: Union[List[Dict], JsonPatch, str]
     ) -> JsonPatch:
         """
         Casts lists to JsonPatch instances.
         """
+        if isinstance(value, str):
+            value = json.loads(value)
         if isinstance(value, list):
             return JsonPatch(value)
-        return value
+        return value  # type: ignore
 
     class Config:
         """Configuration of pydantic."""
