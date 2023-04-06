@@ -15,7 +15,7 @@
         <link rel="next" href="blocks_catalog/">
       
       <link rel="icon" href="img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.2">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.5">
     
     
       
@@ -23,7 +23,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.7bf56d0a.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.7a7fce14.min.css">
       
         
         <link rel="stylesheet" href="assets/stylesheets/palette.a0c5b2b5.min.css">
@@ -324,36 +324,84 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#write-and-run-a-flow" class="md-nav__link">
-    Write and run a flow
+  <a href="#using-prefect-with-aws-ecs" class="md-nav__link">
+    Using Prefect with AWS ECS
   </a>
   
-    <nav class="md-nav" aria-label="Write and run a flow">
+    <nav class="md-nav" aria-label="Using Prefect with AWS ECS">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#upload-and-download-from-s3bucket" class="md-nav__link">
-    Upload and download from S3Bucket
+  <a href="#as-deployment-infrastructure" class="md-nav__link">
+    As deployment Infrastructure
+  </a>
+  
+    <nav class="md-nav" aria-label="As deployment Infrastructure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#set-variables" class="md-nav__link">
+    Set variables
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#write-read-and-delete-secret-from-aws-secrets-manager" class="md-nav__link">
-    Write, read, and delete secret from AWS Secrets Manager
+  <a href="#save-an-infrastructure-and-storage-block" class="md-nav__link">
+    Save an infrastructure and storage block
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-with_options-to-customize-options-on-any-existing-task-or-flow" class="md-nav__link">
-    Use with_options to customize options on any existing task or flow
+  <a href="#write-a-flow" class="md-nav__link">
+    Write a flow
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-deployment" class="md-nav__link">
+    Create a deployment
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-the-deployment" class="md-nav__link">
+    Test the deployment
   </a>
   
 </li>
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#within-flow" class="md-nav__link">
+    Within Flow
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-prefect-with-aws-s3" class="md-nav__link">
+    Using Prefect with AWS S3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-prefect-with-aws-secrets-manager" class="md-nav__link">
+    Using Prefect with AWS Secrets Manager
+  </a>
   
 </li>
         
@@ -378,13 +426,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#feedback" class="md-nav__link">
-    Feedback
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     Installation
   </a>
@@ -392,8 +433,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#contributing" class="md-nav__link">
-    Contributing
+  <a href="#feedback" class="md-nav__link">
+    Feedback
   </a>
   
 </li>
@@ -448,23 +489,38 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
     
     <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
       
       
       
-        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
           API Reference
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_4">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
           <span class="md-nav__icon md-icon"></span>
           API Reference
         </label>
@@ -521,6 +577,54 @@
       <a href="ecs/" class="md-nav__link">
         ECS
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+          Projects
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_5">
+          <span class="md-nav__icon md-icon"></span>
+          Projects
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="projects/steps/" class="md-nav__link">
+        Steps
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -609,36 +713,84 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#write-and-run-a-flow" class="md-nav__link">
-    Write and run a flow
+  <a href="#using-prefect-with-aws-ecs" class="md-nav__link">
+    Using Prefect with AWS ECS
   </a>
   
-    <nav class="md-nav" aria-label="Write and run a flow">
+    <nav class="md-nav" aria-label="Using Prefect with AWS ECS">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#upload-and-download-from-s3bucket" class="md-nav__link">
-    Upload and download from S3Bucket
+  <a href="#as-deployment-infrastructure" class="md-nav__link">
+    As deployment Infrastructure
+  </a>
+  
+    <nav class="md-nav" aria-label="As deployment Infrastructure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#set-variables" class="md-nav__link">
+    Set variables
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#write-read-and-delete-secret-from-aws-secrets-manager" class="md-nav__link">
-    Write, read, and delete secret from AWS Secrets Manager
+  <a href="#save-an-infrastructure-and-storage-block" class="md-nav__link">
+    Save an infrastructure and storage block
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-with_options-to-customize-options-on-any-existing-task-or-flow" class="md-nav__link">
-    Use with_options to customize options on any existing task or flow
+  <a href="#write-a-flow" class="md-nav__link">
+    Write a flow
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-deployment" class="md-nav__link">
+    Create a deployment
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-the-deployment" class="md-nav__link">
+    Test the deployment
   </a>
   
 </li>
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#within-flow" class="md-nav__link">
+    Within Flow
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-prefect-with-aws-s3" class="md-nav__link">
+    Using Prefect with AWS S3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-prefect-with-aws-secrets-manager" class="md-nav__link">
+    Using Prefect with AWS Secrets Manager
+  </a>
   
 </li>
         
@@ -663,13 +815,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#feedback" class="md-nav__link">
-    Feedback
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     Installation
   </a>
@@ -677,8 +822,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#contributing" class="md-nav__link">
-    Contributing
+  <a href="#feedback" class="md-nav__link">
+    Feedback
   </a>
   
 </li>
@@ -706,7 +851,7 @@
   
 
 
-<h1 id="coordinate-and-incorporate-aws-in-your-dataflow-with-prefect-aws">Coordinate and incorporate AWS in your dataflow with prefect-aws</h1>
+<h1 id="coordinate-and-incorporate-aws-in-your-dataflow-with-prefect-aws">Coordinate and incorporate AWS in your dataflow with <code>prefect-aws</code></h1>
 <p align="center">
     <img src="https://user-images.githubusercontent.com/15331990/214123296-4cfa69ed-d105-4ca2-a351-4c21917086c7.png">
     <br>
@@ -726,72 +871,174 @@
 </p>
 
 <h2 id="welcome">Welcome!</h2>
-<p><code>prefect-aws</code> is a collection of pre-built Prefect tasks that can be used to quickly construct Prefect flows that interact with Amazon Web Services.</p>
+<p>The <code>prefect-aws</code> collection makes it easy to leverage the capabilities of AWS in your flows, featuring support for ECSTask, S3, Secrets Manager, Batch Job, and Client Waiter.</p>
 <h2 id="getting-started">Getting Started</h2>
 <h3 id="saving-credentials-to-a-block">Saving credentials to a block</h3>
-<p>You will need to obtain AWS credentials in order to use <code>prefect-aws</code>.</p>
+<p>You will need an AWS account and credentials in order to use <code>prefect-aws</code>.</p>
 <ol>
 <li>Refer to the <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds">AWS Configuration documentation</a> on how to retrieve your access key ID and secret access key</li>
 <li>Copy the access key ID and secret access key</li>
-<li>Create a short script, replacing the placeholders (or do so in the UI)</li>
+<li>Create a short script and replace the placeholders with your credential information and desired block name:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
 <span class="n">AwsCredentials</span><span class="p">(</span>
     <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;PLACEHOLDER&quot;</span><span class="p">,</span>
     <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;PLACEHOLDER&quot;</span><span class="p">,</span>
     <span class="n">aws_session_token</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># replace this with token if necessary</span>
-<span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;BLOCK_NAME_PLACEHOLDER&quot;</span><span class="p">)</span>
+    <span class="n">region_name</span><span class="o">=</span><span class="s2">&quot;us-east-2&quot;</span>
+<span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p>Congrats! You can now easily load the saved block, which holds your credentials:</p>
+<p>Congrats! You can now load the saved block to use your credentials in your Python code:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
-<span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK_NAME_PLACEHOLDER&quot;</span><span class="p">)</span>
+<span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="write-and-run-a-flow">Write and run a flow</h3>
-<h4 id="upload-and-download-from-s3bucket">Upload and download from S3Bucket</h4>
+<div class="admonition info">
+<p class="admonition-title">Registering blocks</p>
+<p>Register blocks in this module to
+<a href="https://docs.prefect.io/ui/blocks/">view and edit them</a>
+on Prefect Cloud:</p>
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>block<span class="w"> </span>register<span class="w"> </span>-m<span class="w"> </span>prefect_aws
+</code></pre></div>
+</div>
+<h3 id="using-prefect-with-aws-ecs">Using Prefect with AWS ECS</h3>
+<p><code>prefect_aws</code> allows you to use <a href="https://aws.amazon.com/ecs/">AWS ECS</a> as infrastructure for your deployments. Using ECS for scheduled flow runs enabled the dynamic provisioning of infrastructure for containers and unlocked greater scalability.</p>
+<p>The snippets below show how you can use <code>prefect_aws</code> to run a task on ECS. It uses the <code>ECSTask</code> block as <a href="https://docs.prefect.io/concepts/infrastructure/">Prefect infrastructure</a> or simply within a flow.</p>
+<h4 id="as-deployment-infrastructure">As deployment Infrastructure</h4>
+<h5 id="set-variables">Set variables</h5>
+<p>To expedite copy/paste without the needing to update placeholders manually, update and execute the following.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">CREDENTIALS_BLOCK_NAME</span><span class="o">=</span><span class="s2">&quot;aws-credentials&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">VPC_ID</span><span class="o">=</span><span class="s2">&quot;vpc-id&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">ECS_TASK_BLOCK_NAME</span><span class="o">=</span><span class="s2">&quot;ecs-task-example&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">S3_BUCKET_BLOCK_NAME</span><span class="o">=</span><span class="s2">&quot;ecs-task-bucket-example&quot;</span>
+</code></pre></div>
+<h5 id="save-an-infrastructure-and-storage-block">Save an infrastructure and storage block</h5>
+<p>Save a custom infrastructure and storage block by executing the following snippet.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span><span class="p">,</span> <span class="n">ECSTask</span><span class="p">,</span> <span class="n">S3Bucket</span>
+
+<span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;CREDENTIALS_BLOCK_NAME&quot;</span><span class="p">])</span>
+
+<span class="n">ecs_task</span> <span class="o">=</span> <span class="n">ECSTask</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;prefecthq/prefect:2-python3.10&quot;</span><span class="p">,</span>
+    <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span><span class="p">,</span>
+    <span class="n">vpc_id</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;VPC_ID&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">ecs_task</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ECS_TASK_BLOCK_NAME&quot;</span><span class="p">],</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">bucket_name</span> <span class="o">=</span> <span class="s2">&quot;ecs-task-bucket-example&quot;</span>
+<span class="n">s3_client</span> <span class="o">=</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_s3_client</span><span class="p">()</span>
+<span class="n">s3_client</span><span class="o">.</span><span class="n">create_bucket</span><span class="p">(</span>
+    <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
+    <span class="n">CreateBucketConfiguration</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;LocationConstraint&quot;</span><span class="p">:</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">region_name</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="p">(</span>
+    <span class="n">bucket_name</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
+    <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">s3_bucket</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;S3_BUCKET_BLOCK_NAME&quot;</span><span class="p">],</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<h5 id="write-a-flow">Write a flow</h5>
+<p>Then, use an existing flow to create a deployment with, or use the flow below if you don't have an existing flow handy.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
+
+<span class="nd">@flow</span><span class="p">(</span><span class="n">log_prints</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">ecs_task_flow</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello, Prefect!&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">ecs_task_flow</span><span class="p">()</span>
+</code></pre></div>
+<h5 id="create-a-deployment">Create a deployment</h5>
+<p>If the script was named "ecs_task_script.py", build a deployment manifest with the following command.</p>
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>deployment<span class="w"> </span>build<span class="w"> </span>ecs_task_script.py:ecs_task_flow<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-n<span class="w"> </span>ecs-task-deployment<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ib<span class="w"> </span>ecs-task/<span class="si">${</span><span class="nv">ECS_TASK_BLOCK_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-sb<span class="w"> </span>s3-bucket/<span class="si">${</span><span class="nv">S3_BUCKET_BLOCK_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--override<span class="w"> </span>env.EXTRA_PIP_PACKAGES<span class="o">=</span>prefect-aws
+</code></pre></div>
+<p>Now apply the deployment!</p>
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>deployment<span class="w"> </span>apply<span class="w"> </span>ecs_task_flow-deployment.yaml
+</code></pre></div>
+<h5 id="test-the-deployment">Test the deployment</h5>
+<p>Start up an agent in a separate terminal. The agent will poll the Prefect API for scheduled flow runs that are ready to run.</p>
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>agent<span class="w"> </span>start<span class="w"> </span>-q<span class="w"> </span><span class="s1">&#39;default&#39;</span>
+</code></pre></div>
+<p>Run the deployment once to test.</p>
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>deployment<span class="w"> </span>run<span class="w"> </span>ecs-task-flow/ecs-task-deployment
+</code></pre></div>
+<p>Once the flow run has completed, you will see <code>Hello, Prefect!</code> logged in the Prefect UI.</p>
+<div class="admonition info">
+<p class="admonition-title">No class found for dispatch key</p>
+<p>If you encounter an error message like <code>KeyError: "No class found for dispatch key 'ecs-task' in registry for type 'Block'."</code>,
+ensure <code>prefect-aws</code> is installed in the environment that your agent is running!</p>
+</div>
+<p>Another tutorial on <code>ECSTask</code> can be found <a href="https://towardsdatascience.com/prefect-aws-ecs-fargate-github-actions-make-serverless-dataflows-as-easy-as-py-f6025335effc">here</a>.</p>
+<h4 id="within-flow">Within Flow</h4>
+<p>You can also execute commands through ECS Task directly within a Prefect flow. Running containers via ECS in your flows is useful for executing non-python code in a distributed manner via Prefect.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.ecs</span> <span class="kn">import</span> <span class="n">ECSTask</span>
 
 <span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">example_flow</span><span class="p">():</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;hello.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;print(&#39;Hello world!&#39;)&quot;</span><span class="p">)</span>
-
-    <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket-test&quot;</span><span class="p">)</span>
-    <span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_path</span><span class="p">(</span><span class="s2">&quot;hello.py&quot;</span><span class="p">)</span>
-    <span class="n">s3_bucket</span><span class="o">.</span><span class="n">download_object_to_path</span><span class="p">(</span><span class="s2">&quot;hello.py&quot;</span><span class="p">,</span> <span class="s2">&quot;downloaded_hello.py&quot;</span><span class="p">)</span>
-
-<span class="n">example_flow</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">ecs_task_flow</span><span class="p">():</span>
+    <span class="n">ecs_task</span> <span class="o">=</span> <span class="n">ECSTask</span><span class="p">(</span>
+        <span class="n">image</span><span class="o">=</span><span class="s2">&quot;prefecthq/prefect:2-python3.10&quot;</span><span class="p">,</span>
+        <span class="n">credentials</span><span class="o">=</span><span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">),</span>
+        <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-2&quot;</span><span class="p">,</span>
+        <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;echo&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello, Prefect!&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ecs_task</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </code></pre></div>
-<h4 id="write-read-and-delete-secret-from-aws-secrets-manager">Write, read, and delete secret from AWS Secrets Manager</h4>
+<h3 id="using-prefect-with-aws-s3">Using Prefect with AWS S3</h3>
+<p><code>prefect_aws</code> allows you to read and write objects with AWS S3 within your Prefect flows.</p>
+<p>The provided code snippet shows how you can use <code>prefect_aws</code> to upload a file to a AWS S3 bucket and download the same file under a different file name.</p>
+<p>Note, the following code assumes that the bucket already exists.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span><span class="p">,</span> <span class="n">S3Bucket</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">s3_flow</span><span class="p">():</span>
+    <span class="c1"># create a dummy file to upload</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;test-example.txt&quot;</span><span class="p">)</span>
+    <span class="n">file_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">&quot;Hello, Prefect!&quot;</span><span class="p">)</span>
+
+    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">)</span>
+    <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="p">(</span>
+        <span class="n">bucket_name</span><span class="o">=</span><span class="s2">&quot;BUCKET-NAME-PLACEHOLDER&quot;</span><span class="p">,</span>
+        <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span>
+    <span class="p">)</span>
+
+    <span class="n">s3_bucket_path</span> <span class="o">=</span> <span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">downloaded_file_path</span> <span class="o">=</span> <span class="n">s3_bucket</span><span class="o">.</span><span class="n">download_object_to_path</span><span class="p">(</span>
+        <span class="n">s3_bucket_path</span><span class="p">,</span> <span class="s2">&quot;downloaded-test-example.txt&quot;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">downloaded_file_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+
+<span class="n">s3_flow</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="using-prefect-with-aws-secrets-manager">Using Prefect with AWS Secrets Manager</h3>
+<p><code>prefect_aws</code> allows you to read and write secrets with AWS Secrets Manager within your Prefect flows.</p>
+<p>The provided code snippet shows how you can use <code>prefect_aws</code> to write a secret to the Secret Manager, read the secret data, delete the secret, and finally return the secret data.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
 <span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span><span class="p">,</span> <span class="n">AwsSecret</span>
 
 <span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">example_flow</span><span class="p">():</span>
-    <span class="n">secrets_manager</span> <span class="o">=</span> <span class="n">AwsSecret</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-block&quot;</span><span class="p">)</span>
-    <span class="n">secrets_manager</span><span class="o">.</span><span class="n">write_secret</span><span class="p">(</span><span class="s2">&quot;my-secret-value&quot;</span><span class="p">)</span>
-    <span class="n">secret</span> <span class="o">=</span> <span class="n">secrets_manager</span><span class="o">.</span><span class="n">read_secret</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">secret</span><span class="p">)</span>
-    <span class="n">secrets_manager</span><span class="o">.</span><span class="n">delete_secret</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">secrets_manager_flow</span><span class="p">():</span>
+    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">)</span>
+    <span class="n">aws_secret</span> <span class="o">=</span> <span class="n">AwsSecret</span><span class="p">(</span><span class="n">secret_name</span><span class="o">=</span><span class="s2">&quot;test-example&quot;</span><span class="p">,</span> <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span><span class="p">)</span>
+    <span class="n">aws_secret</span><span class="o">.</span><span class="n">write_secret</span><span class="p">(</span><span class="n">secret_data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;Hello, Prefect!&quot;</span><span class="p">)</span>
+    <span class="n">secret_data</span> <span class="o">=</span> <span class="n">aws_secret</span><span class="o">.</span><span class="n">read_secret</span><span class="p">()</span>
+    <span class="n">aws_secret</span><span class="o">.</span><span class="n">delete_secret</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">secret_data</span>
 
-<span class="n">example_flow</span><span class="p">()</span>
-</code></pre></div>
-<h4 id="use-with_options-to-customize-options-on-any-existing-task-or-flow">Use <code>with_options</code> to customize options on any existing task or flow</h4>
-<div class="highlight"><pre><span></span><code><span class="n">custom_example_flow</span> <span class="o">=</span> <span class="n">example_flow</span><span class="o">.</span><span class="n">with_options</span><span class="p">(</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My custom task name&quot;</span><span class="p">,</span>
-    <span class="n">retries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-    <span class="n">retry_delay_seconds</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-<span class="p">)</span> 
+<span class="n">secrets_manager_flow</span><span class="p">()</span>
 </code></pre></div>
 <h2 id="resources">Resources</h2>
 <p>Refer to the API documentation on the sidebar to explore all the capabilities of Prefect AWS!</p>
 <p>For more tips on how to use tasks and flows in a Collection, check out <a href="https://docs.prefect.io/collections/usage/">Using Collections</a>!</p>
 <h3 id="recipes">Recipes</h3>
-<p>A tutorial on <code>ECSTask</code> can be found <a href="https://towardsdatascience.com/prefect-aws-ecs-fargate-github-actions-make-serverless-dataflows-as-easy-as-py-f6025335effc">here</a>.</p>
 <p>For additional recipes and examples, check out <a href="https://github.com/PrefectHQ/prefect-recipes"><code>prefect-recipes</code></a>.</p>
-<h3 id="feedback">Feedback</h3>
-<p>If you have any questions or issues while using <code>prefect-aws</code>, you can find help in either the <a href="https://discourse.prefect.io/">Prefect Discourse forum</a> or the <a href="https://prefect.io/slack">Prefect Slack community</a>.</p>
-<p>Feel free to star or watch <a href="https://github.com/PrefectHQ/prefect-aws"><code>prefect-aws</code></a> for updates too!</p>
 <h3 id="installation">Installation</h3>
 <p>Install <code>prefect-aws</code></p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>prefect-aws
@@ -800,23 +1047,10 @@
 <p>Requires an installation of Python 3.7+</p>
 <p>We recommend using a Python virtual environment manager such as pipenv, conda or virtualenv.</p>
 <p>These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the <a href="https://docs.prefect.io/">Prefect documentation</a>.</p>
-<h3 id="contributing">Contributing</h3>
-<p>If you'd like to help contribute to fix an issue or add a feature to <code>prefect-aws</code>, please <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork">propose changes through a pull request from a fork of the repository</a>.</p>
-<p>Here are the steps:</p>
-<ol>
-<li><a href="https://docs.github.com/en/get-started/quickstart/fork-a-repo#forking-a-repository">Fork the repository</a></li>
-<li><a href="https://docs.github.com/en/get-started/quickstart/fork-a-repo#cloning-your-forked-repository">Clone the forked repository</a></li>
-<li>Install the repository and its dependencies:
-<div class="highlight"><pre><span></span><code>pip install -e &quot;.[dev]&quot;
-</code></pre></div></li>
-<li>Make desired changes</li>
-<li>Add tests</li>
-<li>Insert an entry to <a href="https://github.com/PrefectHQ/prefect-aws/blob/main/CHANGELOG.md">CHANGELOG.md</a></li>
-<li>Install <code>pre-commit</code> to perform quality checks prior to commit:
-<div class="highlight"><pre><span></span><code>pre-commit install
-</code></pre></div></li>
-<li><code>git commit</code>, <code>git push</code>, and create a pull request</li>
-</ol>
+<h3 id="feedback">Feedback</h3>
+<p>If you encounter any bugs while using <code>prefect-aws</code>, feel free to open an issue in the <a href="https://github.com/PrefectHQ/prefect-aws"><code>prefect-aws</code></a> repository.</p>
+<p>If you have any questions or issues while using <code>prefect-aws</code>, you can find help in either the <a href="https://discourse.prefect.io/">Prefect Discourse forum</a> or the <a href="https://prefect.io/slack">Prefect Slack community</a>.</p>
+<p>Feel free to star or watch <a href="https://github.com/PrefectHQ/prefect-aws"><code>prefect-aws</code></a> for updates too!</p>
 
 
   
@@ -962,7 +1196,7 @@
     <script id="__config" type="application/json">{"base": ".", "features": ["content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.fc8c2696.min.js"></script>
+      <script src="assets/javascripts/bundle.407015b8.min.js"></script>
       
     
   </body>

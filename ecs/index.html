@@ -16,10 +16,10 @@
         <link rel="prev" href="../credentials/">
       
       
-        <link rel="next" href="../s3/">
+        <link rel="next" href="../projects/steps/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.2">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.5">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.7bf56d0a.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.7a7fce14.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.a0c5b2b5.min.css">
@@ -315,6 +315,21 @@
 
   
   
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
     
   
   
@@ -324,17 +339,17 @@
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
       
       
       
-        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
           API Reference
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-        <label class="md-nav__title" for="__nav_4">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_5">
           <span class="md-nav__icon md-icon"></span>
           API Reference
         </label>
@@ -748,6 +763,54 @@
   
 </nav>
       
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+          Projects
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_5">
+          <span class="md-nav__icon md-icon"></span>
+          Projects
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/steps/" class="md-nav__link">
+        Steps
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1426,7 +1489,7 @@ This controls the permissions of the task while it is running.</p></td>
         <td><code>task_customizations</code></td>
         <td><code>JsonPatch</code></td>
         <td><p>A list of JSON 6902 patches to apply to the task
-run request.</p></td>
+run request. If a string is given, it will parsed as a JSON expression.</p></td>
       </tr>
       <tr>
         <td><code>task_start_timeout_seconds</code></td>
@@ -1511,7 +1574,7 @@ calls while monitoring the state of an ECS task.</p></td>
 <span class="sd">        task_role_arn: An optional role to attach to the task run.</span>
 <span class="sd">            This controls the permissions of the task while it is running.</span>
 <span class="sd">        task_customizations: A list of JSON 6902 patches to apply to the task</span>
-<span class="sd">            run request.</span>
+<span class="sd">            run request. If a string is given, it will parsed as a JSON expression.</span>
 <span class="sd">        task_start_timeout_seconds: The amount of time to watch for the</span>
 <span class="sd">            start of the ECS task before marking it as failed. The task must</span>
 <span class="sd">            enter a RUNNING state to be considered started.</span>
@@ -1690,7 +1753,10 @@ calls while monitoring the state of an ECS task.</p></td>
     <span class="p">)</span>
     <span class="n">task_customizations</span><span class="p">:</span> <span class="n">JsonPatch</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">JsonPatch</span><span class="p">([]),</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;A list of JSON 6902 patches to apply to the task run request.&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;A list of JSON 6902 patches to apply to the task run request. &quot;</span>
+            <span class="s2">&quot;If a string is given, it will parsed as a JSON expression.&quot;</span>
+        <span class="p">),</span>
     <span class="p">)</span>
 
     <span class="c1"># Execution settings</span>
@@ -1792,14 +1858,16 @@ calls while monitoring the state of an ECS task.</p></td>
 
     <span class="nd">@validator</span><span class="p">(</span><span class="s2">&quot;task_customizations&quot;</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">cast_customizations_to_a_json_patch</span><span class="p">(</span>
-        <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">JsonPatch</span><span class="p">]</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">JsonPatch</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonPatch</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Casts lists to JsonPatch instances.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">JsonPatch</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">value</span>  <span class="c1"># type: ignore</span>
 
     <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Configuration of pydantic.&quot;&quot;&quot;</span>
@@ -3005,7 +3073,7 @@ calls while monitoring the state of an ECS task.</p></td>
 
     <div class="doc doc-contents ">
 
-      <p>A list of JSON 6902 patches to apply to the task run request.</p>
+      <p>A list of JSON 6902 patches to apply to the task run request. If a string is given, it will parsed as a JSON expression.</p>
     </div>
 
   </div>
@@ -3245,14 +3313,16 @@ of the given arguments and keywords.</p>
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@validator</span><span class="p">(</span><span class="s2">&quot;task_customizations&quot;</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">cast_customizations_to_a_json_patch</span><span class="p">(</span>
-    <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">JsonPatch</span><span class="p">]</span>
+    <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">JsonPatch</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonPatch</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Casts lists to JsonPatch instances.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">JsonPatch</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">value</span>  <span class="c1"># type: ignore</span>
 </code></pre></div>
         </details>
     </div>
@@ -4053,7 +4123,7 @@ input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fc8c2696.min.js"></script>
+      <script src="../assets/javascripts/bundle.407015b8.min.js"></script>
       
     
   </body>
