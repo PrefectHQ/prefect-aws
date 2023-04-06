@@ -765,6 +765,15 @@ class ECSTask(Infrastructure):
                     "A task_definition_arn value must be provided to "
                     "disable task definition registration"
                 )
+            container = get_prefect_container(
+                requested_task_definition.get("containerDefinitions", [{}])
+            )
+            if container is None:
+                raise ValueError(
+                    "'name' in the prefect container definition "
+                    "must be equal to PREFECT_ECS_CONTAINER_NAME"
+                )
+
             self.logger.info(
                 f"{self._log_prefix}: Task definition registration is disabled..."
             )
@@ -791,7 +800,7 @@ class ECSTask(Infrastructure):
                 ):
                     self.logger.debug(
                         f"{self._log_prefix}: The latest task definition "
-                        "matches the required task definition; using"
+                        "matches the required task definition; using "
                         "that instead of registering a new one."
                     )
                     task_definition_arn = latest_task_definition["taskDefinitionArn"]
@@ -799,7 +808,7 @@ class ECSTask(Infrastructure):
                     if task_definition_arn:
                         self.logger.warning(
                             f"{self._log_prefix}: Settings require changes "
-                            "to the linked task definition. A new task definition"
+                            "to the linked task definition. A new task definition "
                             "will be registered. "
                             + (
                                 "Enable DEBUG level logs to see the difference."

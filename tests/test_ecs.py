@@ -1976,7 +1976,8 @@ async def test_allow_task_definition_registration_true(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_allow_task_definition_registration_no_arn(aws_credentials, caplog):
+async def test_allow_task_definition_registration_no_arn(aws_credentials):
+
     with pytest.raises(ValueError) as excinfo:
 
         task = ECSTask(
@@ -1992,6 +1993,52 @@ async def test_allow_task_definition_registration_no_arn(aws_credentials, caplog
     assert str(excinfo.value) == (
         "A task_definition_arn value must be provided "
         "to disable task definition registration"
+    )
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_allow_task_definition_registration_bad_name(aws_credentials):
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(
+        **{
+            **BASE_TASK_DEFINITION,
+            "family": "test-family",
+            "containerDefinitions": [
+                {
+                    "name": "bad-name",
+                    "logConfiguration": {
+                        "logDriver": "awslogs",
+                        "options": {
+                            "awslogs-create-group": "true",
+                            "awslogs-group": "test-group",
+                            "awslogs-region": "us-east-1",
+                            "awslogs-stream-prefix": "test-family",
+                        },
+                    },
+                }
+            ],
+        }
+    )["taskDefinition"]["taskDefinitionArn"]
+
+    with pytest.raises(ValueError) as excinfo:
+
+        task = ECSTask(
+            aws_credentials=aws_credentials,
+            auto_deregister_task_definition=False,
+            task_definition_arn=task_definition_arn,
+            launch_type="EC2",
+            image=None,
+            allow_task_definition_registration=False,
+        )
+        print(task.preview())
+        task_arn = await run_then_stop_task(task)
+        print(task_arn)
+    assert str(excinfo.value) == (
+        "'name' in the prefect container definition "
+        "must be equal to PREFECT_ECS_CONTAINER_NAME"
     )
 
 
