@@ -10,8 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support for unsigned AWS requests - [#220](https://github.com/PrefectHQ/prefect-aws/pull/220)
+- Added push and pull project steps for S3 = [#229](https://github.com/PrefectHQ/prefect-aws/pull/229)
 
 ### Changed
+
+- Added string support to `JsonPatch` implementation for task customizations Link [#233](https://github.com/PrefectHQ/prefect-aws/pull/233)
 
 ### Deprecated
 
