@@ -3,8 +3,7 @@ import asyncio
 import io
 import os
 import uuid
-import warnings
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Any, BinaryIO, Dict, List, Optional, Union
 
 import boto3
@@ -14,7 +13,7 @@ from prefect.blocks.abstract import ObjectStorageBlock
 from prefect.filesystems import WritableDeploymentStorage, WritableFileSystem
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.filesystem import filter_files
-from pydantic import Field, root_validator, validator
+from pydantic import Field
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.client_parameters import AwsClientParameters
@@ -240,14 +239,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     Attributes:
         bucket_name: Name of your bucket.
-        minio_credentials: [DEPRECATED; use the credentials field instead]
-            A block containing your credentials (choose this or AWS Credentials)
-        aws_credentials: [DEPRECATED; use the credentials field instead]
-            A block containing your credentials (choose this or MinIO Credentials)
-        basepath: [DEPRECATED; use the bucket_folder field instead]
-            The base path to use when storing data in this bucket.
-        endpoint_url: [DEPRECATED; pass AwsClientParameters in AwsCredentials instead]
-            The URL of the S3-compatible object storage service.
         credentials: A block containing your credentials to AWS or MinIO.
         bucket_folder: A default path to a folder within the S3 bucket to use
             for reading and writing objects.
@@ -261,48 +252,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     bucket_name: str = Field(default=..., description="Name of your bucket.")
 
-    # TODO: remove deprecated minio_credentials after March 27, 2023
-    minio_credentials: Optional[MinIOCredentials] = Field(
-        default=None,
-        description=(
-            "[DEPRECATED; use the credentials field instead] "
-            "A block containing your credentials (choose this or "
-            "AWS Credentials)"
-        ),
-    )
-
-    # TODO: remove deprecated aws_credentials after March 27, 2023
-    aws_credentials: Optional[AwsCredentials] = Field(
-        default=None,
-        description=(
-            "[DEPRECATED; use the credentials field instead] "
-            "A block containing your credentials (choose this or "
-            "MinIO Credentials)."
-        ),
-    )
-
-    # TODO: remove deprecated basepath after March 27, 2023
-    basepath: Optional[Union[str, Path]] = Field(
-        default="",
-        description=(
-            "[DEPRECATED; use the bucket_folder field instead] "
-            "A default location to write to and read from in the S3 bucket. Defaults "
-            "to the root of the bucket."
-        ),
-    )
-
-    # TODO: remove deprecated endpoint_url after March 27, 2023
-    endpoint_url: Optional[str] = Field(
-        default=None,
-        description=(
-            "[DEPRECATED; pass AwsClientParameters in AwsCredentials instead] "
-            "URL endpoint to use for S3 compatible storage. Defaults to "
-            "standard AWS S3 endpoint."
-        ),
-    )
-
-    credentials: Optional[Union[AwsCredentials, MinIOCredentials]] = Field(
-        default=None, description="A block containing your credentials to AWS or MinIO."
+    credentials: Union[AwsCredentials, MinIOCredentials] = Field(
+        default_factory=AwsCredentials,
+        description="A block containing your credentials to AWS or MinIO.",
     )
 
     bucket_folder: str = Field(
@@ -313,82 +265,20 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         ),
     )
 
-    @validator("basepath", pre=True)
-    def cast_pathlib(cls, value):
+    # Property to maintain compatibility with storage block based deployments
+    @property
+    def basepath(self) -> str:
         """
-        If basepath provided, it means we aren't writing to the root directory
-        of the bucket. We need to ensure that it is a valid path. This is called
-        when the S3Bucket block is instantiated.
-        """
+        The base path of the S3 bucket.
 
-        if issubclass(value.__class__, PurePath):
-            return value.as_posix()
-        return value
-
-    @validator("basepath", pre=True)
-    def deprecate_basepath(cls, value):
+        Returns:
+            str: The base path of the S3 bucket.
         """
-        Raises deprecation warning.
-        """
-        if value:
-            warnings.warn(
-                "The basepath field is deprecated and will be removed March 2023. "
-                "Please use bucket_folder instead.",
-                DeprecationWarning,
-            )
-        return value
+        return self.bucket_folder
 
-    @validator("endpoint_url", pre=True)
-    def deprecate_endpoint_url(cls, value):
-        """
-        Raises deprecation warning.
-        """
-        if value:
-            warnings.warn(
-                "The endpoint_url field is deprecated and will be removed March 2023. "
-                "Please pass it in AwsClientParameters and pass it into "
-                "the credentials block instead.",
-                DeprecationWarning,
-            )
-        return value
-
-    @root_validator(pre=True)
-    def check_credentials(cls, values):
-        """
-        Ensure exactly 1 of 2 optional credentials fields has been provided by
-        user.
-        """
-        creds_exist = bool(values.get("credentials"))
-        minio_creds_exist = bool(values.get("minio_credentials"))
-        aws_creds_exist = bool(values.get("aws_credentials"))
-
-        # if both credentials fields provided
-        if minio_creds_exist and aws_creds_exist:
-            raise ValueError("Only one set of credentials should be provided.")
-
-        if minio_creds_exist:
-            # raise deprecationwarning
-            warnings.warn(
-                "The minio_credentials field is deprecated and "
-                "will be removed March 2023. Please use credentials instead.",
-                DeprecationWarning,
-            )
-            values["credentials"] = values.get("minio_credentials")
-        elif aws_creds_exist:
-            # raise deprecationwarning
-            warnings.warn(
-                "The aws_credentials field is deprecated and "
-                "will be removed March 2023. Please use credentials instead.",
-                DeprecationWarning,
-            )
-            values["credentials"] = values.get("aws_credentials")
-
-        # if neither credentials fields provided
-        if not creds_exist and not minio_creds_exist and not aws_creds_exist:
-            raise ValueError(
-                "S3Bucket requires at least one credentials block to be provided."
-            )
-        return values
+    @basepath.setter
+    def basepath(self, value: str) -> None:
+        self.bucket_folder = value
 
     def _resolve_path(self, path: str) -> str:
 
@@ -401,13 +291,14 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                 bucket has a unique key (or key name).
 
         """
-        bucket_folder = self.bucket_folder or self.basepath
-        # If basepath provided, it means we won't write to the root dir of
+        # If bucket_folder provided, it means we won't write to the root dir of
         # the bucket. So we need to add it on the front of the path.
         #
         # AWS object key naming guidelines require '/' for bucket folders.
         # Get POSIX path to prevent `pathlib` from inferring '\' on Windows OS
-        path = (Path(bucket_folder) / path).as_posix() if bucket_folder else path
+        path = (
+            (Path(self.bucket_folder) / path).as_posix() if self.bucket_folder else path
+        )
 
         return path
 
@@ -417,61 +308,18 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         Authenticate MinIO credentials or AWS credentials and return an S3 client.
         This is a helper function called by read_path() or write_path().
         """
-        if self.credentials:
-            s3_client = self.credentials.get_s3_client()
-        elif self.minio_credentials:
-            s3_client = self.minio_credentials.get_s3_client()
-
-        elif self.aws_credentials:
-            s3_client = self.aws_credentials.get_s3_client()
-        else:
-            raise ValueError(
-                "S3 Bucket requires either a minio_credentials"
-                "field or an aws_credentials field."
-            )
-        return s3_client
+        return self.credentials.get_s3_client()
 
     def _get_bucket_resource(self) -> boto3.resource:
         """
         Retrieves boto3 resource object for the configured bucket
         """
-        if self.credentials:
-            params_override = (
-                self.credentials.aws_client_parameters.get_params_override()
-            )
-            if "endpoint_url" not in params_override and self.endpoint_url:
-                params_override["endpoint_url"] = self.endpoint_url
-            bucket = (
-                self.credentials.get_boto3_session()
-                .resource("s3", **params_override)
-                .Bucket(self.bucket_name)
-            )
-        elif self.minio_credentials:
-            params_override = (
-                self.minio_credentials.aws_client_parameters.get_params_override()
-            )
-            if "endpoint_url" not in params_override and self.endpoint_url:
-                params_override["endpoint_url"] = self.endpoint_url
-            bucket = (
-                self.minio_credentials.get_boto3_session()
-                .resource("s3", **params_override)
-                .Bucket(self.bucket_name)
-            )
-
-        elif self.aws_credentials:
-            params_override = (
-                self.aws_credentials.aws_client_parameters.get_params_override()
-            )
-            bucket = (
-                self.aws_credentials.get_boto3_session()
-                .resource("s3", **params_override)
-                .Bucket(self.bucket_name)
-            )
-        else:
-            raise ValueError(
-                "S3 Bucket requires either a minio_credentials"
-                "field or an aws_credentials field."
-            )
+        params_override = self.credentials.aws_client_parameters.get_params_override()
+        bucket = (
+            self.credentials.get_boto3_session()
+            .resource("s3", **params_override)
+            .Bucket(self.bucket_name)
+        )
         return bucket
 
     @sync_compatible
@@ -490,7 +338,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             local_path: Local path to download S3 contents to. Defaults to the current
                 working directory.
         """
-        bucket_folder = self.bucket_folder or self.basepath
+        bucket_folder = self.bucket_folder
         if from_path is None:
             from_path = str(bucket_folder) if bucket_folder else ""
 
