@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for unsigned AWS requests - [#220](https://github.com/PrefectHQ/prefect-aws/pull/220)
 - Added push and pull project steps for S3 = [#229](https://github.com/PrefectHQ/prefect-aws/pull/229)
+- Added `allow_task_definition_registration` argument to ECSTask [#236](https://github.com/PrefectHQ/prefect-aws/pull/236)
 
 ### Changed
 
