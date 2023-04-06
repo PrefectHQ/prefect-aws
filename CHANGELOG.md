@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 0.3.0
 
+Released on April 6th, 2023.
+
 ### Added
 
 - Support for unsigned AWS requests - [#220](https://github.com/PrefectHQ/prefect-aws/pull/220)
