@@ -265,6 +265,21 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         ),
     )
 
+    # Property to maintain compatibility with storage block based deployments
+    @property
+    def basepath(self) -> str:
+        """
+        The base path of the S3 bucket.
+
+        Returns:
+            str: The base path of the S3 bucket.
+        """
+        return self.bucket_folder
+
+    @basepath.setter
+    def basepath(self, value: str) -> None:
+        self.bucket_folder = value
+
     def _resolve_path(self, path: str) -> str:
 
         """
@@ -276,13 +291,14 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                 bucket has a unique key (or key name).
 
         """
-        bucket_folder = self.bucket_folder
-        # If basepath provided, it means we won't write to the root dir of
+        # If bucket_folder provided, it means we won't write to the root dir of
         # the bucket. So we need to add it on the front of the path.
         #
         # AWS object key naming guidelines require '/' for bucket folders.
         # Get POSIX path to prevent `pathlib` from inferring '\' on Windows OS
-        path = (Path(bucket_folder) / path).as_posix() if bucket_folder else path
+        path = (
+            (Path(self.bucket_folder) / path).as_posix() if self.bucket_folder else path
+        )
 
         return path
 

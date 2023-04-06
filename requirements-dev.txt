@@ -1,19 +1,20 @@
-mock; python_version < '3.8'
-pytest
 black
+boto3-stubs >= 1.24.39
+coverage
 flake8
-mypy
+interrogate
+isort
 mkdocs
+mkdocs-gen-files
 mkdocs-material
 mkdocstrings-python-legacy
-isort
-pre-commit
+mock; python_version < '3.8'
 moto >= 3.1.16, <= 4.0.6  # https://github.com/PrefectHQ/prefect-aws/issues/130
+mypy
+pillow
+pre-commit
+pytest
 pytest-asyncio
 pytest-lazy-fixture
-mkdocs-gen-files
-interrogate
-coverage
+pytest-xdist
 types-boto3 >= 1.0.2
-boto3-stubs >= 1.24.39
-pillow

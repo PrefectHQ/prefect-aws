@@ -365,28 +365,20 @@ async def test_read_fails_does_not_exist(s3_bucket):
 
 @pytest.mark.parametrize("type_", [PureWindowsPath, PurePosixPath, str])
 @pytest.mark.parametrize("delimiter", ["\\", "/"])
-async def test_aws_basepath(s3_bucket, aws_creds_block, delimiter, type_):
-    """Test the basepath functionality."""
+async def test_aws_bucket_folder(s3_bucket, aws_creds_block, delimiter, type_):
+    """Test the bucket folder functionality."""
 
     # create a new block with a subfolder
     s3_bucket_block = S3Bucket(
         bucket_name=BUCKET_NAME,
-        aws_credentials=aws_creds_block,
-        basepath=type_(f"subfolder{delimiter}subsubfolder"),
+        credentials=aws_creds_block,
+        bucket_folder="subfolder/subsubfolder",
     )
 
     key = await s3_bucket_block.write_path("test.txt", content=b"hello")
     assert await s3_bucket_block.read_path("test.txt") == b"hello"
 
     expected: str = "subfolder/subsubfolder/test.txt"
-    if (
-        delimiter == "\\"
-        and type_ != PureWindowsPath
-        and (os.sep != "\\" and os.altsep != "\\")
-    ):
-        # In this case, \\ will not be recognized as a delimiter
-        # This case is triggered on POSIX systems
-        expected = "subfolder\\subsubfolder/test.txt"
     assert key == expected
 
 
@@ -401,13 +393,13 @@ async def test_get_directory(
     assert (tmp_path / "level1" / "level2" / "object2_level2.txt").exists()
 
 
-async def test_get_directory_respects_basepath(
+async def test_get_directory_respects_bucket_folder(
     nested_s3_bucket_structure, s3_bucket: S3Bucket, tmp_path: Path, aws_creds_block
 ):
     s3_bucket_block = S3Bucket(
         bucket_name=BUCKET_NAME,
-        aws_credentials=aws_creds_block,
-        basepath="level1/level2",
+        credentials=aws_creds_block,
+        bucket_folder="level1/level2",
     )
 
     await s3_bucket_block.get_directory(local_path=str(tmp_path))
@@ -538,32 +530,6 @@ async def test_put_directory_respects_local_path(
     assert (tmp_path / "downloaded_files" / "folder2" / "file5.txt").exists()
 
 
-async def test_too_many_credentials_arguments(
-    s3_bucket, aws_creds_block, minio_creds_block
-):
-
-    """Test providing too many credentials as input."""
-    with pytest.raises(ValueError, match="Only one set of credentials should be"):
-        # create a new block with a subfolder
-        S3Bucket(
-            bucket_name=BUCKET_NAME,
-            aws_credentials=aws_creds_block,
-            minio_credentials=minio_creds_block,
-            basepath="subfolder",
-        )
-
-
-async def test_too_few_credentials_arguments(s3_bucket, aws_creds_block):
-
-    """Test providing no credentials as input."""
-    with pytest.raises(ValueError, match="S3Bucket requires at least one"):
-        # create a new block with a subfolder
-        S3Bucket(
-            bucket_name=BUCKET_NAME,
-            basepath="subfolder",
-        )
-
-
 def test_read_path_in_sync_context(s3_bucket_with_file):
     """Test that read path works in a sync context."""
     s3_bucket, key = s3_bucket_with_file
@@ -583,12 +549,11 @@ def test_deployment_default_basepath(s3_bucket):
     assert deployment.location == "/"
 
 
-@pytest.mark.parametrize("type_", [str, Path])
-def test_deployment_set_basepath(aws_creds_block, type_):
+def test_deployment_set_basepath(aws_creds_block):
     s3_bucket_block = S3Bucket(
         bucket_name=BUCKET_NAME,
-        aws_credentials=aws_creds_block,
-        basepath=type_("home"),
+        credentials=aws_creds_block,
+        bucket_folder="home",
     )
     deployment = Deployment(name="testing", storage=s3_bucket_block)
     assert deployment.location == "home/"
