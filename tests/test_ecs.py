@@ -862,7 +862,6 @@ async def test_execution_role_arn_in_task_definition(
 @pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize("default_cluster", [True, False])
 async def test_cluster(aws_credentials, default_cluster: bool):
-
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
 
@@ -1709,6 +1708,29 @@ async def test_custom_subnets_in_the_network_configuration(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_task_customizations_as_string(aws_credentials):
+    tc = (
+        '[{"op": "replace", "path": "/overrides/cpu", "value": "512"}, '
+        '{"op": "replace", "path": "/overrides/memory", "value": "1024"}]'
+    )
+
+    task = ECSTask(
+        aws_credentials=aws_credentials, memory=512, cpu=256, task_customizations=tc
+    )  # type: ignore
+
+    original_run_task = task._run_task
+    mock_run_task = MagicMock(side_effect=original_run_task)
+    task._run_task = mock_run_task
+
+    await run_then_stop_task(task)
+
+    overrides = mock_run_task.call_args[0][1].get("overrides")
+
+    assert overrides["memory"] == "1024"
+    assert overrides["cpu"] == "512"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize(
     "fields,prepare_inputs,expected_family",
     [
@@ -1844,7 +1866,6 @@ async def test_family_from_task_definition_arn(aws_credentials, prepare_for_flow
     "cluster", [None, "default", "second-cluster", "second-cluster-arn"]
 )
 async def test_kill(aws_credentials, cluster: str):
-
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
 
