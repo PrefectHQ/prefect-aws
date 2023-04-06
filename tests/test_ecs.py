@@ -1988,6 +1988,7 @@ async def test_allow_task_definition_registration_no_arn(aws_credentials, caplog
         )
         print(task.preview())
         task_arn = await run_then_stop_task(task)
+        print(task_arn)
     assert str(excinfo.value) == (
         "A task_definition_arn value must be provided "
         "to disable task definition registration"

@@ -773,8 +773,9 @@ class ECSTask(Infrastructure):
             )
             task_definition = requested_task_definition
         else:
-            # If task registration is allowed...
-            # We must register the task definition if the arn is null or changes were made
+            # If task registration is allowed,
+            # we must register the task definition,
+            # if the arn is null or changes were made
             task_definition = self._prepare_task_definition(
                 requested_task_definition, region=ecs_client.meta.region_name
             )
@@ -789,16 +790,17 @@ class ECSTask(Infrastructure):
                     latest_task_definition, task_definition
                 ):
                     self.logger.debug(
-                        f"{self._log_prefix}: The latest task definition matches the "
-                        "required task definition; using that instead of registering a new "
-                        " one."
+                        f"{self._log_prefix}: The latest task definition "
+                        "matches the required task definition; using"
+                        "that instead of registering a new one."
                     )
                     task_definition_arn = latest_task_definition["taskDefinitionArn"]
                 else:
                     if task_definition_arn:
                         self.logger.warning(
-                            f"{self._log_prefix}: Settings require changes to the linked "
-                            "task definition. A new task definition will be registered. "
+                            f"{self._log_prefix}: Settings require changes "
+                            "to the linked task definition. A new task definition"
+                            "will be registered. "
                             + (
                                 "Enable DEBUG level logs to see the difference."
                                 if self.logger.level > logging.DEBUG
