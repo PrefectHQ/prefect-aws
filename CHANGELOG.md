@@ -9,18 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for unsigned AWS requests - [#220](https://github.com/PrefectHQ/prefect-aws/pull/220)
-- Added push and pull project steps for S3 = [#229](https://github.com/PrefectHQ/prefect-aws/pull/229)
-
 ### Changed
-
-- Added string support to `JsonPatch` implementation for task customizations Link [#233](https://github.com/PrefectHQ/prefect-aws/pull/233)
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+### 0.3.0
+
+### Added
+
+- Support for unsigned AWS requests - [#220](https://github.com/PrefectHQ/prefect-aws/pull/220)
+- Added push and pull project steps for S3 - [#229](https://github.com/PrefectHQ/prefect-aws/pull/229)
+- `basepath` property to `S3Bucket` to maintain compatibility with storage block based deployments - [#231](https://github.com/PrefectHQ/prefect-aws/pull/231)
+
+### Changed
+
+- Added string support to `JsonPatch` implementation for task customizations Link [#233](https://github.com/PrefectHQ/prefect-aws/pull/233)
+
+### Removed
+
+- `basepath`, `aws_credentials` and `minio_credentials` fields from `S3Bucket` - [#231](https://github.com/PrefectHQ/prefect-aws/pull/231)
 
 ## 0.2.5
 
