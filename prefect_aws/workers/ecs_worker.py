@@ -1,6 +1,6 @@
 import copy
 from copy import deepcopy
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
 import anyio
@@ -14,7 +14,7 @@ from prefect.workers.base import (
     BaseWorker,
     BaseWorkerResult,
 )
-from pydantic import Field
+from pydantic import Field, root_validator
 
 from prefect_aws import AwsCredentials
 
@@ -41,9 +41,9 @@ DEFAULT_TASK_DEFINITION_TEMPLATE = """
 containerDefinitions:
 - image: "{{ image }}"
   name: "{{ container_name }}"
-cpu: '{{1024}}'
-family: prefect
-memory: '2048'
+cpu: "{{ cpu }}"
+family: "{{ family }}"
+memory: "{{ memory }}"
 networkMode: awsvpc
 requiresCompatibilities:
 - FARGATE
@@ -54,8 +54,10 @@ launchType: FARGATE
 overrides:
   containerOverrides:
     - name: "{{ container_name }}"
-      command: "{{ command }}"
+      command: "{{ command }}"      
       environment: "{{ env }}"
+  cpu: "{{ cpu }}"
+  memory: "{{ memory }}"
 tags: "{{ labels }}"
 taskDefinition: "{{ task_definition_arn }}"
 """
@@ -72,19 +74,39 @@ def _default_task_run_request_template() -> dict:
     return yaml.safe_load(DEFAULT_TASK_RUN_REQUEST_TEMPLATE)
 
 
+def _get_container(containers: List[dict], name: str) -> Optional[dict]:
+    """
+    Extract a container from a list of containers or container definitions.
+    If not found, `None` is returned.
+    """
+    for container in containers:
+        if container.get("name") == name:
+            return container
+    return None
+
+
 class ECSJobConfiguration(BaseJobConfiguration):
     aws_credentials: Optional[AwsCredentials] = Field(default=None)
-    task_definition: Dict[str, Any] = Field(
+    task_definition: Optional[Dict[str, Any]] = Field(
         template=_default_task_definition_template()
     )
     task_run_request: Dict[str, Any] = Field(
         template=_default_task_run_request_template()
     )
 
+    @root_validator
+    def task_run_request_requires_arn_if_no_task_definition_given(cls, values):
+        if not values.get("task_run_request", {}).get(
+            "taskDefinition"
+        ) and not values.get("task_definition"):
+            raise ValueError(
+                "A task definition must be provided if a task definition ARN is not present on the task run request."
+            )
+        return values
+
 
 class ECSVariables(BaseVariables):
     task_definition_arn: Optional[str] = Field(default=None)
-
     aws_credentials: AwsCredentials = Field(
         title="AWS Credentials",
         default_factory=AwsCredentials,
@@ -139,6 +161,32 @@ class ECSVariables(BaseVariables):
             "be used."
         ),
     )
+
+    def update_defaults_from_job_configuration(
+        self, configuration: ECSJobConfiguration
+    ):
+        if self.container_name is None:
+            # Attempt to infer the container name from the task definition
+            if configuration.task_definition:
+                container_definitions = configuration.task_definition.get(
+                    "containerDefinitions", []
+                )
+            else:
+                container_definitions = []
+
+            if _get_container(container_definitions, ECS_DEFAULT_CONTAINER_NAME):
+                # Use the default container name if present
+                self.container_name = ECS_DEFAULT_CONTAINER_NAME
+            elif container_definitions:
+                # Otherwise, if there's at least one container definition try to get the
+                # name from that
+                self.container_name = container_definitions[0].get("name")
+
+            # We may not have a name here still; for example if someone is using a task
+            # definition arn. In that case, we'll perform similar logic later to find
+            # the name to treat as the "orchestration" container.
+
+        return self
 
 
 class ECSWorkerResult(BaseWorkerResult):

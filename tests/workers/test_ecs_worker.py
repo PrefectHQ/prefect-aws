@@ -198,11 +198,15 @@ async def construct_configuration(**options):
         "task_definition": _default_task_definition_template(),
         "task_run_request": _default_task_run_request_template(),
     }
+    variables = ECSVariables(**options)
+    print(f"Using variables: {variables.json(indent=2)}")
+
     configuration = await ECSJobConfiguration.from_template_and_values(
         base_job_template=ECSWorker.get_default_base_job_template(),
-        values={**extras, **ECSVariables(**options).dict()},
+        values={**extras, **variables.dict()},
     )
-    print(f"Constructed test configuration:{configuration.json(indent=2)}")
+    print(f"Constructed test configuration: {configuration.json(indent=2)}")
+
     return configuration
 
 
