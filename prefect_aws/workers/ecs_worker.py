@@ -1,4 +1,7 @@
 import copy
+import json
+import shlex
+import warnings
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
@@ -15,6 +18,7 @@ from prefect.workers.base import (
     BaseWorkerResult,
 )
 from pydantic import Field, root_validator
+from slugify import slugify
 
 from prefect_aws import AwsCredentials
 
@@ -24,6 +28,7 @@ _ECSClient = Any
 ECS_DEFAULT_CONTAINER_NAME = "prefect"
 ECS_DEFAULT_CPU = 1024
 ECS_DEFAULT_MEMORY = 2048
+ECS_DEFAULT_LAUNCH_TYPE = "FARGATE"
 ECS_DEFAULT_FAMILY = "prefect"
 ECS_POST_REGISTRATION_FIELDS = [
     "compatibilities",
@@ -93,6 +98,48 @@ class ECSJobConfiguration(BaseJobConfiguration):
     task_run_request: Dict[str, Any] = Field(
         template=_default_task_run_request_template()
     )
+    configure_cloudwatch_logs: bool = Field(
+        default=None,
+        description=(
+            "If `True`, the Prefect container will be configured to send its output "
+            "to the AWS CloudWatch logs service. This functionality requires an "
+            "execution role with logs:CreateLogStream, logs:CreateLogGroup, and "
+            "logs:PutLogEvents permissions. The default for this field is `False` "
+            "unless `stream_output` is set."
+        ),
+    )
+    cloudwatch_logs_options: Dict[str, str] = Field(
+        default_factory=dict,
+        description=(
+            "When `configure_cloudwatch_logs` is enabled, this setting may be used to "
+            "pass additional options to the CloudWatch logs configuration or override "
+            "the default options. See the AWS documentation for available options. "
+            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options."  # noqa
+        ),
+    )
+    stream_output: bool = Field(
+        default=None,
+        description=(
+            "If `True`, logs will be streamed from the Prefect container to the local "
+            "console. Unless you have configured AWS CloudWatch logs manually on your "
+            "task definition, this requires the same prerequisites outlined in "
+            "`configure_cloudwatch_logs`."
+        ),
+    )
+
+    vpc_id: Optional[str] = Field(
+        title="VPC ID",
+        default=None,
+        description=(
+            "The AWS VPC to link the task run to. This is only applicable when using "
+            "the 'awsvpc' network mode for your task. FARGATE tasks require this "
+            "network  mode, but for EC2 tasks the default network mode is 'bridge'. "
+            "If using the 'awsvpc' network mode and this field is null, your default "
+            "VPC will be used. If no default VPC can be found, the task run will fail."
+        ),
+    )
+    cloudwatch_logs_options: dict = Field(default_factory=dict)
+    container_name: Optional[str] = Field(template="{{ container_name }}")
 
     @root_validator
     def task_run_request_requires_arn_if_no_task_definition_given(cls, values):
@@ -101,6 +148,84 @@ class ECSJobConfiguration(BaseJobConfiguration):
         ) and not values.get("task_definition"):
             raise ValueError(
                 "A task definition must be provided if a task definition ARN is not present on the task run request."
+            )
+        return values
+
+    @root_validator
+    def container_name_default_from_task_definition(cls, values):
+        if values.get("container_name") is None:
+            # Attempt to infer the container name from the task definition
+            if values.get("task_definition"):
+                container_definitions = values.get("task_definition").get(
+                    "containerDefinitions", []
+                )
+            else:
+                container_definitions = []
+
+            if _get_container(container_definitions, ECS_DEFAULT_CONTAINER_NAME):
+                # Use the default container name if present
+                values["container_name"] = ECS_DEFAULT_CONTAINER_NAME
+            elif container_definitions:
+                # Otherwise, if there's at least one container definition try to get the
+                # name from that
+                values["container_name"] = container_definitions[0].get("name")
+
+            # We may not have a name here still; for example if someone is using a task
+            # definition arn. In that case, we'll perform similar logic later to find
+            # the name to treat as the "orchestration" container.
+
+        return values
+
+    @root_validator(pre=True)
+    def set_default_configure_cloudwatch_logs(cls, values: dict) -> dict:
+        """
+        Streaming output generally requires CloudWatch logs to be configured.
+
+        To avoid entangled arguments in the simple case, `configure_cloudwatch_logs`
+        defaults to matching the value of `stream_output`.
+        """
+        configure_cloudwatch_logs = values.get("configure_cloudwatch_logs")
+        if configure_cloudwatch_logs is None:
+            values["configure_cloudwatch_logs"] = values.get("stream_output")
+        return values
+
+    @root_validator
+    def configure_cloudwatch_logs_requires_execution_role_arn(
+        cls, values: dict
+    ) -> dict:
+        """
+        Enforces that an execution role arn is provided (or could be provided by a
+        runtime task definition) when configuring logging.
+        """
+        if (
+            values.get("configure_cloudwatch_logs")
+            and not values.get("execution_role_arn")
+            # TODO: Does not match
+            # Do not raise if they've linked to another task definition or provided
+            # it without using our shortcuts
+            and not values.get("task_definition_arn")
+            and not (values.get("task_definition") or {}).get("executionRoleArn")
+        ):
+            raise ValueError(
+                "An `execution_role_arn` must be provided to use "
+                "`configure_cloudwatch_logs` or `stream_logs`."
+            )
+        return values
+
+    @root_validator
+    def cloudwatch_logs_options_requires_configure_cloudwatch_logs(
+        cls, values: dict
+    ) -> dict:
+        """
+        Enforces that an execution role arn is provided (or could be provided by a
+        runtime task definition) when configuring logging.
+        """
+        if values.get("cloudwatch_logs_options") and not values.get(
+            "configure_cloudwatch_logs"
+        ):
+            raise ValueError(
+                "`configure_cloudwatch_log` must be enabled to use "
+                "`cloudwatch_logs_options`."
             )
         return values
 
@@ -162,32 +287,6 @@ class ECSVariables(BaseVariables):
         ),
     )
 
-    def update_defaults_from_job_configuration(
-        self, configuration: ECSJobConfiguration
-    ):
-        if self.container_name is None:
-            # Attempt to infer the container name from the task definition
-            if configuration.task_definition:
-                container_definitions = configuration.task_definition.get(
-                    "containerDefinitions", []
-                )
-            else:
-                container_definitions = []
-
-            if _get_container(container_definitions, ECS_DEFAULT_CONTAINER_NAME):
-                # Use the default container name if present
-                self.container_name = ECS_DEFAULT_CONTAINER_NAME
-            elif container_definitions:
-                # Otherwise, if there's at least one container definition try to get the
-                # name from that
-                self.container_name = container_definitions[0].get("name")
-
-            # We may not have a name here still; for example if someone is using a task
-            # definition arn. In that case, we'll perform similar logic later to find
-            # the name to treat as the "orchestration" container.
-
-        return self
-
 
 class ECSWorkerResult(BaseWorkerResult):
     pass
@@ -212,21 +311,27 @@ class ECSWorker(BaseWorker):
 
         cached_task_definition_arn = _TASK_DEFINITION_CACHE.get(flow_run.deployment_id)
 
+        # TODO: Pull the task definition from the ARN in the task run request if present
+        task_definition = self._prepare_task_definition(
+            configuration, region=ecs_client.meta.region_name
+        )
+
         if cached_task_definition_arn:
             # Read the task definition to see if the cached task definition is valid
             task_definition = self._retrieve_task_definition(
                 ecs_client, task_definition_arn
             )
 
-            if not self._task_definitions_equal(
-                task_definition, configuration.task_definition
-            ):
+            if not self._task_definitions_equal(task_definition, task_definition):
                 # Cached task definition is not valid
                 cached_task_definition_arn = None
 
         if not cached_task_definition_arn:
+            print(
+                f"Registering task definition {json.dumps(task_definition, indent=2)}"
+            )
             task_definition_arn = self._register_task_definition(
-                ecs_client, configuration.task_definition
+                ecs_client, task_definition
             )
 
         # Update the cached task definition ARN to avoid re-registering the task
@@ -235,11 +340,18 @@ class ECSWorker(BaseWorker):
         _TASK_DEFINITION_CACHE[flow_run.deployment_id] = task_definition_arn
 
         # Prepare the task run request
-        task_run_request = deepcopy(configuration.task_run_request)
-        task_run_request["taskDefinition"] = task_definition_arn
+        task_run_request = self._prepare_task_run_request(
+            session,
+            configuration,
+            task_definition,
+            task_definition_arn,
+        )
 
-        task_run = self._create_task_run(ecs_client, configuration.task_run_request)
-        return ECSWorkerResult(identifier=task_run)
+        print(
+            f"Creating task run with request {json.dumps(task_run_request, indent=2)}"
+        )
+        task_run = self._create_task_run(ecs_client, task_run_request)
+        return ECSWorkerResult(identifier=task_run["taskArn"], status_code=0)
 
     def _get_session_and_client(
         self,
@@ -277,7 +389,185 @@ class ECSWorker(BaseWorker):
         )
         return response["taskDefinition"]
 
-    def _create_task_run(self, ecs_client: _ECSClient, task_run_request: dict):
+    def _prepare_task_definition(
+        self,
+        configuration: ECSJobConfiguration,
+        region: str,
+    ) -> dict:
+        """
+        Prepare a task definition by inferring any defaults and merging overrides.
+        """
+        task_definition = copy.deepcopy(configuration.task_definition)
+
+        # Configure the Prefect runtime container
+        task_definition.setdefault("containerDefinitions", [])
+        container = _get_container(
+            task_definition["containerDefinitions"], configuration.container_name
+        )
+        if container is None:
+            container = {"name": configuration.container_name}
+            task_definition["containerDefinitions"].append(container)
+
+        # Remove any keys that have been explicitly "unset"
+        unset_keys = {key for key, value in configuration.env.items() if value is None}
+        for item in tuple(container.get("environment", [])):
+            if item["name"] in unset_keys:
+                container["environment"].remove(item)
+
+        if configuration.configure_cloudwatch_logs:
+            container["logConfiguration"] = {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "prefect",
+                    "awslogs-region": region,
+                    "awslogs-stream-prefix": configuration.name or "prefect",
+                    **configuration.cloudwatch_logs_options,
+                },
+            }
+
+        family = task_definition.get("family") or ECS_DEFAULT_FAMILY
+        task_definition["family"] = slugify(
+            family,
+            max_length=255,
+            regex_pattern=r"[^a-zA-Z0-9-_]+",
+        )
+
+        # CPU and memory are required in some cases, retrieve the value to use
+        cpu = task_definition.get("cpu") or ECS_DEFAULT_CPU
+        memory = task_definition.get("memory") or ECS_DEFAULT_MEMORY
+
+        launch_type = configuration.task_run_request.get(
+            "launchType", ECS_DEFAULT_LAUNCH_TYPE
+        )
+
+        if launch_type == "FARGATE" or launch_type == "FARGATE_SPOT":
+            # Task level memory and cpu are required when using fargate
+            task_definition["cpu"] = str(cpu)
+            task_definition["memory"] = str(memory)
+
+            # The FARGATE compatibility is required if it will be used as as launch type
+            requires_compatibilities = task_definition.setdefault(
+                "requiresCompatibilities", []
+            )
+            if "FARGATE" not in requires_compatibilities:
+                task_definition["requiresCompatibilities"].append("FARGATE")
+
+            # Only the 'awsvpc' network mode is supported when using FARGATE
+            # However, we will not enforce that here if the user has set it
+            network_mode = task_definition.setdefault("networkMode", "awsvpc")
+
+            if network_mode != "awsvpc":
+                warnings.warn(
+                    f"Found network mode {network_mode!r} which is not compatible with "
+                    f"launch type {launch_type!r}. Use either the 'EC2' launch "
+                    "type or the 'awsvpc' network mode."
+                )
+
+        elif launch_type == "EC2":
+            # Container level memory and cpu are required when using ec2
+            container.setdefault("cpu", int(cpu))
+            container.setdefault("memory", int(memory))
+
+        if configuration.configure_cloudwatch_logs and not task_definition.get(
+            "executionRoleArn"
+        ):
+            raise ValueError(
+                "An execution role arn must be set on the task definition to use "
+                "`configure_cloudwatch_logs` or `stream_logs` but no execution role "
+                "was found on the task definition."
+            )
+
+        return task_definition
+
+    def _load_vpc_network_config(
+        self, vpc_id: Optional[str], boto_session: boto3.Session
+    ) -> dict:
+        """
+        Load settings from a specific VPC or the default VPC and generate a task
+        run request's network configuration.
+        """
+        ec2_client = boto_session.client("ec2")
+        vpc_message = "the default VPC" if not vpc_id else f"VPC with ID {vpc_id}"
+
+        if not vpc_id:
+            # Retrieve the default VPC
+            describe = {"Filters": [{"Name": "isDefault", "Values": ["true"]}]}
+        else:
+            describe = {"VpcIds": [vpc_id]}
+
+        vpcs = ec2_client.describe_vpcs(**describe)["Vpcs"]
+        if not vpcs:
+            help_message = (
+                "Pass an explicit `vpc_id` or configure a default VPC."
+                if not vpc_id
+                else "Check that the VPC exists in the current region."
+            )
+            raise ValueError(
+                f"Failed to find {vpc_message}. "
+                "Network configuration cannot be inferred. " + help_message
+            )
+
+        vpc_id = vpcs[0]["VpcId"]
+        subnets = ec2_client.describe_subnets(
+            Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
+        )["Subnets"]
+        if not subnets:
+            raise ValueError(
+                f"Failed to find subnets for {vpc_message}. "
+                "Network configuration cannot be inferred."
+            )
+
+        return {
+            "awsvpcConfiguration": {
+                "subnets": [s["SubnetId"] for s in subnets],
+                "assignPublicIp": "ENABLED",
+                "securityGroups": [],
+            }
+        }
+
+    def _prepare_task_run_request(
+        self,
+        boto_session: boto3.Session,
+        configuration: ECSJobConfiguration,
+        task_definition: dict,
+        task_definition_arn: str,
+    ) -> dict:
+        """
+        Prepare a task run request payload.
+        """
+        task_run_request = deepcopy(configuration.task_run_request)
+
+        task_run_request.setdefault("taskDefinition", task_definition_arn)
+        assert task_run_request["taskDefinition"] == task_definition_arn
+
+        # Clean up templated variable formatting
+
+        for container in task_run_request.get("overrides", {}).get(
+            "containerOverrides", []
+        ):
+            if isinstance(container.get("command"), str):
+                container["command"] = shlex.split(container["command"])
+            if isinstance(container.get("environment"), dict):
+                container["environment"] = [
+                    {"name": k, "value": v} for k, v in container["environment"].items()
+                ]
+
+        if isinstance(task_run_request.get("tags"), dict):
+            task_run_request["tags"] = [
+                {"name": k, "value": v} for k, v in task_run_request["tags"].items()
+            ]
+
+        if task_definition.get("networkMode") == "awsvpc" and not task_run_request.get(
+            "networkConfiguration"
+        ):
+            task_run_request["networkConfiguration"] = self._load_vpc_network_config(
+                configuration.vpc_id, boto_session
+            )
+
+        return task_run_request
+
+    def _create_task_run(self, ecs_client: _ECSClient, task_run_request: dict) -> str:
         """
         Create a run of a task definition.
 
