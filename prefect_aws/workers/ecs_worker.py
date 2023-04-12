@@ -88,7 +88,11 @@ class ECSVariables(BaseVariables):
     aws_credentials: AwsCredentials = Field(
         title="AWS Credentials",
         default_factory=AwsCredentials,
-        description="The AWS credentials to use to connect to ECS. If not provided, credentials will be inferred from the local environment following AWS's boto client's rules.",
+        description=(
+            "The AWS credentials to use to connect to ECS. If not provided, credentials"
+            " will be inferred from the local environment following AWS's boto client's"
+            " rules."
+        ),
     )
 
     family: Optional[str] = Field(
