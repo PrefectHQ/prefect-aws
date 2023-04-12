@@ -9,7 +9,7 @@ mkdocs-gen-files
 mkdocs-material
 mkdocstrings-python-legacy
 mock; python_version < '3.8'
-moto >= 3.1.16, <= 4.0.6  # https://github.com/PrefectHQ/prefect-aws/issues/130
+moto >= 3.1.16, <= 4.1.7  # https://github.com/PrefectHQ/prefect-aws/issues/130
 mypy
 pillow
 pre-commit
