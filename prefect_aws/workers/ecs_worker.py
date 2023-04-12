@@ -74,12 +74,67 @@ def _default_task_run_request_template() -> dict:
 
 class ECSJobConfiguration(BaseJobConfiguration):
     aws_credentials: Optional[AwsCredentials] = Field(default=None)
-    task_definition: dict = Field(template=_default_task_definition_template())
-    task_run_request: dict = Field(template=_default_task_run_request_template())
+    task_definition: Dict[str, Any] = Field(
+        template=_default_task_definition_template()
+    )
+    task_run_request: Dict[str, Any] = Field(
+        template=_default_task_run_request_template()
+    )
 
 
 class ECSVariables(BaseVariables):
     task_definition_arn: Optional[str] = Field(default=None)
+
+    aws_credentials: AwsCredentials = Field(
+        title="AWS Credentials",
+        default_factory=AwsCredentials,
+        description="The AWS credentials to use to connect to ECS. If not provided, credentials will be inferred from the local environment following AWS's boto client's rules.",
+    )
+
+    family: Optional[str] = Field(
+        default=None,
+        description=(
+            "A family for the task definition. If not provided, it will be inferred "
+            "from the task definition. If the task definition does not have a family, "
+            "the name will be generated. When flow and deployment metadata is "
+            "available, the generated name will include their names. Values for this "
+            "field will be slugified to match AWS character requirements."
+        ),
+    )
+    image: Optional[str] = Field(
+        default=None,
+        description=(
+            "The image to use for the Prefect container in the task. If this value is "
+            "not null, it will override the value in the task definition. This value "
+            "defaults to a Prefect base image matching your local versions."
+        ),
+    )
+    cpu: int = Field(
+        title="CPU",
+        default=None,
+        description=(
+            "The amount of CPU to provide to the ECS task. Valid amounts are "
+            "specified in the AWS documentation. If not provided, a default value of "
+            f"{ECS_DEFAULT_CPU} will be used unless present on the task definition."
+        ),
+    )
+    memory: int = Field(
+        default=None,
+        description=(
+            "The amount of memory to provide to the ECS task. Valid amounts are "
+            "specified in the AWS documentation. If not provided, a default value of "
+            f"{ECS_DEFAULT_MEMORY} will be used unless present on the task definition."
+        ),
+    )
+    container_name: str = Field(
+        default=None,
+        description=(
+            "The name of the container flow run orchestration will occur in. If not "
+            f"specified, a default value of {ECS_DEFAULT_CONTAINER_NAME} will be used "
+            "and if that is not found in the task definition the first container will "
+            "be used."
+        ),
+    )
 
 
 class ECSWorkerResult(BaseWorkerResult):

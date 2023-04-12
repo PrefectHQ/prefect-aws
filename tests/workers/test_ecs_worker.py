@@ -8,9 +8,10 @@ from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.server.schemas.core import FlowRun
 
-from prefect_aws.workers.ecs import (
+from prefect_aws.workers.ecs_worker import (
     ECS_DEFAULT_CONTAINER_NAME,
     ECSJobConfiguration,
+    ECSVariables,
     ECSWorker,
     _default_task_definition_template,
     _default_task_run_request_template,
@@ -193,12 +194,16 @@ def ecs_mocks(aws_credentials):
 
 
 async def construct_configuration(**options):
-    options.setdefault("task_definition", _default_task_definition_template())
-    options.setdefault("task_run_request", _default_task_run_request_template())
-    return await ECSJobConfiguration.from_template_and_values(
+    extras = {
+        "task_definition": _default_task_definition_template(),
+        "task_run_request": _default_task_run_request_template(),
+    }
+    configuration = await ECSJobConfiguration.from_template_and_values(
         base_job_template=ECSWorker.get_default_base_job_template(),
-        values=options,
+        values={**extras, **ECSVariables(**options).dict()},
     )
+    print(f"Constructed test configuration:{configuration.json(indent=2)}")
+    return configuration
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -211,4 +216,4 @@ async def test_container_command(aws_credentials, flow_run):
     ecs_client = session.client("ecs")
 
     async with ECSWorker(work_pool_name="test") as worker:
-        await worker.run(flow_run, configuration)
+        result = await worker.run(flow_run, configuration)
