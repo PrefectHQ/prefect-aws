@@ -11,8 +11,15 @@ def flow_run():
     return FlowRun(flow_id=uuid4())
 
 
+async def construct_configuration(**options):
+    return await ECSJobConfiguration.from_template_and_values(
+        base_job_template=ECSWorker.get_default_base_job_template(),
+        values=options,
+    )
+
+
 async def test_container_command(aws_credentials, flow_run):
-    configuration = ECSJobConfiguration(
+    configuration = await construct_configuration(
         aws_credentials=aws_credentials, command="prefect version"
     )
 

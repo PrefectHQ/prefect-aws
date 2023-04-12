@@ -6,11 +6,7 @@ import boto3
 import yaml
 from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
-from prefect.workers.base import (
-    BaseJobConfiguration,
-    BaseWorker,
-    BaseWorkerResult,
-)
+from prefect.workers.base import BaseJobConfiguration, BaseWorker, BaseWorkerResult
 from pydantic import Field
 
 from prefect_aws import AwsCredentials
@@ -74,7 +70,7 @@ class ECSWorker(BaseWorker):
         Runs a given flow run on the current worker.
         """
         session, ecs_client = await run_sync_in_worker_thread(
-            self._get_session_and_client
+            self._get_session_and_client, configuration
         )
 
         task_definition_arn = self._register_task_definition(
@@ -87,11 +83,14 @@ class ECSWorker(BaseWorker):
         task_run = self._run_task(ecs_client, configuration.task_run_request)
         return ECSWorkerResult(identifier=task_run)
 
-    def _get_session_and_client(self) -> Tuple[boto3.Session, _ECSClient]:
+    def _get_session_and_client(
+        self,
+        configuration: ECSJobConfiguration,
+    ) -> Tuple[boto3.Session, _ECSClient]:
         """
         Retrieve a boto3 session and ECS client
         """
-        boto_session = self.aws_credentials.get_boto3_session()
+        boto_session = configuration.aws_credentials.get_boto3_session()
         ecs_client = boto_session.client("ecs")
         return boto_session, ecs_client
 
