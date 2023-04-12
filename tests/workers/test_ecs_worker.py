@@ -211,13 +211,13 @@ async def construct_configuration(**options):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_container_command(aws_credentials, flow_run):
-    configuration = await construct_configuration(
-        aws_credentials=aws_credentials, command="prefect version"
-    )
+async def test_defaults(aws_credentials, flow_run):
+    configuration = await construct_configuration(aws_credentials=aws_credentials)
 
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
 
     async with ECSWorker(work_pool_name="test") as worker:
         result = await worker.run(flow_run, configuration)
+
+    ...
