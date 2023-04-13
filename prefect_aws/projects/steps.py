@@ -168,7 +168,7 @@ def pull_project_from_s3(
                 # object is a folder and will be created if it contains any objects
                 continue
 
-            target = PurePosixPath(local_path / Path(remote_key).relative_to(folder))
+            target = PurePosixPath(local_path / relative_path_to_current_platform(remote_key).relative_to(folder))
             Path.mkdir(Path(target.parent), parents=True, exist_ok=True)
             s3.download_file(bucket, remote_key, str(target))
 
