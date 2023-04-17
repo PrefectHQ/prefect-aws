@@ -50,10 +50,12 @@ containerDefinitions:
 cpu: "{{ cpu }}"
 family: "{{ family }}"
 memory: "{{ memory }}"
+executionRoleArn: "{{ execution_role_arn }}"
 """
 
 DEFAULT_TASK_RUN_REQUEST_TEMPLATE = """
 launchType: "{{ launch_type }}"
+cluster: "{{ cluster }}"
 overrides:
   containerOverrides:
     - name: "{{ container_name }}"
@@ -63,6 +65,7 @@ overrides:
       memory: "{{ memory }}"
   cpu: "{{ cpu }}"
   memory: "{{ memory }}"
+  taskRoleArn: "{{ task_role_arn }}"
 tags: "{{ labels }}"
 taskDefinition: "{{ task_definition_arn }}"
 """
@@ -321,6 +324,24 @@ class ECSVariables(BaseVariables):
             f"specified, a default value of {ECS_DEFAULT_CONTAINER_NAME} will be used "
             "and if that is not found in the task definition the first container will "
             "be used."
+        ),
+    )
+    task_role_arn: str = Field(
+        title="Task Role ARN",
+        default=None,
+        description=(
+            "A role to attach to the task run. This controls the permissions of the "
+            "task while it is running."
+        ),
+    )
+    execution_role_arn: str = Field(
+        title="Execution Role ARN",
+        default=None,
+        description=(
+            "An execution role to use for the task. This controls the permissions of "
+            "the task when it is launching. If this value is not null, it will "
+            "override the value in the task definition. An execution role must be "
+            "provided to capture logs from the container."
         ),
     )
 

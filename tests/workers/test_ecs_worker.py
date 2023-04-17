@@ -18,8 +18,6 @@ from prefect_aws.workers.ecs_worker import (
     ECSJobConfiguration,
     ECSVariables,
     ECSWorker,
-    _default_task_definition_template,
-    _default_task_run_request_template,
     _get_container,
     parse_identifier,
 )
@@ -517,7 +515,87 @@ async def test_labels(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_container_command_from_task_definition(
+@pytest.mark.parametrize("default_cluster", [True, False])
+async def test_cluster(
+    aws_credentials: AwsCredentials, flow_run: FlowRun, default_cluster: bool
+):
+    configuration = configuration = await construct_configuration(
+        cluster=None if default_cluster else "second-cluster",
+        aws_credentials=aws_credentials,
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    # Construct a non-default cluster. We build this in either case since otherwise
+    # there is only one cluster and there's no choice but to use the default.
+    second_cluster_arn = create_test_ecs_cluster(ecs_client, "second-cluster")
+    add_ec2_instance_to_ecs_cluster(session, "second-cluster")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+
+    if default_cluster:
+        assert task["clusterArn"].endswith("default")
+    else:
+        assert task["clusterArn"] == second_cluster_arn
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_execution_role_arn(
+    aws_credentials: AwsCredentials,
+    flow_run: FlowRun,
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        execution_role_arn="test",
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    assert task_definition["executionRoleArn"] == "test"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_task_role_arn(
+    aws_credentials: AwsCredentials,
+    flow_run: FlowRun,
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        task_role_arn="test",
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+    task = describe_task(ecs_client, task_arn)
+
+    assert task["overrides"]["taskRoleArn"] == "test"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_user_defined_container_command_in_task_definition_template(
     aws_credentials: AwsCredentials,
     flow_run: FlowRun,
 ):
