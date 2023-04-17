@@ -20,7 +20,6 @@ from pydantic import ValidationError
 from prefect_aws.ecs import (
     ECS_DEFAULT_CPU,
     ECS_DEFAULT_MEMORY,
-    PREFECT_ECS_CONTAINER_NAME,
     ECSTask,
     get_container,
     get_prefect_container,
@@ -57,16 +56,6 @@ def inject_moto_patches(moto_mock, patches: Dict[str, List[Callable]]):
                 setattr(
                     backend, attr, partial(injected_call, original_method, attr_patches)
                 )
-
-
-def patch_describe_tasks_add_prefect_container(describe_tasks, *args, **kwargs):
-    """
-    Adds the minimal prefect container to moto's task description.
-    """
-    result = describe_tasks(*args, **kwargs)
-    for task in result:
-        task.containers = [{"name": PREFECT_ECS_CONTAINER_NAME}]
-    return result
 
 
 def patch_run_task(mock, run_task, *args, **kwargs):
@@ -241,8 +230,6 @@ def ecs_mocks(aws_credentials):
                 inject_moto_patches(
                     ecs,
                     {
-                        # Add a container when describing any task
-                        "describe_tasks": [patch_describe_tasks_add_prefect_container],
                         # Fix moto internal resource requirement calculations
                         "_calculate_task_resource_requirements": [
                             patch_calculate_task_resource_requirements

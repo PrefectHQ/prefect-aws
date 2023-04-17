@@ -1422,6 +1422,7 @@ class ECSTask(Infrastructure):
             "awsvpcConfiguration": {
                 "subnets": [s["SubnetId"] for s in subnets],
                 "assignPublicIp": "ENABLED",
+                "securityGroups": [],
             }
         }
 
