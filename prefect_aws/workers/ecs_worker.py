@@ -3,10 +3,11 @@ import json
 import shlex
 import warnings
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple
 from uuid import UUID
 
 import anyio
+import anyio.abc
 import boto3
 import yaml
 from prefect.server.schemas.core import FlowRun
@@ -50,17 +51,17 @@ cpu: "{{ cpu }}"
 family: "{{ family }}"
 memory: "{{ memory }}"
 networkMode: awsvpc
-requiresCompatibilities:
-- FARGATE
 """
 
 DEFAULT_TASK_RUN_REQUEST_TEMPLATE = """
-launchType: FARGATE
+launchType: "{{ launch_type }}"
 overrides:
   containerOverrides:
     - name: "{{ container_name }}"
       command: "{{ command }}"      
       environment: "{{ env }}"
+      cpu: "{{ cpu }}"
+      memory: "{{ memory }}"
   cpu: "{{ cpu }}"
   memory: "{{ memory }}"
 tags: "{{ labels }}"
@@ -69,6 +70,11 @@ taskDefinition: "{{ task_definition_arn }}"
 
 
 _TASK_DEFINITION_CACHE: Dict[UUID, str] = {}
+
+
+class ECSIdentifier(NamedTuple):
+    cluster: str
+    task_arn: str
 
 
 def _default_task_definition_template() -> dict:
@@ -88,6 +94,33 @@ def _get_container(containers: List[dict], name: str) -> Optional[dict]:
         if container.get("name") == name:
             return container
     return None
+
+
+def _container_name_from_task_definition(task_definition: dict) -> Optional[str]:
+    # Attempt to infer the container name from the task definition
+    if task_definition:
+        container_definitions = task_definition.get("containerDefinitions", [])
+    else:
+        container_definitions = []
+
+    if _get_container(container_definitions, ECS_DEFAULT_CONTAINER_NAME):
+        # Use the default container name if present
+        return ECS_DEFAULT_CONTAINER_NAME
+    elif container_definitions:
+        # Otherwise, if there's at least one container definition try to get the
+        # name from that
+        return container_definitions[0].get("name")
+
+    return None
+
+
+def parse_identifier(identifier: str) -> ECSIdentifier:
+    """
+    Splits identifier into its cluster and task components, e.g.
+    input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").
+    """
+    cluster, task = identifier.split("::", maxsplit=1)
+    return ECSIdentifier(cluster, task)
 
 
 class ECSJobConfiguration(BaseJobConfiguration):
@@ -139,7 +172,8 @@ class ECSJobConfiguration(BaseJobConfiguration):
         ),
     )
     cloudwatch_logs_options: dict = Field(default_factory=dict)
-    container_name: Optional[str] = Field(template="{{ container_name }}")
+    container_name: Optional[str] = Field(default=None, template="{{ container_name }}")
+    cluster: Optional[str] = Field(default=None, template="{{ cluster }}")
 
     @root_validator
     def task_run_request_requires_arn_if_no_task_definition_given(cls, values):
@@ -154,21 +188,9 @@ class ECSJobConfiguration(BaseJobConfiguration):
     @root_validator
     def container_name_default_from_task_definition(cls, values):
         if values.get("container_name") is None:
-            # Attempt to infer the container name from the task definition
-            if values.get("task_definition"):
-                container_definitions = values.get("task_definition").get(
-                    "containerDefinitions", []
-                )
-            else:
-                container_definitions = []
-
-            if _get_container(container_definitions, ECS_DEFAULT_CONTAINER_NAME):
-                # Use the default container name if present
-                values["container_name"] = ECS_DEFAULT_CONTAINER_NAME
-            elif container_definitions:
-                # Otherwise, if there's at least one container definition try to get the
-                # name from that
-                values["container_name"] = container_definitions[0].get("name")
+            values["container_name"] = _container_name_from_task_definition(
+                values.get("task_definition")
+            )
 
             # We may not have a name here still; for example if someone is using a task
             # definition arn. In that case, we'll perform similar logic later to find
@@ -241,7 +263,13 @@ class ECSVariables(BaseVariables):
             " rules."
         ),
     )
-
+    cluster: Optional[str] = Field(
+        default=None,
+        description=(
+            "The ECS cluster to run the task in. The ARN or name may be provided. If "
+            "not provided, the default cluster will be used."
+        ),
+    )
     family: Optional[str] = Field(
         default=None,
         description=(
@@ -250,6 +278,16 @@ class ECSVariables(BaseVariables):
             "the name will be generated. When flow and deployment metadata is "
             "available, the generated name will include their names. Values for this "
             "field will be slugified to match AWS character requirements."
+        ),
+    )
+    launch_type: Optional[
+        Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]
+    ] = Field(
+        default=ECS_DEFAULT_LAUNCH_TYPE,
+        description=(
+            "The type of ECS task run infrastructure that should be used. Note that "
+            "'FARGATE_SPOT' is not a formal ECS launch type, but we will configure the "
+            "proper capacity provider stategy if set here."
         ),
     )
     image: Optional[str] = Field(
@@ -318,13 +356,21 @@ class ECSWorker(BaseWorker):
 
         if cached_task_definition_arn:
             # Read the task definition to see if the cached task definition is valid
-            task_definition = self._retrieve_task_definition(
-                ecs_client, task_definition_arn
-            )
-
-            if not self._task_definitions_equal(task_definition, task_definition):
-                # Cached task definition is not valid
+            try:
+                task_definition = self._retrieve_task_definition(
+                    ecs_client, cached_task_definition_arn
+                )
+            except Exception as exc:
+                print(
+                    f"Failed to retrieve cached task definition {cached_task_definition_arn!r}: {exc!r}"
+                )
+                # Clear from cache
+                _TASK_DEFINITION_CACHE.pop(cached_task_definition_arn, None)
                 cached_task_definition_arn = None
+            else:
+                if not self._task_definitions_equal(task_definition, task_definition):
+                    # Cached task definition is not valid
+                    cached_task_definition_arn = None
 
         if not cached_task_definition_arn:
             print(
@@ -332,6 +378,19 @@ class ECSWorker(BaseWorker):
             )
             task_definition_arn = self._register_task_definition(
                 ecs_client, task_definition
+            )
+        else:
+            task_definition_arn = cached_task_definition_arn
+
+        launch_type = configuration.task_run_request.get(
+            "launchType", ECS_DEFAULT_LAUNCH_TYPE
+        )
+        if (
+            launch_type != "EC2"
+            and "FARGATE" not in task_definition["requiresCompatibilities"]
+        ):
+            raise RuntimeError(
+                f"Task definition does not have 'FARGATE' in 'requiresCompatibilities' and cannot be used with launch type {launch_type!r}"
             )
 
         # Update the cached task definition ARN to avoid re-registering the task
@@ -350,8 +409,29 @@ class ECSWorker(BaseWorker):
         print(
             f"Creating task run with request {json.dumps(task_run_request, indent=2)}"
         )
-        task_run = self._create_task_run(ecs_client, task_run_request)
-        return ECSWorkerResult(identifier=task_run["taskArn"], status_code=0)
+        task = self._create_task_run(ecs_client, task_run_request)
+
+        try:
+            task_arn = task["taskArn"]
+            cluster_arn = task["clusterArn"]
+        except Exception as exc:
+            # self._report_task_run_creation_failure(task_run_request, exc)
+            raise
+
+        # The task identifier is "{cluster}::{task}" where we use the configured cluster
+        # if set to preserve matching by name rather than arn
+        # Note "::" is used despite the Prefect standard being ":" because ARNs contain
+        # single colons.
+        identifier = (
+            (configuration.cluster if configuration.cluster else cluster_arn)
+            + "::"
+            + task_arn
+        )
+
+        if task_status:
+            task_status.started(identifier)
+
+        return ECSWorkerResult(identifier=identifier, status_code=0)
 
     def _get_session_and_client(
         self,
@@ -381,9 +461,7 @@ class ECSWorker(BaseWorker):
         """
         Retrieve an existing task definition from AWS.
         """
-        self.logger.info(
-            f"{self._log_prefix}: Retrieving task definition {task_definition_arn!r}..."
-        )
+        print(f"Retrieving task definition {task_definition_arn!r}...")
         response = ecs_client.describe_task_definition(
             taskDefinition=task_definition_arn
         )
@@ -401,11 +479,18 @@ class ECSWorker(BaseWorker):
 
         # Configure the Prefect runtime container
         task_definition.setdefault("containerDefinitions", [])
+        container_name = configuration.container_name
+        if not container_name:
+            container_name = (
+                _container_name_from_task_definition(task_definition)
+                or ECS_DEFAULT_CONTAINER_NAME
+            )
+
         container = _get_container(
-            task_definition["containerDefinitions"], configuration.container_name
+            task_definition["containerDefinitions"], container_name
         )
         if container is None:
-            container = {"name": configuration.container_name}
+            container = {"name": container_name}
             task_definition["containerDefinitions"].append(container)
 
         # Remove any keys that have been explicitly "unset"
@@ -466,8 +551,18 @@ class ECSWorker(BaseWorker):
 
         elif launch_type == "EC2":
             # Container level memory and cpu are required when using ec2
-            container.setdefault("cpu", int(cpu))
-            container.setdefault("memory", int(memory))
+            container.setdefault("cpu", cpu)
+            container.setdefault("memory", memory)
+
+            # Ensure set values are cast to integers
+            container["cpu"] = int(container["cpu"])
+            container["memory"] = int(container["memory"])
+
+        # Ensure set values are cast to strings
+        if task_definition.get("cpu"):
+            task_definition["cpu"] = str(task_definition["cpu"])
+        if task_definition.get("memory"):
+            task_definition["memory"] = str(task_definition["memory"])
 
         if configuration.configure_cloudwatch_logs and not task_definition.get(
             "executionRoleArn"
@@ -541,11 +636,32 @@ class ECSWorker(BaseWorker):
         task_run_request.setdefault("taskDefinition", task_definition_arn)
         assert task_run_request["taskDefinition"] == task_definition_arn
 
+        if task_run_request.get("launchType") == "FARGATE_SPOT":
+            # Should not be provided at all for FARGATE SPOT
+            task_run_request.pop("launchType", None)
+
+        overrides = task_run_request.get("overrides", {})
+        container_overrides = overrides.get("containerOverrides", [])
+
+        # Ensure the network configuration is present if using awsvpc for network mode
+
+        if task_definition.get("networkMode") == "awsvpc" and not task_run_request.get(
+            "networkConfiguration"
+        ):
+            task_run_request["networkConfiguration"] = self._load_vpc_network_config(
+                configuration.vpc_id, boto_session
+            )
+
+        # Ensure the container name is set if not provided at template time
+
+        if container_overrides and not container_overrides[0].get("name"):
+            container_overrides[0]["name"] = _container_name_from_task_definition(
+                task_definition
+            )
+
         # Clean up templated variable formatting
 
-        for container in task_run_request.get("overrides", {}).get(
-            "containerOverrides", []
-        ):
+        for container in container_overrides:
             if isinstance(container.get("command"), str):
                 container["command"] = shlex.split(container["command"])
             if isinstance(container.get("environment"), dict):
@@ -558,12 +674,11 @@ class ECSWorker(BaseWorker):
                 {"name": k, "value": v} for k, v in task_run_request["tags"].items()
             ]
 
-        if task_definition.get("networkMode") == "awsvpc" and not task_run_request.get(
-            "networkConfiguration"
-        ):
-            task_run_request["networkConfiguration"] = self._load_vpc_network_config(
-                configuration.vpc_id, boto_session
-            )
+        if overrides.get("cpu"):
+            overrides["cpu"] = str(overrides["cpu"])
+
+        if overrides.get("memory"):
+            overrides["memory"] = str(overrides["memory"])
 
         return task_run_request
 

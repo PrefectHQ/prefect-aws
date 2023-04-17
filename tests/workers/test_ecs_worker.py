@@ -1,26 +1,33 @@
 import json
 from functools import partial
-from typing import Callable, Dict, List
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 from uuid import uuid4
 
+import anyio
 import pytest
 from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.server.schemas.core import FlowRun
+from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
 from prefect_aws.workers.ecs_worker import (
     ECS_DEFAULT_CONTAINER_NAME,
+    ECS_DEFAULT_CPU,
+    ECS_DEFAULT_MEMORY,
+    AwsCredentials,
     ECSJobConfiguration,
     ECSVariables,
     ECSWorker,
     _default_task_definition_template,
     _default_task_run_request_template,
+    _get_container,
+    parse_identifier,
 )
 
 
 @pytest.fixture
 def flow_run():
-    return FlowRun(flow_id=uuid4())
+    return FlowRun(flow_id=uuid4(), deployment_id=uuid4())
 
 
 def inject_moto_patches(moto_mock, patches: Dict[str, List[Callable]]):
@@ -157,6 +164,19 @@ def describe_task(ecs_client, task_arn, **kwargs) -> dict:
     return ecs_client.describe_tasks(tasks=[task_arn], **kwargs)["tasks"][0]
 
 
+async def stop_task(ecs_client, task_arn, **kwargs):
+    """
+    Stop an ECS task.
+
+    Additional keyword arguments are passed to `ECSClient.stop_task`.
+    """
+    task = await run_sync_in_worker_thread(describe_task, ecs_client, task_arn)
+    # Check that the task started successfully
+    assert task["lastStatus"] == "RUNNING", "Task should be RUNNING before stopping"
+    print("Stopping task...")
+    await run_sync_in_worker_thread(ecs_client.stop_task, task=task_arn, **kwargs)
+
+
 def describe_task_definition(ecs_client, task):
     return ecs_client.describe_task_definition(
         taskDefinition=task["taskDefinitionArn"]
@@ -210,14 +230,148 @@ async def construct_configuration(**options):
     return configuration
 
 
+async def run_then_stop_task(
+    worker: ECSWorker,
+    configuration: ECSJobConfiguration,
+    flow_run: FlowRun,
+    after_start: Optional[Callable[[str], Awaitable[Any]]] = None,
+) -> str:
+    """
+    Run an ECS Task then stop it.
+
+    Moto will not advance the state of tasks, so `ECSTask.run` would hang forever if
+    the run is created successfully and not stopped.
+
+    `after_start` can be used to run something after the task starts but before it is
+    stopped. It will be passed the task arn.
+    """
+    session = configuration.aws_credentials.get_boto3_session()
+    result = None
+
+    async def run(task_status):
+        nonlocal result
+        result = await worker.run(flow_run, configuration, task_status=task_status)
+        return
+
+    with anyio.fail_after(20):
+        async with anyio.create_task_group() as tg:
+            identifier = await tg.start(run)
+            cluster, task_arn = parse_identifier(identifier)
+
+            if after_start:
+                await after_start(task_arn)
+
+            # Stop the task after it starts to prevent the test from running forever
+            tg.start_soon(
+                partial(stop_task, session.client("ecs"), task_arn, cluster=cluster)
+            )
+
+    return result
+
+
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_defaults(aws_credentials, flow_run):
+async def test_default(aws_credentials: AwsCredentials, flow_run: FlowRun):
     configuration = await construct_configuration(aws_credentials=aws_credentials)
 
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
 
     async with ECSWorker(work_pool_name="test") as worker:
-        result = await worker.run(flow_run, configuration)
+        result = await run_then_stop_task(worker, configuration, flow_run)
 
-    ...
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+    task = describe_task(ecs_client, task_arn)
+    assert task["lastStatus"] == "STOPPED"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("launch_type", ["EC2", "FARGATE", "FARGATE_SPOT"])
+async def test_launch_types(
+    aws_credentials: AwsCredentials, launch_type: str, flow_run: FlowRun
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, launch_type=launch_type
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    if launch_type != "FARGATE_SPOT":
+        assert launch_type in task_definition["compatibilities"]
+        assert task["launchType"] == launch_type
+    else:
+        assert "FARGATE" in task_definition["compatibilities"]
+        # FARGATE SPOT requires a null launch type
+        assert not task.get("launchType")
+        # Instead, it requires a capacity provider strategy but this is not supported
+        # by moto and is not present on the task even when provided
+        # assert task["capacityProviderStrategy"] == [
+        #     {"capacityProvider": "FARGATE_SPOT", "weight": 1}
+        # ]
+
+    requires_capabilities = task_definition.get("requiresCompatibilities", [])
+    if launch_type != "EC2":
+        assert "FARGATE" in requires_capabilities
+    else:
+        assert not requires_capabilities
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("launch_type", ["EC2", "FARGATE", "FARGATE_SPOT"])
+@pytest.mark.parametrize(
+    "cpu,memory", [(None, None), (1024, None), (None, 2048), (2048, 4096)]
+)
+async def test_cpu_and_memory(
+    aws_credentials: AwsCredentials,
+    launch_type: str,
+    flow_run: FlowRun,
+    cpu: int,
+    memory: int,
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, launch_type=launch_type, cpu=cpu, memory=memory
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    container_definition = _get_container(
+        task_definition["containerDefinitions"], ECS_DEFAULT_CONTAINER_NAME
+    )
+    overrides = task["overrides"]
+    container_overrides = _get_container(
+        overrides["containerOverrides"], ECS_DEFAULT_CONTAINER_NAME
+    )
+
+    if launch_type == "EC2":
+        # EC2 requires CPU and memory to be defined at the container level
+        assert container_definition["cpu"] == cpu or ECS_DEFAULT_CPU
+        assert container_definition["memory"] == memory or ECS_DEFAULT_MEMORY
+    else:
+        # Fargate requires CPU and memory to be defined at the task definition level
+        assert task_definition["cpu"] == str(cpu or ECS_DEFAULT_CPU)
+        assert task_definition["memory"] == str(memory or ECS_DEFAULT_MEMORY)
+
+    # We always provide non-null values as overrides on the task run
+    assert overrides.get("cpu") == (str(cpu) if cpu else None)
+    assert overrides.get("memory") == (str(memory) if memory else None)
+    # And as overrides for the Prefect container
+    assert container_overrides.get("cpu") == cpu
+    assert container_overrides.get("memory") == memory
