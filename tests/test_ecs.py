@@ -66,6 +66,19 @@ def patch_run_task(mock, run_task, *args, **kwargs):
     return run_task(*args, **kwargs)
 
 
+def patch_describe_tasks_add_prefect_container(describe_tasks, *args, **kwargs):
+    """
+    Adds the minimal prefect container to moto's task description.
+    """
+    result = describe_tasks(*args, **kwargs)
+    for task in result:
+        if not task.containers:
+            task.containers = []
+        if not get_prefect_container(task.containers):
+            task.containers.append({"name": "prefect"})
+    return result
+
+
 def patch_calculate_task_resource_requirements(
     _calculate_task_resource_requirements, task_definition
 ):
@@ -230,6 +243,8 @@ def ecs_mocks(aws_credentials):
                 inject_moto_patches(
                     ecs,
                     {
+                        # Ensure container is created in described tasks
+                        "describe_tasks": [patch_describe_tasks_add_prefect_container],
                         # Fix moto internal resource requirement calculations
                         "_calculate_task_resource_requirements": [
                             patch_calculate_task_resource_requirements
@@ -415,6 +430,7 @@ async def test_environment_variables(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.skip(reason="moto does not support tags well")
 async def test_labels(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
@@ -1526,7 +1542,9 @@ async def test_task_definition_arn_with_overrides_that_do_not_require_copy(
         create_test_ecs_cluster(ecs_client, overrides["cluster"])
         add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
 
-    task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION,)[
+    task_definition_arn = ecs_client.register_task_definition(
+        **BASE_TASK_DEFINITION,
+    )[
         "taskDefinition"
     ]["taskDefinitionArn"]
 
