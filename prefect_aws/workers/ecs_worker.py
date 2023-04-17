@@ -50,7 +50,6 @@ containerDefinitions:
 cpu: "{{ cpu }}"
 family: "{{ family }}"
 memory: "{{ memory }}"
-networkMode: awsvpc
 """
 
 DEFAULT_TASK_RUN_REQUEST_TEMPLATE = """
@@ -671,7 +670,7 @@ class ECSWorker(BaseWorker):
 
         if isinstance(task_run_request.get("tags"), dict):
             task_run_request["tags"] = [
-                {"name": k, "value": v} for k, v in task_run_request["tags"].items()
+                {"key": k, "value": v} for k, v in task_run_request["tags"].items()
             ]
 
         if overrides.get("cpu"):

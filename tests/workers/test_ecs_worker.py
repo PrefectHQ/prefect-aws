@@ -375,3 +375,123 @@ async def test_cpu_and_memory(
     # And as overrides for the Prefect container
     assert container_overrides.get("cpu") == cpu
     assert container_overrides.get("memory") == memory
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("launch_type", ["EC2", "FARGATE", "FARGATE_SPOT"])
+async def test_network_mode_default(
+    aws_credentials: AwsCredentials,
+    launch_type: str,
+    flow_run: FlowRun,
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, launch_type=launch_type
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    if launch_type == "EC2":
+        assert task_definition["networkMode"] == "bridge"
+    else:
+        assert task_definition["networkMode"] == "awsvpc"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("launch_type", ["EC2", "FARGATE", "FARGATE_SPOT"])
+async def test_container_command(
+    aws_credentials: AwsCredentials,
+    launch_type: str,
+    flow_run: FlowRun,
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        launch_type=launch_type,
+        command="prefect version",
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+
+    container_overrides = _get_container(
+        task["overrides"]["containerOverrides"], ECS_DEFAULT_CONTAINER_NAME
+    )
+    assert container_overrides["command"] == ["prefect", "version"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_environment_variables(
+    aws_credentials: AwsCredentials,
+    flow_run: FlowRun,
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        env={"FOO": "BAR"},
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    prefect_container_definition = _get_container(
+        task_definition["containerDefinitions"], ECS_DEFAULT_CONTAINER_NAME
+    )
+    assert not prefect_container_definition[
+        "environment"
+    ], "Variables should not be passed until runtime"
+
+    prefect_container_overrides = _get_container(
+        task["overrides"]["containerOverrides"], ECS_DEFAULT_CONTAINER_NAME
+    )
+    expected = [{"name": "FOO", "value": "BAR"}]
+    assert prefect_container_overrides.get("environment") == expected
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_labels_aka_tags(
+    aws_credentials: AwsCredentials,
+    flow_run: FlowRun,
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        labels={"foo": "bar"},
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    assert not task_definition.get("tags"), "Labels should not be passed until runtime"
+
+    assert task.get("tags") == [{"key": "foo", "value": "bar"}]
