@@ -9,6 +9,7 @@ import anyio
 import pytest
 import yaml
 from moto import mock_ec2, mock_ecs, mock_logs
+from botocore.exceptions import ClientError
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.docker import get_prefect_image_name
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
@@ -1249,7 +1250,8 @@ async def test_bridge_network_mode_warns_on_fargate(aws_credentials, launch_type
             f"{launch_type!r}"
         ),
     ):
-        await run_then_stop_task(task)
+        with pytest.raises(ClientError):
+            await run_then_stop_task(task)
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -1670,6 +1672,7 @@ async def test_disable_public_ip_in_network_config(aws_credentials):
         "awsvpcConfiguration": {
             "subnets": [subnet.id],
             "assignPublicIp": "DISABLED",
+            "securityGroups": [],
         }
     }
 
@@ -1713,6 +1716,7 @@ async def test_custom_subnets_in_the_network_configuration(aws_credentials):
         "awsvpcConfiguration": {
             "subnets": [subnet.id],
             "assignPublicIp": "DISABLED",
+            "securityGroups": [],
         }
     }
 
