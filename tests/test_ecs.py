@@ -935,7 +935,11 @@ async def test_network_config_from_vpc_id(aws_credentials):
 
     # Subnet ids are copied from the vpc
     assert network_configuration == {
-        "awsvpcConfiguration": {"subnets": [subnet.id], "assignPublicIp": "ENABLED"}
+        "awsvpcConfiguration": {
+            "subnets": [subnet.id],
+            "assignPublicIp": "ENABLED",
+            "securityGroups": [],
+        }
     }
 
 
@@ -969,6 +973,7 @@ async def test_network_config_from_default_vpc(aws_credentials):
         "awsvpcConfiguration": {
             "subnets": [subnet["SubnetId"] for subnet in default_subnets],
             "assignPublicIp": "ENABLED",
+            "securityGroups": [],
         }
     }
 
@@ -1606,8 +1611,8 @@ async def test_adding_security_groups_to_network_config(aws_credentials):
     assert network_configuration == {
         "awsvpcConfiguration": {
             "subnets": [subnet.id],
-            "securityGroups": [security_group_id],
             "assignPublicIp": "ENABLED",
+            "securityGroups": [security_group_id],
         }
     }
 

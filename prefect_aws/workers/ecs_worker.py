@@ -163,15 +163,8 @@ class ECSJobConfiguration(BaseJobConfiguration):
     )
 
     vpc_id: Optional[str] = Field(
-        title="VPC ID",
         default=None,
-        description=(
-            "The AWS VPC to link the task run to. This is only applicable when using "
-            "the 'awsvpc' network mode for your task. FARGATE tasks require this "
-            "network  mode, but for EC2 tasks the default network mode is 'bridge'. "
-            "If using the 'awsvpc' network mode and this field is null, your default "
-            "VPC will be used. If no default VPC can be found, the task run will fail."
-        ),
+        template="{{ vpc_id }}",
     )
     cloudwatch_logs_options: dict = Field(default_factory=dict)
     container_name: Optional[str] = Field(default=None, template="{{ container_name }}")
@@ -344,6 +337,17 @@ class ECSVariables(BaseVariables):
             "provided to capture logs from the container."
         ),
     )
+    vpc_id: Optional[str] = Field(
+        title="VPC ID",
+        default=None,
+        description=(
+            "The AWS VPC to link the task run to. This is only applicable when using "
+            "the 'awsvpc' network mode for your task. FARGATE tasks require this "
+            "network  mode, but for EC2 tasks the default network mode is 'bridge'. "
+            "If using the 'awsvpc' network mode and this field is null, your default "
+            "VPC will be used. If no default VPC can be found, the task run will fail."
+        ),
+    )
 
 
 class ECSWorkerResult(BaseWorkerResult):
@@ -368,12 +372,12 @@ class ECSWorker(BaseWorker):
             self._get_session_and_client, configuration
         )
 
-        cached_task_definition_arn = _TASK_DEFINITION_CACHE.get(flow_run.deployment_id)
-
-        # TODO: Pull the task definition from the ARN in the task run request if present
         task_definition_arn = configuration.task_run_request.get("taskDefinition")
 
         if not task_definition_arn:
+            cached_task_definition_arn = _TASK_DEFINITION_CACHE.get(
+                flow_run.deployment_id
+            )
             task_definition = self._prepare_task_definition(
                 configuration, region=ecs_client.meta.region_name
             )
@@ -420,6 +424,7 @@ class ECSWorker(BaseWorker):
                     "Ignoring task definition in configuration since task definition ARN is provided on the task run request."
                 )
 
+        # TODO: Move to validate task definition utility
         launch_type = configuration.task_run_request.get(
             "launchType", ECS_DEFAULT_LAUNCH_TYPE
         )
@@ -427,8 +432,27 @@ class ECSWorker(BaseWorker):
             launch_type != "EC2"
             and "FARGATE" not in task_definition["requiresCompatibilities"]
         ):
-            raise RuntimeError(
+            raise ValueError(
                 f"Task definition does not have 'FARGATE' in 'requiresCompatibilities' and cannot be used with launch type {launch_type!r}"
+            )
+
+        if launch_type == "FARGATE" or launch_type == "FARGATE_SPOT":
+            # Only the 'awsvpc' network mode is supported when using FARGATE
+            network_mode = task_definition.get("networkMode")
+            if network_mode != "awsvpc":
+                raise ValueError(
+                    f"Found network mode {network_mode!r} which is not compatible with "
+                    f"launch type {launch_type!r}. Use either the 'EC2' launch "
+                    "type or the 'awsvpc' network mode."
+                )
+
+        if configuration.configure_cloudwatch_logs and not task_definition.get(
+            "executionRoleArn"
+        ):
+            raise ValueError(
+                "An execution role arn must be set on the task definition to use "
+                "`configure_cloudwatch_logs` or `stream_logs` but no execution role "
+                "was found on the task definition."
             )
 
         # Update the cached task definition ARN to avoid re-registering the task
@@ -578,14 +602,7 @@ class ECSWorker(BaseWorker):
 
             # Only the 'awsvpc' network mode is supported when using FARGATE
             # However, we will not enforce that here if the user has set it
-            network_mode = task_definition.setdefault("networkMode", "awsvpc")
-
-            if network_mode != "awsvpc":
-                warnings.warn(
-                    f"Found network mode {network_mode!r} which is not compatible with "
-                    f"launch type {launch_type!r}. Use either the 'EC2' launch "
-                    "type or the 'awsvpc' network mode."
-                )
+            task_definition.setdefault("networkMode", "awsvpc")
 
         elif launch_type == "EC2":
             # Container level memory and cpu are required when using ec2
@@ -601,15 +618,6 @@ class ECSWorker(BaseWorker):
             task_definition["cpu"] = str(task_definition["cpu"])
         if task_definition.get("memory"):
             task_definition["memory"] = str(task_definition["memory"])
-
-        if configuration.configure_cloudwatch_logs and not task_definition.get(
-            "executionRoleArn"
-        ):
-            raise ValueError(
-                "An execution role arn must be set on the task definition to use "
-                "`configure_cloudwatch_logs` or `stream_logs` but no execution role "
-                "was found on the task definition."
-            )
 
         return task_definition
 

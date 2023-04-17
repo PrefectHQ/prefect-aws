@@ -1,6 +1,7 @@
 import json
 from functools import partial
 from typing import Any, Awaitable, Callable, Dict, List, Optional
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import anyio
@@ -43,16 +44,6 @@ def inject_moto_patches(moto_mock, patches: Dict[str, List[Callable]]):
                 setattr(
                     backend, attr, partial(injected_call, original_method, attr_patches)
                 )
-
-
-def patch_describe_tasks_add_prefect_container(describe_tasks, *args, **kwargs):
-    """
-    Adds the minimal prefect container to moto's task description.
-    """
-    result = describe_tasks(*args, **kwargs)
-    for task in result:
-        task.containers = [{"name": ECS_DEFAULT_CONTAINER_NAME}]
-    return result
 
 
 def patch_run_task(mock, run_task, *args, **kwargs):
@@ -184,7 +175,7 @@ def describe_task_definition(ecs_client, task):
 
 
 @pytest.fixture
-def ecs_mocks(aws_credentials):
+def ecs_mocks(aws_credentials: AwsCredentials, flow_run: FlowRun):
     with mock_ecs() as ecs:
         with mock_ec2():
             with mock_logs():
@@ -591,6 +582,171 @@ async def test_task_role_arn(
     task = describe_task(ecs_client, task_arn)
 
     assert task["overrides"]["taskRoleArn"] == "test"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_network_config_from_vpc_id(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ec2_resource = session.resource("ec2")
+    vpc = ec2_resource.create_vpc(CidrBlock="10.0.0.0/16")
+    subnet = ec2_resource.create_subnet(CidrBlock="10.0.2.0/24", VpcId=vpc.id)
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, vpc_id=vpc.id
+    )
+
+    session = aws_credentials.get_boto3_session()
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        # Capture the task run call because moto does not track 'networkConfiguration'
+        original_run_task = worker._create_task_run
+        mock_run_task = MagicMock(side_effect=original_run_task)
+        worker._create_task_run = mock_run_task
+
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    network_configuration = mock_run_task.call_args[0][1].get("networkConfiguration")
+
+    # Subnet ids are copied from the vpc
+    assert network_configuration == {
+        "awsvpcConfiguration": {
+            "subnets": [subnet.id],
+            "assignPublicIp": "ENABLED",
+            "securityGroups": [],
+        }
+    }
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_network_config_from_default_vpc(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ec2_client = session.client("ec2")
+
+    default_vpc_id = ec2_client.describe_vpcs(
+        Filters=[{"Name": "isDefault", "Values": ["true"]}]
+    )["Vpcs"][0]["VpcId"]
+    default_subnets = ec2_client.describe_subnets(
+        Filters=[{"Name": "vpc-id", "Values": [default_vpc_id]}]
+    )["Subnets"]
+
+    configuration = await construct_configuration(aws_credentials=aws_credentials)
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        # Capture the task run call because moto does not track 'networkConfiguration'
+        original_run_task = worker._create_task_run
+        mock_run_task = MagicMock(side_effect=original_run_task)
+        worker._create_task_run = mock_run_task
+
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+
+    network_configuration = mock_run_task.call_args[0][1].get("networkConfiguration")
+
+    # Subnet ids are copied from the vpc
+    assert network_configuration == {
+        "awsvpcConfiguration": {
+            "subnets": [subnet["SubnetId"] for subnet in default_subnets],
+            "assignPublicIp": "ENABLED",
+            "securityGroups": [],
+        }
+    }
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("explicit_network_mode", [True, False])
+async def test_network_config_is_empty_without_awsvpc_network_mode(
+    aws_credentials: AwsCredentials, explicit_network_mode: bool, flow_run: FlowRun
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        # EC2 uses the 'bridge' network mode by default but we want to have test
+        # coverage for when it is set on the task definition
+        task_definition={"networkMode": "bridge"} if explicit_network_mode else None,
+        # FARGATE requires the 'awsvpc' network mode
+        launch_type="EC2",
+    )
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        # Capture the task run call because moto does not track 'networkConfiguration'
+        original_run_task = worker._create_task_run
+        mock_run_task = MagicMock(side_effect=original_run_task)
+        worker._create_task_run = mock_run_task
+
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+
+    network_configuration = mock_run_task.call_args[0][1].get("networkConfiguration")
+    assert network_configuration is None
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_network_config_missing_default_vpc(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ec2_client = session.client("ec2")
+
+    default_vpc_id = ec2_client.describe_vpcs(
+        Filters=[{"Name": "isDefault", "Values": ["true"]}]
+    )["Vpcs"][0]["VpcId"]
+    ec2_client.delete_vpc(VpcId=default_vpc_id)
+
+    configuration = await construct_configuration(aws_credentials=aws_credentials)
+
+    with pytest.raises(ValueError, match="Failed to find the default VPC"):
+        async with ECSWorker(work_pool_name="test") as worker:
+            await run_then_stop_task(worker, configuration, flow_run)
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_network_config_from_vpc_with_no_subnets(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ec2_resource = session.resource("ec2")
+    vpc = ec2_resource.create_vpc(CidrBlock="172.16.0.0/16")
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        vpc_id=vpc.id,
+    )
+
+    with pytest.raises(
+        ValueError, match=f"Failed to find subnets for VPC with ID {vpc.id}"
+    ):
+        async with ECSWorker(work_pool_name="test") as worker:
+            await run_then_stop_task(worker, configuration, flow_run)
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("launch_type", ["FARGATE", "FARGATE_SPOT"])
+async def test_bridge_network_mode_raises_on_fargate(
+    aws_credentials: AwsCredentials,
+    flow_run: FlowRun,
+    launch_type: str,
+):
+    configuration = await construct_configuration_with_job_template(
+        aws_credentials=aws_credentials,
+        launch_type=launch_type,
+        template_overrides=dict(task_definition={"networkMode": "bridge"}),
+    )
+
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Found network mode 'bridge' which is not compatible with launch type "
+            f"{launch_type!r}"
+        ),
+    ):
+        async with ECSWorker(work_pool_name="test") as worker:
+            await run_then_stop_task(worker, configuration, flow_run)
 
 
 @pytest.mark.usefixtures("ecs_mocks")
