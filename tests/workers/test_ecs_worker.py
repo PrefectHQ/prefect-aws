@@ -1,7 +1,7 @@
 import json
 from functools import partial
 from typing import Any, Awaitable, Callable, Dict, List, Optional
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, ANY
 from uuid import uuid4
 
 import anyio
@@ -21,6 +21,7 @@ from prefect_aws.workers.ecs_worker import (
     ECSWorker,
     _get_container,
     parse_identifier,
+    get_prefect_image_name,
 )
 
 
@@ -279,7 +280,59 @@ async def run_then_stop_task(
 
 @pytest.mark.usefixtures("ecs_mocks")
 async def test_default(aws_credentials: AwsCredentials, flow_run: FlowRun):
-    configuration = await construct_configuration(aws_credentials=aws_credentials)
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, command="echo test"
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+    task = describe_task(ecs_client, task_arn)
+
+    assert task == {
+        "attachments": ANY,
+        "clusterArn": ANY,
+        "containers": [],
+        "desiredStatus": "STOPPED",
+        "lastStatus": "STOPPED",
+        "launchType": "FARGATE",
+        "overrides": {
+            "containerOverrides": [
+                {"name": "prefect", "environment": [], "command": ["echo", "test"]}
+            ]
+        },
+        "startedBy": ANY,
+        "tags": [],
+        "taskArn": ANY,
+        "taskDefinitionArn": ANY,
+    }
+
+    task_definition = describe_task_definition(ecs_client, task)
+    assert task_definition["containerDefinitions"] == [
+        {
+            "name": ECS_DEFAULT_CONTAINER_NAME,
+            "image": get_prefect_image_name(),
+            "cpu": 0,
+            "memory": 0,
+            "portMappings": [],
+            "essential": True,
+            "environment": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+        }
+    ]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_image(aws_credentials: AwsCredentials, flow_run: FlowRun):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, image="prefecthq/prefect-dev:main-python3.9"
+    )
 
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
@@ -291,6 +344,21 @@ async def test_default(aws_credentials: AwsCredentials, flow_run: FlowRun):
     _, task_arn = parse_identifier(result.identifier)
     task = describe_task(ecs_client, task_arn)
     assert task["lastStatus"] == "STOPPED"
+
+    task_definition = describe_task_definition(ecs_client, task)
+    assert task_definition["containerDefinitions"] == [
+        {
+            "name": ECS_DEFAULT_CONTAINER_NAME,
+            "image": "prefecthq/prefect-dev:main-python3.9",
+            "cpu": 0,
+            "memory": 0,
+            "portMappings": [],
+            "essential": True,
+            "environment": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+        }
+    ]
 
 
 @pytest.mark.usefixtures("ecs_mocks")

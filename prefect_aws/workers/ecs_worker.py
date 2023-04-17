@@ -18,6 +18,7 @@ from prefect.workers.base import (
     BaseWorker,
     BaseWorkerResult,
 )
+from prefect.docker import get_prefect_image_name
 from pydantic import Field, root_validator
 from slugify import slugify
 
@@ -126,7 +127,7 @@ def parse_identifier(identifier: str) -> ECSIdentifier:
 
 
 class ECSJobConfiguration(BaseJobConfiguration):
-    aws_credentials: Optional[AwsCredentials] = Field(default=None)
+    aws_credentials: Optional[AwsCredentials] = Field(default_factory=AwsCredentials)
     task_definition: Optional[Dict[str, Any]] = Field(
         template=_default_task_definition_template()
     )
@@ -541,6 +542,12 @@ class ECSWorker(BaseWorker):
 
         # Configure the Prefect runtime container
         task_definition.setdefault("containerDefinitions", [])
+
+        # Remove empty container definitions
+        task_definition["containerDefinitions"] = [
+            d for d in task_definition["containerDefinitions"] if d
+        ]
+
         container_name = configuration.container_name
         if not container_name:
             container_name = (
@@ -552,8 +559,22 @@ class ECSWorker(BaseWorker):
             task_definition["containerDefinitions"], container_name
         )
         if container is None:
-            container = {"name": container_name}
-            task_definition["containerDefinitions"].append(container)
+            if container_name != ECS_DEFAULT_CONTAINER_NAME:
+                raise ValueError(
+                    f"Container {container_name!r} not found in task definition."
+                )
+
+            # Look for a container without a name
+            for container in task_definition["containerDefinitions"]:
+                if "name" not in container:
+                    container["name"] = container_name
+                    break
+            else:
+                container = {"name": container_name}
+                task_definition["containerDefinitions"].append(container)
+
+        # Image is required so make sure it's present
+        container.setdefault("image", get_prefect_image_name())
 
         # Remove any keys that have been explicitly "unset"
         unset_keys = {key for key, value in configuration.env.items() if value is None}
@@ -700,10 +721,29 @@ class ECSWorker(BaseWorker):
 
         # Ensure the container name is set if not provided at template time
 
+        container_name = (
+            configuration.container_name
+            or _container_name_from_task_definition(task_definition)
+            or ECS_DEFAULT_CONTAINER_NAME
+        )
+
         if container_overrides and not container_overrides[0].get("name"):
-            container_overrides[0]["name"] = _container_name_from_task_definition(
-                task_definition
+            container_overrides[0]["name"] = container_name
+
+        # Ensure the container has config values post-templating
+        container = _get_container(container_overrides, container_name)
+
+        if container:
+            container.setdefault(
+                "command", configuration.command or "python -m prefect.engine"
             )
+            container.setdefault("environment", configuration.env)
+
+        task_run_request.setdefault("tags", configuration.labels)
+
+        # Remove empty container overrides
+
+        overrides["containerOverrides"] = [v for v in container_overrides if v]
 
         # Clean up templated variable formatting
 
