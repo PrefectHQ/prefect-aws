@@ -332,6 +332,7 @@ class ECSWorkerResult(BaseWorkerResult):
 class ECSWorker(BaseWorker):
     type = "ecs"
     job_configuration = ECSJobConfiguration
+    job_configuration_variables = ECSVariables
 
     async def run(
         self,
