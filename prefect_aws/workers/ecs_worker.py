@@ -349,37 +349,54 @@ class ECSWorker(BaseWorker):
         cached_task_definition_arn = _TASK_DEFINITION_CACHE.get(flow_run.deployment_id)
 
         # TODO: Pull the task definition from the ARN in the task run request if present
-        task_definition = self._prepare_task_definition(
-            configuration, region=ecs_client.meta.region_name
-        )
+        task_definition_arn = configuration.task_run_request.get("taskDefinition")
 
-        if cached_task_definition_arn:
-            # Read the task definition to see if the cached task definition is valid
-            try:
-                task_definition = self._retrieve_task_definition(
-                    ecs_client, cached_task_definition_arn
-                )
-            except Exception as exc:
-                print(
-                    f"Failed to retrieve cached task definition {cached_task_definition_arn!r}: {exc!r}"
-                )
-                # Clear from cache
-                _TASK_DEFINITION_CACHE.pop(cached_task_definition_arn, None)
-                cached_task_definition_arn = None
-            else:
-                if not self._task_definitions_equal(task_definition, task_definition):
-                    # Cached task definition is not valid
+        if not task_definition_arn:
+            task_definition = self._prepare_task_definition(
+                configuration, region=ecs_client.meta.region_name
+            )
+
+            if cached_task_definition_arn:
+                # Read the task definition to see if the cached task definition is valid
+                try:
+                    cached_task_definition = self._retrieve_task_definition(
+                        ecs_client, cached_task_definition_arn
+                    )
+                except Exception as exc:
+                    print(
+                        f"Failed to retrieve cached task definition {cached_task_definition_arn!r}: {exc!r}"
+                    )
+                    # Clear from cache
+                    _TASK_DEFINITION_CACHE.pop(cached_task_definition_arn, None)
                     cached_task_definition_arn = None
+                else:
+                    if not self._task_definitions_equal(
+                        task_definition, cached_task_definition
+                    ):
+                        # Cached task definition is not valid
+                        print(
+                            f"Cached task definition {cached_task_definition_arn!r} does not meet requirements"
+                        )
+                        _TASK_DEFINITION_CACHE.pop(cached_task_definition_arn, None)
+                        cached_task_definition_arn = None
 
-        if not cached_task_definition_arn:
-            print(
-                f"Registering task definition {json.dumps(task_definition, indent=2)}"
-            )
-            task_definition_arn = self._register_task_definition(
-                ecs_client, task_definition
-            )
+            if not cached_task_definition_arn:
+                print(
+                    f"Registering task definition {json.dumps(task_definition, indent=2)}"
+                )
+                task_definition_arn = self._register_task_definition(
+                    ecs_client, task_definition
+                )
+            else:
+                task_definition_arn = cached_task_definition_arn
         else:
-            task_definition_arn = cached_task_definition_arn
+            task_definition = self._retrieve_task_definition(
+                ecs_client, task_definition_arn
+            )
+            if configuration.task_definition:
+                warnings.warn(
+                    "Ignoring task definition in configuration since task definition ARN is provided on the task run request."
+                )
 
         launch_type = configuration.task_run_request.get(
             "launchType", ECS_DEFAULT_LAUNCH_TYPE
