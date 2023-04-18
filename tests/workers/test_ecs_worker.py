@@ -40,7 +40,7 @@ def container_status_code():
 def patch_task_watch_poll_interval(monkeypatch):
     # Patch the poll interval to be way shorter for speed during testing!
     monkeypatch.setattr(
-        ECSJobConfiguration.__fields__["task_watch_poll_interval"], "default", 0.05
+        ECSVariables.__fields__["task_watch_poll_interval"], "default", 0.05
     )
 
 

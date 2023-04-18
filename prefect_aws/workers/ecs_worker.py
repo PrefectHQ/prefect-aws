@@ -140,66 +140,15 @@ class ECSJobConfiguration(BaseJobConfiguration):
     task_run_request: Dict[str, Any] = Field(
         template=_default_task_run_request_template()
     )
-    configure_cloudwatch_logs: bool = Field(
-        default=None,
-        description=(
-            "If `True`, the Prefect container will be configured to send its output "
-            "to the AWS CloudWatch logs service. This functionality requires an "
-            "execution role with logs:CreateLogStream, logs:CreateLogGroup, and "
-            "logs:PutLogEvents permissions. The default for this field is `False` "
-            "unless `stream_output` is set."
-        ),
-    )
-    cloudwatch_logs_options: Dict[str, str] = Field(
-        default_factory=dict,
-        description=(
-            "When `configure_cloudwatch_logs` is enabled, this setting may be used to "
-            "pass additional options to the CloudWatch logs configuration or override "
-            "the default options. See the AWS documentation for available options. "
-            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options."  # noqa
-        ),
-    )
-    stream_output: bool = Field(
-        default=None,
-        description=(
-            "If `True`, logs will be streamed from the Prefect container to the local "
-            "console. Unless you have configured AWS CloudWatch logs manually on your "
-            "task definition, this requires the same prerequisites outlined in "
-            "`configure_cloudwatch_logs`."
-        ),
-    )
-    task_start_timeout_seconds: int = Field(
-        default=120,
-        description=(
-            "The amount of time to watch for the start of the ECS task "
-            "before marking it as failed. The task must enter a RUNNING state to be "
-            "considered started."
-        ),
-    )
-    task_watch_poll_interval: float = Field(
-        default=5.0,
-        description=(
-            "The amount of time to wait between AWS API calls while monitoring the "
-            "state of an ECS task."
-        ),
-    )
-    auto_deregister_task_definition: bool = Field(
-        default=True,
-        description=(
-            "If set, any task definitions that are created by this block will be "
-            "deregistered. Existing task definitions linked by ARN will never be "
-            "deregistered. Deregistering a task definition does not remove it from "
-            "your AWS account, instead it will be marked as INACTIVE."
-        ),
-    )
-
-    vpc_id: Optional[str] = Field(
-        default=None,
-        template="{{ vpc_id }}",
-    )
-    cloudwatch_logs_options: dict = Field(default_factory=dict)
-    container_name: Optional[str] = Field(default=None, template="{{ container_name }}")
-    cluster: Optional[str] = Field(default=None, template="{{ cluster }}")
+    configure_cloudwatch_logs: Optional[bool]
+    cloudwatch_logs_options: Dict[str, str]
+    stream_output: Optional[bool]
+    task_start_timeout_seconds: int
+    task_watch_poll_interval: float
+    auto_deregister_task_definition: bool
+    vpc_id: Optional[str]
+    container_name: Optional[str]
+    cluster: Optional[str]
 
     @root_validator
     def task_run_request_requires_arn_if_no_task_definition_given(cls, values):
@@ -383,6 +332,58 @@ class ECSVariables(BaseVariables):
             "network  mode, but for EC2 tasks the default network mode is 'bridge'. "
             "If using the 'awsvpc' network mode and this field is null, your default "
             "VPC will be used. If no default VPC can be found, the task run will fail."
+        ),
+    )
+    configure_cloudwatch_logs: bool = Field(
+        default=None,
+        description=(
+            "If `True`, the Prefect container will be configured to send its output "
+            "to the AWS CloudWatch logs service. This functionality requires an "
+            "execution role with logs:CreateLogStream, logs:CreateLogGroup, and "
+            "logs:PutLogEvents permissions. The default for this field is `False` "
+            "unless `stream_output` is set."
+        ),
+    )
+    cloudwatch_logs_options: Dict[str, str] = Field(
+        default_factory=dict,
+        description=(
+            "When `configure_cloudwatch_logs` is enabled, this setting may be used to "
+            "pass additional options to the CloudWatch logs configuration or override "
+            "the default options. See the AWS documentation for available options. "
+            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options."  # noqa
+        ),
+    )
+    stream_output: bool = Field(
+        default=None,
+        description=(
+            "If `True`, logs will be streamed from the Prefect container to the local "
+            "console. Unless you have configured AWS CloudWatch logs manually on your "
+            "task definition, this requires the same prerequisites outlined in "
+            "`configure_cloudwatch_logs`."
+        ),
+    )
+    task_start_timeout_seconds: int = Field(
+        default=120,
+        description=(
+            "The amount of time to watch for the start of the ECS task "
+            "before marking it as failed. The task must enter a RUNNING state to be "
+            "considered started."
+        ),
+    )
+    task_watch_poll_interval: float = Field(
+        default=5.0,
+        description=(
+            "The amount of time to wait between AWS API calls while monitoring the "
+            "state of an ECS task."
+        ),
+    )
+    auto_deregister_task_definition: bool = Field(
+        default=True,
+        description=(
+            "If set, any task definitions that are created by this block will be "
+            "deregistered. Existing task definitions linked by ARN will never be "
+            "deregistered. Deregistering a task definition does not remove it from "
+            "your AWS account, instead it will be marked as INACTIVE."
         ),
     )
 
