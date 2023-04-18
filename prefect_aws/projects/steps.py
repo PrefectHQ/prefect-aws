@@ -169,7 +169,8 @@ def pull_project_from_s3(
                 continue
 
             target = PurePosixPath(
-                local_path / relative_path_to_current_platform(remote_key).relative_to(folder)
+                local_path
+                / relative_path_to_current_platform(remote_key).relative_to(folder)
             )
             Path.mkdir(Path(target.parent), parents=True, exist_ok=True)
             s3.download_file(bucket, remote_key, str(target))
