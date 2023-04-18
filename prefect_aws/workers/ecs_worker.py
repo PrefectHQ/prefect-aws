@@ -1014,7 +1014,7 @@ class ECSWorker(BaseWorker):
             if timeout is not None and elapsed_time > timeout:
                 raise RuntimeError(
                     f"Timed out after {elapsed_time}s while watching task for status "
-                    "{until_status or 'STOPPED'}"
+                    f"{until_status or 'STOPPED'}"
                 )
             time.sleep(configuration.task_watch_poll_interval)
 
@@ -1155,7 +1155,8 @@ class ECSWorker(BaseWorker):
             )
             raise ValueError(
                 f"Failed to find {vpc_message}. "
-                "Network configuration cannot be inferred. " + help_message
+                "Network configuration cannot be inferred. "
+                + help_message
             )
 
         vpc_id = vpcs[0]["VpcId"]
