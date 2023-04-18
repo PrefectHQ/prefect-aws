@@ -1467,7 +1467,8 @@ async def test_task_definition_arn_with_overrides_that_require_copy(
     assert (
         "Settings require changes to the linked task definition. "
         "A new task definition will be registered. "
-        "Enable DEBUG level logs to see the difference." in caplog.text
+        "Enable DEBUG level logs to see the difference."
+        in caplog.text
     )
 
 
@@ -1499,7 +1500,8 @@ async def test_task_definition_arn_with_overrides_requiring_copy_shows_diff(
 
     assert (
         "Settings require changes to the linked task definition. "
-        "A new task definition will be registered. " in caplog.text
+        "A new task definition will be registered. "
+        in caplog.text
     )
 
     assert "Enable DEBUG level logs to see the difference." not in caplog.text

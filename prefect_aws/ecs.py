@@ -1178,10 +1178,8 @@ class ECSTask(Infrastructure):
                 response = logs_client.get_log_events(**request)
             except Exception:
                 self.logger.error(
-                    (
-                        f"{self._log_prefix}: Failed to read log events with request "
-                        f"{request}"
-                    ),
+                    f"{self._log_prefix}: Failed to read log events with request "
+                    f"{request}",
                     exc_info=True,
                 )
                 return last_log_timestamp
@@ -1405,7 +1403,8 @@ class ECSTask(Infrastructure):
             )
             raise ValueError(
                 f"Failed to find {vpc_message}. "
-                "Network configuration cannot be inferred. " + help_message
+                "Network configuration cannot be inferred. "
+                + help_message
             )
 
         vpc_id = vpcs[0]["VpcId"]
