@@ -8,7 +8,7 @@ import shlex
 import sys
 import time
 from copy import deepcopy
-from typing import Any, Dict, Generator, List, Literal, NamedTuple, Optional, Tuple
+from typing import Any, Dict, Generator, List, NamedTuple, Optional, Tuple
 from uuid import UUID
 
 import anyio
@@ -27,6 +27,7 @@ from prefect.workers.base import (
 )
 from pydantic import Field, root_validator
 from slugify import slugify
+from typing_extensions import Literal
 
 from prefect_aws import AwsCredentials
 
