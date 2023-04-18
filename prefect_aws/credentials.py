@@ -13,7 +13,6 @@ from prefect_aws.client_parameters import AwsClientParameters
 
 
 class ClientType(Enum):
-
     S3 = "s3"
     ECS = "ecs"
     BATCH = "batch"

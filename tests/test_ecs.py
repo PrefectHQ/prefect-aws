@@ -1066,7 +1066,10 @@ async def test_logging_requires_execution_role_arn(aws_credentials):
 async def test_log_options_requires_logging(aws_credentials):
     with pytest.raises(
         ValidationError,
-        match="`configure_cloudwatch_log` must be enabled to use `cloudwatch_logs_options`",  # noqa
+        match=(  # noqa
+            "`configure_cloudwatch_log` must be enabled to use"
+            " `cloudwatch_logs_options`"
+        ),
     ):
         ECSTask(
             aws_credentials=aws_credentials,
@@ -1455,7 +1458,8 @@ async def test_task_definition_arn_with_overrides_that_require_copy(
         "Settings require changes to the linked task definition. "
         "A new task definition will be registered. "
         "Enable DEBUG level logs to see the difference."
-    ) in caplog.text
+        in caplog.text
+    )
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -1487,9 +1491,10 @@ async def test_task_definition_arn_with_overrides_requiring_copy_shows_diff(
     assert (
         "Settings require changes to the linked task definition. "
         "A new task definition will be registered. "
-    ) in caplog.text
+        in caplog.text
+    )
 
-    assert ("Enable DEBUG level logs to see the difference.") not in caplog.text
+    assert "Enable DEBUG level logs to see the difference." not in caplog.text
 
     expected_diff = textwrap.dedent(
         """
