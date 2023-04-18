@@ -900,6 +900,7 @@ async def test_stream_output(
     logs_client = session.client("logs")
 
     configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
         auto_deregister_task_definition=False,
         configure_cloudwatch_logs=True,
         stream_output=True,
@@ -943,7 +944,9 @@ async def test_stream_output(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_cloudwatch_log_options(aws_credentials):
+async def test_cloudwatch_log_options(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
 

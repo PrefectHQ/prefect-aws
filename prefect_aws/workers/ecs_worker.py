@@ -873,9 +873,8 @@ class ECSWorker(BaseWorker):
                         task_arn.rsplit("/")[-1],
                     ]
                 )
-                print(
-                    f"Streaming output from container {container_name!r}...",
-                    file=sys.stderr,
+                self._logger.info(
+                    f"Streaming output from container {container_name!r}..."
                 )
 
         for task in self._watch_task_run(
