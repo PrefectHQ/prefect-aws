@@ -16,7 +16,7 @@ import anyio.abc
 import boto3
 import yaml
 from prefect.docker import get_prefect_image_name
-from prefect.logging.loggers import flow_run_logger, get_logger, PrefectLogAdapter
+from prefect.logging.loggers import get_logger
 from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from prefect.workers.base import (
@@ -588,7 +588,7 @@ class ECSWorker(BaseWorker):
             task_definition_arn,
         )
 
-        logger.info(f"Creating ECS task run...")
+        logger.info("Creating ECS task run...")
         logger.debug(f"Task run request {json.dumps(task_run_request, indent=2)}")
         try:
             task = self._create_task_run(ecs_client, task_run_request)
