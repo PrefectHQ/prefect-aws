@@ -892,6 +892,99 @@ async def test_bridge_network_mode_raises_on_fargate(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_stream_output(
+    aws_credentials: AwsCredentials, flow_run: FlowRun, caplog
+):
+    session = aws_credentials.get_boto3_session()
+    logs_client = session.client("logs")
+
+    configuration = await construct_configuration(
+        auto_deregister_task_definition=False,
+        configure_cloudwatch_logs=True,
+        stream_output=True,
+        execution_role_arn="test",
+        # Override the family so it does not match the container name
+        family="test-family",
+        # Override the prefix so it does not match the container name
+        cloudwatch_logs_options={"awslogs-stream-prefix": "test-prefix"},
+        cluster="default",
+    )
+
+    async def write_fake_log(task_arn):
+        # TODO: moto does not appear to support actually reading these logs
+        #       as they do not appear during `get_log_event` calls
+        # prefix/container-name/task-id
+        stream_name = f"test-prefix/prefect/{task_arn.rsplit('/')[-1]}"
+        logs_client.put_log_events(
+            logGroupName="prefect",
+            logStreamName=stream_name,
+            logEvents=[
+                {"timestamp": i, "message": f"test-message-{i}"} for i in range(100)
+            ],
+        )
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        await run_then_stop_task(
+            worker, configuration, flow_run, after_start=write_fake_log
+        )
+
+    logs_client = session.client("logs")
+    streams = logs_client.describe_log_streams(logGroupName="prefect")["logStreams"]
+
+    assert len(streams) == 1
+
+    # Ensure we did not encounter any logging errors
+    assert "Failed to read log events" not in caplog.text
+
+    # TODO: When moto supports reading logs, fix this
+    # out, err = capsys.readouterr()
+    # assert "test-message-{i}" in err
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_cloudwatch_log_options(aws_credentials):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        configure_cloudwatch_logs=True,
+        execution_role_arn="test",
+        cloudwatch_logs_options={
+            "awslogs-stream-prefix": "override-prefix",
+            "max-buffer-size": "2m",
+        },
+    )
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    for container in task_definition["containerDefinitions"]:
+        if container["name"] == ECS_DEFAULT_CONTAINER_NAME:
+            # Assert that the container has logging configured with user
+            # provided options
+            assert container["logConfiguration"] == {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "prefect",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "override-prefix",
+                    "max-buffer-size": "2m",
+                },
+            }
+        else:
+            # Other containers should not be modifed
+            assert "logConfiguration" not in container
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_user_defined_container_command_in_task_definition_template(
     aws_credentials: AwsCredentials,
     flow_run: FlowRun,

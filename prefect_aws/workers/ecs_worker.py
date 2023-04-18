@@ -141,7 +141,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
         template=_default_task_run_request_template()
     )
     configure_cloudwatch_logs: Optional[bool]
-    cloudwatch_logs_options: Dict[str, str]
+    cloudwatch_logs_options: Dict[str, str] = Field(default_factory=dict)
     stream_output: Optional[bool]
     task_start_timeout_seconds: int
     task_watch_poll_interval: float
@@ -540,6 +540,11 @@ class ECSWorker(BaseWorker):
         # rate limited by AWS
         _TASK_DEFINITION_CACHE[flow_run.deployment_id] = task_definition_arn
 
+        configuration.logger.info(f"Using task definition {task_definition_arn!r}...")
+        configuration.logger.debug(
+            f"Task definition {json.dumps(task_definition, indent=2)}"
+        )
+
         # Prepare the task run request
         task_run_request = self._prepare_task_run_request(
             boto_session,
@@ -720,7 +725,7 @@ class ECSWorker(BaseWorker):
         """
         configuration.logger.info("Registering task definition...")
         configuration.logger.debug(
-            f"Task definition payload {json.dumps(task_definition, indent=2)}"
+            f"Task definition request {json.dumps(task_definition, indent=2)}"
         )
         response = ecs_client.register_task_definition(**task_definition)
         return response["taskDefinition"]["taskDefinitionArn"]
@@ -1180,10 +1185,6 @@ class ECSWorker(BaseWorker):
             if configuration.command:
                 container["command"] = configuration.command
 
-        # Remove empty container overrides
-
-        overrides["containerOverrides"] = [v for v in container_overrides if v]
-
         # Clean up templated variable formatting
 
         for container in container_overrides:
@@ -1207,7 +1208,7 @@ class ECSWorker(BaseWorker):
 
         # Ensure configuration tags and env are respected post-templating
 
-        task_run_request["tags"] = [
+        tags = [
             item
             for item in task_run_request.get("tags", [])
             if item["key"] not in configuration.labels.keys()
@@ -1216,9 +1217,11 @@ class ECSWorker(BaseWorker):
             for k, v in configuration.labels.items()
             if v is not None
         ]
+        if tags:
+            task_run_request["tags"] = tags
 
         if container:
-            container["environment"] = [
+            environment = [
                 item
                 for item in task_run_request.get("environment", [])
                 if item["name"] not in configuration.env.keys()
@@ -1227,6 +1230,12 @@ class ECSWorker(BaseWorker):
                 for k, v in configuration.env.items()
                 if v is not None
             ]
+            if environment:
+                container["environment"] = environment
+
+        # Remove empty container overrides
+
+        overrides["containerOverrides"] = [v for v in container_overrides if v]
 
         return task_run_request
 
