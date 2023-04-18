@@ -153,22 +153,27 @@ def pull_project_from_s3(
     if client_parameters is None:
         client_parameters = {}
     advanced_config = client_parameters.pop("config", {})
-    bucket_resource = (
-        boto3.Session(**credentials)
-        .resource("s3", **client_parameters, config=Config(**advanced_config))
-        .Bucket(bucket)
-    )
+
+    session = boto3.Session(**credentials)
+    s3 = session.client("s3", **client_parameters, config=Config(**advanced_config))
 
     local_path = Path.cwd()
-    for obj in bucket_resource.objects.filter(Prefix=folder):
-        if obj.key[-1] == "/":
-            # object is a folder and will be created if it contains any objects
-            continue
-        target = PurePosixPath(
-            local_path / relative_path_to_current_platform(obj.key).relative_to(folder)
-        )
-        Path.mkdir(Path(target.parent), parents=True, exist_ok=True)
-        bucket_resource.download_file(obj.key, str(target))
+
+    paginator = s3.get_paginator("list_objects_v2")
+    for result in paginator.paginate(Bucket=bucket, Prefix=folder):
+        for obj in result.get("Contents", []):
+            remote_key = obj["Key"]
+
+            if remote_key[-1] == "/":
+                # object is a folder and will be created if it contains any objects
+                continue
+
+            target = PurePosixPath(
+                local_path
+                / relative_path_to_current_platform(remote_key).relative_to(folder)
+            )
+            Path.mkdir(Path(target.parent), parents=True, exist_ok=True)
+            s3.download_file(bucket, remote_key, str(target))
 
     return {
         "bucket": bucket,
