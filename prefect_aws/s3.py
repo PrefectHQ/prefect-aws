@@ -281,7 +281,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         self.bucket_folder = value
 
     def _resolve_path(self, path: str) -> str:
-
         """
         A helper function used in write_path to join `self.basepath` and `path`.
 
@@ -303,7 +302,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         return path
 
     def _get_s3_client(self) -> boto3.client:
-
         """
         Authenticate MinIO credentials or AWS credentials and return an S3 client.
         This is a helper function called by read_path() or write_path().
@@ -416,7 +414,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     @sync_compatible
     async def read_path(self, path: str) -> bytes:
-
         """
         Read specified path from S3 and return contents. Provide the entire
         path to the key in S3.
@@ -449,7 +446,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         return await run_sync_in_worker_thread(self._read_sync, path)
 
     def _read_sync(self, key: str) -> bytes:
-
         """
         Called by read_path(). Creates an S3 client and retrieves the
         contents from  a specified path.
@@ -458,7 +454,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         s3_client = self._get_s3_client()
 
         with io.BytesIO() as stream:
-
             s3_client.download_fileobj(Bucket=self.bucket_name, Key=key, Fileobj=stream)
             stream.seek(0)
             output = stream.read()
@@ -466,7 +461,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     @sync_compatible
     async def write_path(self, path: str, content: bytes) -> str:
-
         """
         Writes to an S3 bucket.
 
@@ -505,7 +499,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         return path
 
     def _write_sync(self, key: str, data: bytes) -> None:
-
         """
         Called by write_path(). Creates an S3 client and uploads a file
         object.
@@ -514,7 +507,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         s3_client = self._get_s3_client()
 
         with io.BytesIO(data) as stream:
-
             s3_client.upload_fileobj(Fileobj=stream, Bucket=self.bucket_name, Key=key)
 
     # NEW BLOCK INTERFACE METHODS BELOW
@@ -715,7 +707,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         )
         self.logger.info(
             f"Downloaded object from bucket {self.bucket_name!r} path {bucket_path!r} "
-            f"to file object."
+            "to file object."
         )
         return to_file_object
 
@@ -885,7 +877,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             **upload_kwargs,
         )
         self.logger.info(
-            f"Uploaded from file object to the bucket "
+            "Uploaded from file object to the bucket "
             f"{self.bucket_name!r} path {bucket_path!r}."
         )
         return bucket_path

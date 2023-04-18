@@ -7,7 +7,6 @@ from prefect_aws.credentials import AwsCredentials, ClientType, MinIOCredentials
 
 
 def test_aws_credentials_get_boto3_session():
-
     """
     Asserts that instantiated AwsCredentials block creates an
     authenticated boto3 session.
@@ -20,7 +19,6 @@ def test_aws_credentials_get_boto3_session():
 
 
 def test_minio_credentials_get_boto3_session():
-
     """
     Asserts that instantiated MinIOCredentials block creates
     an authenticated boto3 session.

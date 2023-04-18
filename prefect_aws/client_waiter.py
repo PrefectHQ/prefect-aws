@@ -70,7 +70,7 @@ async def client_waiter(
     else:
         raise ValueError(
             f"The waiter name, {waiter_name}, is not a valid boto waiter; "
-            f"if using a custom waiter, you must provide a waiter definition"
+            "if using a custom waiter, you must provide a waiter definition"
         )
 
     await run_sync_in_worker_thread(waiter.wait, **waiter_kwargs)
