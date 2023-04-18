@@ -152,6 +152,7 @@ POST_REGISTRATION_FIELDS = [
     "requiresAttributes",
     "registeredAt",
     "registeredBy",
+    "deregisteredAt",
 ]
 
 
