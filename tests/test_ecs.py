@@ -176,7 +176,9 @@ def describe_task(ecs_client, task_arn, **kwargs) -> dict:
     """
     Describe a single ECS task
     """
-    return ecs_client.describe_tasks(tasks=[task_arn], **kwargs)["tasks"][0]
+    return ecs_client.describe_tasks(tasks=[task_arn], include=["TAGS"], **kwargs)[
+        "tasks"
+    ][0]
 
 
 async def stop_task(ecs_client, task_arn, **kwargs):
@@ -431,7 +433,6 @@ async def test_environment_variables(aws_credentials):
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-@pytest.mark.skip(reason="moto does not support tags well")
 async def test_labels(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
@@ -1258,7 +1259,6 @@ async def test_bridge_network_mode_warns_on_fargate(aws_credentials, launch_type
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-@pytest.mark.skip(reason="Not compatible with latest moto")
 async def test_deregister_task_definition(aws_credentials):
     task = ECSTask(
         aws_credentials=aws_credentials,
@@ -1272,9 +1272,8 @@ async def test_deregister_task_definition(aws_credentials):
     task_arn = await run_then_stop_task(task)
 
     task = describe_task(ecs_client, task_arn)
-    with pytest.raises(Exception, match="is not a task_definition"):
-        # Oh no it's gone
-        describe_task_definition(ecs_client, task)
+    task_definition = describe_task_definition(ecs_client, task)
+    assert task_definition["status"] == "INACTIVE"
 
 
 @pytest.mark.usefixtures("ecs_mocks")

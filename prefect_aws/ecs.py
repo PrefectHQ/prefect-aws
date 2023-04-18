@@ -1013,9 +1013,9 @@ class ECSTask(Infrastructure):
         last_status = status = current_status
         t0 = time.time()
         while status != until_status:
-            tasks = ecs_client.describe_tasks(tasks=[task_arn], cluster=cluster_arn)[
-                "tasks"
-            ]
+            tasks = ecs_client.describe_tasks(
+                tasks=[task_arn], cluster=cluster_arn, include=["TAGS"]
+            )["tasks"]
 
             if tasks:
                 task = tasks[0]
