@@ -1014,7 +1014,7 @@ class ECSWorker(BaseWorker):
             if timeout is not None and elapsed_time > timeout:
                 raise RuntimeError(
                     f"Timed out after {elapsed_time}s while watching task for status "
-                    f"{until_status or 'STOPPED'}"
+                    f"{until_status or 'STOPPED'}."
                 )
             time.sleep(configuration.task_watch_poll_interval)
 
@@ -1221,12 +1221,12 @@ class ECSWorker(BaseWorker):
 
         # Ensure configuration command is respected post-templating
 
-        container = _get_container(container_overrides, container_name)
+        orchestration_container = _get_container(container_overrides, container_name)
 
-        if container:
+        if orchestration_container:
             # Override the command if given on the configuration
             if configuration.command:
-                container["command"] = configuration.command
+                orchestration_container["command"] = configuration.command
 
         # Clean up templated variable formatting
 
@@ -1263,10 +1263,10 @@ class ECSWorker(BaseWorker):
         if tags:
             task_run_request["tags"] = tags
 
-        if container:
+        if orchestration_container:
             environment = [
                 item
-                for item in task_run_request.get("environment", [])
+                for item in orchestration_container.get("environment", [])
                 if item["name"] not in configuration.env.keys()
             ] + [
                 {"name": k, "value": v}
@@ -1274,7 +1274,7 @@ class ECSWorker(BaseWorker):
                 if v is not None
             ]
             if environment:
-                container["environment"] = environment
+                orchestration_container["environment"] = environment
 
         # Remove empty container overrides
 
