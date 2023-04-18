@@ -1,7 +1,7 @@
 import json
 from functools import partial
 from typing import Any, Awaitable, Callable, Dict, List, Optional
-from unittest.mock import MagicMock, ANY
+from unittest.mock import ANY, MagicMock
 from uuid import uuid4
 
 import anyio
@@ -14,15 +14,14 @@ from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from prefect_aws.workers.ecs_worker import (
     ECS_DEFAULT_CONTAINER_NAME,
     ECS_DEFAULT_CPU,
-    ECS_DEFAULT_COMMAND,
     ECS_DEFAULT_MEMORY,
     AwsCredentials,
     ECSJobConfiguration,
     ECSVariables,
     ECSWorker,
     _get_container,
-    parse_identifier,
     get_prefect_image_name,
+    parse_identifier,
 )
 
 
@@ -300,7 +299,8 @@ async def construct_configuration_with_job_template(
         base_template["job_configuration"][key] = template_overrides[key]
 
     print(
-        f"Using base template configuration: {json.dumps(base_template['job_configuration'], indent=2)}"
+        "Using base template configuration:"
+        f" {json.dumps(base_template['job_configuration'], indent=2)}"
     )
 
     configuration = await ECSJobConfiguration.from_template_and_values(

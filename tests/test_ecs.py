@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 import anyio
 import pytest
 import yaml
-from moto import mock_ec2, mock_ecs, mock_logs
 from botocore.exceptions import ClientError
+from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.docker import get_prefect_image_name
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
@@ -1075,7 +1075,10 @@ async def test_logging_requires_execution_role_arn(aws_credentials):
 async def test_log_options_requires_logging(aws_credentials):
     with pytest.raises(
         ValidationError,
-        match="`configure_cloudwatch_log` must be enabled to use `cloudwatch_logs_options`",  # noqa
+        match=(  # noqa
+            "`configure_cloudwatch_log` must be enabled to use"
+            " `cloudwatch_logs_options`"
+        ),
     ):
         ECSTask(
             aws_credentials=aws_credentials,
@@ -1464,8 +1467,8 @@ async def test_task_definition_arn_with_overrides_that_require_copy(
     assert (
         "Settings require changes to the linked task definition. "
         "A new task definition will be registered. "
-        "Enable DEBUG level logs to see the difference."
-    ) in caplog.text
+        "Enable DEBUG level logs to see the difference." in caplog.text
+    )
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -1496,10 +1499,10 @@ async def test_task_definition_arn_with_overrides_requiring_copy_shows_diff(
 
     assert (
         "Settings require changes to the linked task definition. "
-        "A new task definition will be registered. "
-    ) in caplog.text
+        "A new task definition will be registered. " in caplog.text
+    )
 
-    assert ("Enable DEBUG level logs to see the difference.") not in caplog.text
+    assert "Enable DEBUG level logs to see the difference." not in caplog.text
 
     expected_diff = textwrap.dedent(
         """
@@ -1544,9 +1547,7 @@ async def test_task_definition_arn_with_overrides_that_do_not_require_copy(
         create_test_ecs_cluster(ecs_client, overrides["cluster"])
         add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
 
-    task_definition_arn = ecs_client.register_task_definition(
-        **BASE_TASK_DEFINITION,
-    )[
+    task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION,)[
         "taskDefinition"
     ]["taskDefinitionArn"]
 

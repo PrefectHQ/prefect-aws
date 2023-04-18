@@ -85,8 +85,10 @@ class AwsClientParameters(BaseModel):
         # so the UI looks nicer
         if verify is not None and not isinstance(verify, bool):
             warnings.warn(
-                "verify should be a boolean. "
-                "If you want to use a CA cert bundle, use verify_cert_path instead.",
+                (
+                    "verify should be a boolean. "
+                    "If you want to use a CA cert bundle, use verify_cert_path instead."
+                ),
                 DeprecationWarning,
             )
         return values

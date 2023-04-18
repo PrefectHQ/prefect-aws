@@ -94,7 +94,7 @@ def insert_blocks_catalog(generated_file):
         generated_file.write(
             f"For additional examples, check out the [{module_title} Module]"
             f"(../examples_catalog/#{module_nesting[-1]}-module) "
-            f"under Examples Catalog.\n"
+            "under Examples Catalog.\n"
         )
 
 

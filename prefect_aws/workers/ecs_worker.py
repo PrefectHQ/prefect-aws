@@ -1,18 +1,22 @@
+"""
+Prefect worker for executing flow runs as ECS tasks.
+"""
 import copy
 import json
-import shlex
 import logging
-import warnings
+import shlex
 import sys
-from copy import deepcopy
 import time
-from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Generator
+from copy import deepcopy
+from typing import Any, Dict, Generator, List, Literal, NamedTuple, Optional, Tuple
 from uuid import UUID
 
 import anyio
 import anyio.abc
 import boto3
 import yaml
+from prefect.docker import get_prefect_image_name
+from prefect.logging.loggers import flow_run_logger, get_logger, PrefectLogAdapter
 from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from prefect.workers.base import (
@@ -21,8 +25,6 @@ from prefect.workers.base import (
     BaseWorker,
     BaseWorkerResult,
 )
-from prefect.logging import get_logger
-from prefect.docker import get_prefect_image_name
 from pydantic import Field, root_validator
 from slugify import slugify
 
@@ -65,7 +67,7 @@ cluster: "{{ cluster }}"
 overrides:
   containerOverrides:
     - name: "{{ container_name }}"
-      command: "{{ command }}"      
+      command: "{{ command }}"
       environment: "{{ env }}"
       cpu: "{{ cpu }}"
       memory: "{{ memory }}"
@@ -78,19 +80,28 @@ taskDefinition: "{{ task_definition_arn }}"
 
 
 _TASK_DEFINITION_CACHE: Dict[UUID, str] = {}
-logger = get_logger("prefect_aws.workers.ecs")
 
 
 class ECSIdentifier(NamedTuple):
+    """
+    The identifier for a running ECS task.
+    """
+
     cluster: str
     task_arn: str
 
 
 def _default_task_definition_template() -> dict:
+    """
+    The default task definition template for ECS jobs.
+    """
     return yaml.safe_load(DEFAULT_TASK_DEFINITION_TEMPLATE)
 
 
 def _default_task_run_request_template() -> dict:
+    """
+    The default task run request template for ECS jobs.
+    """
     return yaml.safe_load(DEFAULT_TASK_RUN_REQUEST_TEMPLATE)
 
 
@@ -106,7 +117,11 @@ def _get_container(containers: List[dict], name: str) -> Optional[dict]:
 
 
 def _container_name_from_task_definition(task_definition: dict) -> Optional[str]:
-    # Attempt to infer the container name from the task definition
+    """
+    Attempt to infer the container name from a task definition.
+
+    If not found, `None` is returned.
+    """
     if task_definition:
         container_definitions = task_definition.get("containerDefinitions", [])
     else:
@@ -133,6 +148,10 @@ def parse_identifier(identifier: str) -> ECSIdentifier:
 
 
 class ECSJobConfiguration(BaseJobConfiguration):
+    """
+    Job configuration for an ECS worker.
+    """
+
     aws_credentials: Optional[AwsCredentials] = Field(default_factory=AwsCredentials)
     task_definition: Optional[Dict[str, Any]] = Field(
         template=_default_task_definition_template()
@@ -151,17 +170,25 @@ class ECSJobConfiguration(BaseJobConfiguration):
     cluster: Optional[str]
 
     @root_validator
-    def task_run_request_requires_arn_if_no_task_definition_given(cls, values):
+    def task_run_request_requires_arn_if_no_task_definition_given(cls, values) -> dict:
+        """
+        If no task definition is provided, a task definition ARN must be present on the
+        task run request.
+        """
         if not values.get("task_run_request", {}).get(
             "taskDefinition"
         ) and not values.get("task_definition"):
             raise ValueError(
-                "A task definition must be provided if a task definition ARN is not present on the task run request."
+                "A task definition must be provided if a task definition ARN is not "
+                "present on the task run request."
             )
         return values
 
     @root_validator
-    def container_name_default_from_task_definition(cls, values):
+    def container_name_default_from_task_definition(cls, values) -> dict:
+        """
+        Infers the container name from the task definition if not provided.
+        """
         if values.get("container_name") is None:
             values["container_name"] = _container_name_from_task_definition(
                 values.get("task_definition")
@@ -226,12 +253,6 @@ class ECSJobConfiguration(BaseJobConfiguration):
             )
         return values
 
-    @property
-    def logger(self) -> logging.Logger:
-        return (
-            logger.getChild(slugify(self.name, max_length=20)) if self.name else logger
-        )
-
 
 class ECSVariables(BaseVariables):
     task_definition_arn: Optional[str] = Field(default=None)
@@ -266,9 +287,9 @@ class ECSVariables(BaseVariables):
     ] = Field(
         default=ECS_DEFAULT_LAUNCH_TYPE,
         description=(
-            "The type of ECS task run infrastructure that should be used. Note that "
-            "'FARGATE_SPOT' is not a formal ECS launch type, but we will configure the "
-            "proper capacity provider stategy if set here."
+            "The type of ECS task run infrastructure that should be used. Note that"
+            " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
+            " the proper capacity provider stategy if set here."
         ),
     )
     image: Optional[str] = Field(
@@ -397,6 +418,14 @@ class ECSWorker(BaseWorker):
     job_configuration = ECSJobConfiguration
     job_configuration_variables = ECSVariables
 
+    def get_logger(self, flow_run: FlowRun):
+        """
+        Get a logger for the given flow run.
+        """
+        # This could stream to the API in the future; should be implemented on the base
+        # worker class
+        return get_logger("prefect.workers.ecs").getChild(slugify(flow_run.name))
+
     async def run(
         self,
         flow_run: "FlowRun",
@@ -410,6 +439,8 @@ class ECSWorker(BaseWorker):
             self._get_session_and_client, configuration
         )
 
+        logger = self.get_logger(flow_run)
+
         (
             task_arn,
             cluster_arn,
@@ -417,6 +448,7 @@ class ECSWorker(BaseWorker):
             is_new_task_definition,
         ) = await run_sync_in_worker_thread(
             self._create_task_and_wait_for_start,
+            logger,
             boto_session,
             ecs_client,
             configuration,
@@ -438,6 +470,7 @@ class ECSWorker(BaseWorker):
 
         status_code = await run_sync_in_worker_thread(
             self._watch_task_and_get_exit_code,
+            logger,
             configuration,
             task_arn,
             cluster_arn,
@@ -467,6 +500,7 @@ class ECSWorker(BaseWorker):
 
     def _create_task_and_wait_for_start(
         self,
+        logger: logging.Logger,
         boto_session: boto3.Session,
         ecs_client: _ECSClient,
         configuration: ECSJobConfiguration,
@@ -499,8 +533,9 @@ class ECSWorker(BaseWorker):
                         ecs_client, cached_task_definition_arn
                     )
                 except Exception as exc:
-                    configuration.logger.warning(
-                        f"Failed to retrieve cached task definition {cached_task_definition_arn!r}: {exc!r}"
+                    logger.warning(
+                        "Failed to retrieve cached task definition"
+                        f" {cached_task_definition_arn!r}: {exc!r}"
                     )
                     # Clear from cache
                     _TASK_DEFINITION_CACHE.pop(cached_task_definition_arn, None)
@@ -510,27 +545,29 @@ class ECSWorker(BaseWorker):
                         task_definition, cached_task_definition
                     ):
                         # Cached task definition is not valid
-                        configuration.logger.warning(
-                            f"Cached task definition {cached_task_definition_arn!r} does not meet requirements"
+                        logger.warning(
+                            "Cached task definition"
+                            f" {cached_task_definition_arn!r} does not meet"
+                            " requirements"
                         )
                         _TASK_DEFINITION_CACHE.pop(cached_task_definition_arn, None)
                         cached_task_definition_arn = None
 
             if not cached_task_definition_arn:
                 task_definition_arn = self._register_task_definition(
-                    configuration, ecs_client, task_definition
+                    logger, ecs_client, task_definition
                 )
                 new_task_definition_registered = True
             else:
                 task_definition_arn = cached_task_definition_arn
         else:
             task_definition = self._retrieve_task_definition(
-                configuration, ecs_client, task_definition_arn
+                logger, ecs_client, task_definition_arn
             )
             if configuration.task_definition:
-                configuration.logger.warning(
-                    "Ignoring task definition in configuration since task definition ARN "
-                    "is provided on the task run request."
+                logger.warning(
+                    "Ignoring task definition in configuration since task definition"
+                    " ARN is provided on the task run request."
                 )
 
         self._validate_task_definition(task_definition, configuration)
@@ -540,10 +577,8 @@ class ECSWorker(BaseWorker):
         # rate limited by AWS
         _TASK_DEFINITION_CACHE[flow_run.deployment_id] = task_definition_arn
 
-        configuration.logger.info(f"Using task definition {task_definition_arn!r}...")
-        configuration.logger.debug(
-            f"Task definition {json.dumps(task_definition, indent=2)}"
-        )
+        logger.info(f"Using ECS task definition {task_definition_arn!r}...")
+        logger.debug(f"Task definition {json.dumps(task_definition, indent=2)}")
 
         # Prepare the task run request
         task_run_request = self._prepare_task_run_request(
@@ -553,21 +588,20 @@ class ECSWorker(BaseWorker):
             task_definition_arn,
         )
 
-        configuration.logger.info(f"Creating task run...")
-        configuration.logger.debug(
-            f"Task run request {json.dumps(task_run_request, indent=2)}"
-        )
+        logger.info(f"Creating ECS task run...")
+        logger.debug(f"Task run request {json.dumps(task_run_request, indent=2)}")
         try:
             task = self._create_task_run(ecs_client, task_run_request)
             task_arn = task["taskArn"]
             cluster_arn = task["clusterArn"]
         except Exception as exc:
-            # self._report_task_run_creation_failure(task_run_request, exc)
+            self._report_task_run_creation_failure(task_run_request, exc)
             raise
 
         # Raises an exception if the task does not start
-        configuration.logger.info("Waiting for task run to start...")
+        logger.info("Waiting for ECS task run to start...")
         self._wait_for_task_start(
+            logger,
             configuration,
             task_arn,
             cluster_arn,
@@ -579,6 +613,7 @@ class ECSWorker(BaseWorker):
 
     def _watch_task_and_get_exit_code(
         self,
+        logger: logging.Logger,
         configuration: ECSJobConfiguration,
         task_arn: str,
         cluster_arn: str,
@@ -594,6 +629,7 @@ class ECSWorker(BaseWorker):
 
         # Wait for completion and stream logs
         task = self._wait_for_task_finish(
+            logger,
             configuration,
             task_arn,
             cluster_arn,
@@ -619,26 +655,25 @@ class ECSWorker(BaseWorker):
             container is not None
         ), f"'{container_name}' container missing from task: {task}"
         status_code = container.get("exitCode")
-        self._report_container_status_code(configuration, container_name, status_code)
+        self._report_container_status_code(logger, container_name, status_code)
 
         return status_code
 
     def _report_container_status_code(
-        self, configuration: ECSJobConfiguration, name: str, status_code: Optional[int]
+        self, logger: logging.Logger, name: str, status_code: Optional[int]
     ) -> None:
         """
         Display a log for the given container status code.
         """
         if status_code is None:
-            configuration.logger.error(
-                f"Task exited without reporting an exit status "
-                f"for container {name!r}."
+            logger.error(
+                f"Task exited without reporting an exit status for container {name!r}."
             )
         elif status_code == 0:
-            configuration.logger.info(f"Container {name!r} exited successfully.")
+            logger.info(f"Container {name!r} exited successfully.")
         else:
-            configuration.logger.warning(
-                f"Container {name!r} exited with non-zero exit " f"code {status_code}."
+            logger.warning(
+                f"Container {name!r} exited with non-zero exit code {status_code}."
             )
 
     def _report_task_run_creation_failure(self, task_run: dict, exc: Exception) -> None:
@@ -690,7 +725,8 @@ class ECSWorker(BaseWorker):
             and "FARGATE" not in task_definition["requiresCompatibilities"]
         ):
             raise ValueError(
-                f"Task definition does not have 'FARGATE' in 'requiresCompatibilities' and cannot be used with launch type {launch_type!r}"
+                "Task definition does not have 'FARGATE' in 'requiresCompatibilities'"
+                f" and cannot be used with launch type {launch_type!r}"
             )
 
         if launch_type == "FARGATE" or launch_type == "FARGATE_SPOT":
@@ -714,7 +750,7 @@ class ECSWorker(BaseWorker):
 
     def _register_task_definition(
         self,
-        configuration: ECSJobConfiguration,
+        logger: logging.Logger,
         ecs_client: _ECSClient,
         task_definition: dict,
     ) -> str:
@@ -723,25 +759,21 @@ class ECSWorker(BaseWorker):
 
         Returns the ARN.
         """
-        configuration.logger.info("Registering task definition...")
-        configuration.logger.debug(
-            f"Task definition request {json.dumps(task_definition, indent=2)}"
-        )
+        logger.info("Registering ECS task definition...")
+        logger.debug(f"Task definition request {json.dumps(task_definition, indent=2)}")
         response = ecs_client.register_task_definition(**task_definition)
         return response["taskDefinition"]["taskDefinitionArn"]
 
     def _retrieve_task_definition(
         self,
-        configuration: ECSJobConfiguration,
+        logger: logging.Logger,
         ecs_client: _ECSClient,
         task_definition_arn: str,
     ):
         """
         Retrieve an existing task definition from AWS.
         """
-        configuration.logger.info(
-            f"Retrieving task definition {task_definition_arn!r}..."
-        )
+        logger.info(f"Retrieving ECS task definition {task_definition_arn!r}...")
         response = ecs_client.describe_task_definition(
             taskDefinition=task_definition_arn
         )
@@ -749,6 +781,7 @@ class ECSWorker(BaseWorker):
 
     def _wait_for_task_start(
         self,
+        logger: logging.Logger,
         configuration: ECSJobConfiguration,
         task_arn: str,
         cluster_arn: str,
@@ -762,6 +795,7 @@ class ECSWorker(BaseWorker):
         reason that the task run did not start.
         """
         for task in self._watch_task_run(
+            logger,
             configuration,
             task_arn,
             cluster_arn,
@@ -782,6 +816,7 @@ class ECSWorker(BaseWorker):
 
     def _wait_for_task_finish(
         self,
+        logger: logging.Logger,
         configuration: ECSJobConfiguration,
         task_arn: str,
         cluster_arn: str,
@@ -808,17 +843,17 @@ class ECSWorker(BaseWorker):
                 task_definition["containerDefinitions"], container_name
             )
             if not container_def:
-                configuration.logger.warning(
+                logger.warning(
                     "Prefect container definition not found in "
                     "task definition. Output cannot be streamed."
                 )
             elif not container_def.get("logConfiguration"):
-                configuration.logger.warning(
+                logger.warning(
                     "Logging configuration not found on task. "
                     "Output cannot be streamed."
                 )
             elif not container_def["logConfiguration"].get("logDriver") == "awslogs":
-                configuration.logger.warning(
+                logger.warning(
                     "Logging configuration uses unsupported "
                     " driver {container_def['logConfiguration'].get('logDriver')!r}. "
                     "Output cannot be streamed."
@@ -838,17 +873,23 @@ class ECSWorker(BaseWorker):
                         task_arn.rsplit("/")[-1],
                     ]
                 )
-                configuration.logger.info(
-                    "Streaming output from container " f"{container_name!r}..."
+                print(
+                    f"Streaming output from container {container_name!r}...",
+                    file=sys.stderr,
                 )
 
         for task in self._watch_task_run(
-            configuration, task_arn, cluster_arn, ecs_client, current_status="RUNNING"
+            logger,
+            configuration,
+            task_arn,
+            cluster_arn,
+            ecs_client,
+            current_status="RUNNING",
         ):
             if configuration.stream_output and can_stream_output:
                 # On each poll for task run status, also retrieve available logs
                 last_log_timestamp = self._stream_available_logs(
-                    configuration,
+                    logger,
                     logs_client,
                     log_group=log_config["awslogs-group"],
                     log_stream=stream_name,
@@ -859,7 +900,7 @@ class ECSWorker(BaseWorker):
 
     def _stream_available_logs(
         self,
-        configuration: ECSJobConfiguration,
+        logger: logging.Logger,
         logs_client: Any,
         log_group: str,
         log_stream: str,
@@ -896,8 +937,8 @@ class ECSWorker(BaseWorker):
             try:
                 response = logs_client.get_log_events(**request)
             except Exception:
-                configuration.logger.error(
-                    ("Failed to read log events with request " f"{request}"),
+                logger.error(
+                    f"Failed to read log events with request {request}",
                     exc_info=True,
                 )
                 return last_log_timestamp
@@ -926,6 +967,7 @@ class ECSWorker(BaseWorker):
 
     def _watch_task_run(
         self,
+        logger: logging.Logger,
         configuration: ECSJobConfiguration,
         task_arn: str,
         cluster_arn: str,
@@ -953,7 +995,7 @@ class ECSWorker(BaseWorker):
 
                 status = task["lastStatus"]
                 if status != last_status:
-                    configuration.logger.info(f"Status is {status}.")
+                    logger.info(f"ECS task status is {status}.")
 
                 yield task
 
@@ -966,7 +1008,7 @@ class ECSWorker(BaseWorker):
             else:
                 # Intermittently, the task will not be described. We wat to respect the
                 # watch timeout though.
-                configuration.logger.debug("Task not found.")
+                logger.debug("Task not found.")
 
             elapsed_time = time.time() - t0
             if timeout is not None and elapsed_time > timeout:

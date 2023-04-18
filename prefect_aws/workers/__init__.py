@@ -1,1 +1,3 @@
-from prefect_aws.workers.ecs_worker import ECSWorker, ECSWorkerResult, ECSVariables
+from .ecs_worker import ECSWorker
+
+__all__ = ["ECSWorker"]

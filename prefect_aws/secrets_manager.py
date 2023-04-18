@@ -490,7 +490,7 @@ class AwsSecret(SecretBlock):
             )
         elif not (7 <= recovery_window_in_days <= 30):
             raise ValueError(
-                f"Recovery window must be between 7 and 30 days, got "
+                "Recovery window must be between 7 and 30 days, got "
                 f"{recovery_window_in_days}."
             )
 
