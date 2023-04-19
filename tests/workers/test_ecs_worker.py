@@ -449,6 +449,12 @@ async def test_launch_types(
     ecs_client = session.client("ecs")
 
     async with ECSWorker(work_pool_name="test") as worker:
+        # Capture the task run call because moto does not track
+        # 'capacityProviderStrategy'
+        original_run_task = worker._create_task_run
+        mock_run_task = MagicMock(side_effect=original_run_task)
+        worker._create_task_run = mock_run_task
+
         result = await run_then_stop_task(worker, configuration, flow_run)
 
     assert result.status_code == 0
@@ -465,10 +471,11 @@ async def test_launch_types(
         # FARGATE SPOT requires a null launch type
         assert not task.get("launchType")
         # Instead, it requires a capacity provider strategy but this is not supported
-        # by moto and is not present on the task even when provided
-        # assert task["capacityProviderStrategy"] == [
-        #     {"capacityProvider": "FARGATE_SPOT", "weight": 1}
-        # ]
+        # by moto and is not present on the task even when provided so we assert on the
+        # mock call to ensure it is sent
+        assert mock_run_task.call_args[0][1].get("capacityProviderStrategy") == [
+            {"capacityProvider": "FARGATE_SPOT", "weight": 1}
+        ]
 
     requires_capabilities = task_definition.get("requiresCompatibilities", [])
     if launch_type != "EC2":

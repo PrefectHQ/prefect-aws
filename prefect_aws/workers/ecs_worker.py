@@ -269,7 +269,7 @@ class ECSVariables(BaseVariables):
     cluster: Optional[str] = Field(
         default=None,
         description=(
-            "The ECS cluster to run the task in. The ARN or name may be provided. If "
+            "The ECS cluster to run the task in. An ARN or name may be provided. If "
             "not provided, the default cluster will be used."
         ),
     )
@@ -359,7 +359,7 @@ class ECSVariables(BaseVariables):
     configure_cloudwatch_logs: bool = Field(
         default=None,
         description=(
-            "If `True`, the Prefect container will be configured to send its output "
+            "If enabled, the Prefect container will be configured to send its output "
             "to the AWS CloudWatch logs service. This functionality requires an "
             "execution role with logs:CreateLogStream, logs:CreateLogGroup, and "
             "logs:PutLogEvents permissions. The default for this field is `False` "
@@ -369,16 +369,17 @@ class ECSVariables(BaseVariables):
     cloudwatch_logs_options: Dict[str, str] = Field(
         default_factory=dict,
         description=(
-            "When `configure_cloudwatch_logs` is enabled, this setting may be used to "
-            "pass additional options to the CloudWatch logs configuration or override "
-            "the default options. See the AWS documentation for available options. "
-            "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options."  # noqa
+            "When `configure_cloudwatch_logs` is enabled, this setting may be used to"
+            " pass additional options to the CloudWatch logs configuration or override"
+            " the default options. See the [AWS"
+            " documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options.)"  # noqa
+            " for available options. "
         ),
     )
     stream_output: bool = Field(
         default=None,
         description=(
-            "If `True`, logs will be streamed from the Prefect container to the local "
+            "If enabled, logs will be streamed from the Prefect container to the local "
             "console. Unless you have configured AWS CloudWatch logs manually on your "
             "task definition, this requires the same prerequisites outlined in "
             "`configure_cloudwatch_logs`."
@@ -402,7 +403,7 @@ class ECSVariables(BaseVariables):
     auto_deregister_task_definition: bool = Field(
         default=True,
         description=(
-            "If set, any task definitions that are created by this block will be "
+            "If enabled, any task definitions that are created by this block will be "
             "deregistered. Existing task definitions linked by ARN will never be "
             "deregistered. Deregistering a task definition does not remove it from "
             "your AWS account, instead it will be marked as INACTIVE."
@@ -596,7 +597,7 @@ class ECSWorker(BaseWorker):
             task_arn = task["taskArn"]
             cluster_arn = task["clusterArn"]
         except Exception as exc:
-            self._report_task_run_creation_failure(task_run_request, exc)
+            self._report_task_run_creation_failure(configuration, task_run_request, exc)
             raise
 
         # Raises an exception if the task does not start
@@ -677,7 +678,9 @@ class ECSWorker(BaseWorker):
                 f"Container {name!r} exited with non-zero exit code {status_code}."
             )
 
-    def _report_task_run_creation_failure(self, task_run: dict, exc: Exception) -> None:
+    def _report_task_run_creation_failure(
+        self, configuration: ECSJobConfiguration, task_run: dict, exc: Exception
+    ) -> None:
         """
         Wrap common AWS task run creation failures with nicer user-facing messages.
         """
@@ -689,7 +692,9 @@ class ECSWorker(BaseWorker):
                 f"Failed to run ECS task, cluster {cluster!r} not found. "
                 "Confirm that the cluster is configured in your region."
             ) from exc
-        elif "No Container Instances" in str(exc) and self.launch_type == "EC2":
+        elif (
+            "No Container Instances" in str(exc) and task_run.get("launchType") == "EC2"
+        ):
             cluster = task_run.get("cluster", "default")
             raise RuntimeError(
                 f"Failed to run ECS task, cluster {cluster!r} does not appear to "
@@ -699,13 +704,13 @@ class ECSWorker(BaseWorker):
         elif (
             "failed to validate logger args" in str(exc)
             and "AccessDeniedException" in str(exc)
-            and self.configure_cloudwatch_logs
+            and configuration.configure_cloudwatch_logs
         ):
             raise RuntimeError(
-                "Failed to run ECS task, the attached execution role does not appear "
-                "to have sufficient permissions. Ensure that the execution role "
-                f"{self.execution_role!r} has permissions logs:CreateLogStream, "
-                "logs:CreateLogGroup, and logs:PutLogEvents."
+                "Failed to run ECS task, the attached execution role does not appear"
+                " to have sufficient permissions. Ensure that the execution role"
+                f" {configuration.execution_role!r} has permissions"
+                " logs:CreateLogStream, logs:CreateLogGroup, and logs:PutLogEvents."
             )
         else:
             raise
@@ -1195,6 +1200,12 @@ class ECSWorker(BaseWorker):
         if task_run_request.get("launchType") == "FARGATE_SPOT":
             # Should not be provided at all for FARGATE SPOT
             task_run_request.pop("launchType", None)
+
+            # A capacity provider strategy is required for FARGATE SPOT
+            task_run_request.setdefault(
+                "capacityProviderStrategy",
+                [{"capacityProvider": "FARGATE_SPOT", "weight": 1}],
+            )
 
         overrides = task_run_request.get("overrides", {})
         container_overrides = overrides.get("containerOverrides", [])
