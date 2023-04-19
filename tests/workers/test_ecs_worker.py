@@ -1259,6 +1259,74 @@ async def test_worker_task_definition_cache_miss_on_config_changes(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize("launch_type", ["EC2", "FARGATE"])
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"env": {"FOO": "BAR"}},
+        {"command": "test"},
+        {"labels": {"FOO": "BAR"}},
+        {"stream_output": True, "configure_cloudwatch_logs": False},
+        {"cluster": "test"},
+        {"task_role_arn": "test"},
+        # Note: null environment variables can cause override, but not when missing
+        # from the base task definition
+        {"env": {"FOO": None}},
+        # The following would not result in a copy when using a task_definition_arn
+        # but will be eagerly set on the new task definition and result in a cache miss
+        # {"cpu": 2048},
+        # {"memory": 4096},
+        # {"execution_role_arn": "test"},
+        # {"launch_type": "EXTERNAL"},
+    ],
+    ids=lambda item: str(set(item.keys())),
+)
+async def test_worker_task_definition_cache_hit_on_config_changes(
+    aws_credentials: AwsCredentials,
+    flow_run: FlowRun,
+    overrides: dict,
+    launch_type: str,
+):
+    """
+    Any of these overrides should be configured at runtime and not cause a cache miss
+    and for a new task definition to be registered
+    """
+    configuration_1 = await construct_configuration(
+        aws_credentials=aws_credentials,
+        execution_role_arn="test",
+        launch_type=launch_type,
+    )
+    configuration_2 = await construct_configuration(
+        aws_credentials=aws_credentials,
+        execution_role_arn="test",
+        launch_type=launch_type,
+        **overrides,
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    if "cluster" in overrides:
+        create_test_ecs_cluster(ecs_client, overrides["cluster"])
+        add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result_1 = await run_then_stop_task(worker, configuration_1, flow_run)
+        result_2 = await run_then_stop_task(worker, configuration_2, flow_run)
+
+    assert result_2.status_code == 0
+
+    _, task_arn_1 = parse_identifier(result_1.identifier)
+    task_1 = describe_task(ecs_client, task_arn_1)
+    _, task_arn_2 = parse_identifier(result_2.identifier)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert (
+        task_1["taskDefinitionArn"] == task_2["taskDefinitionArn"]
+    ), "The existing task definition should be used"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_user_defined_container_command_in_task_definition_template(
     aws_credentials: AwsCredentials,
     flow_run: FlowRun,

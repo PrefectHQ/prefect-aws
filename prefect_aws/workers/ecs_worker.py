@@ -265,6 +265,15 @@ class ECSVariables(BaseVariables):
             "the task definition in the job configuration will be ignored."
         ),
     )
+    env: Dict[str, Optional[str]] = Field(
+        title="Environment Variables",
+        default_factory=dict,
+        description=(
+            "Environment variables to provide to the task run. These variables are set "
+            "on the Prefect container at task runtime. These will not be set on the "
+            "task definition."
+        ),
+    )
     aws_credentials: AwsCredentials = Field(
         title="AWS Credentials",
         default_factory=AwsCredentials,
@@ -1080,7 +1089,7 @@ class ECSWorker(BaseWorker):
         # Remove any keys that have been explicitly "unset"
         unset_keys = {key for key, value in configuration.env.items() if value is None}
         for item in tuple(container.get("environment", [])):
-            if item["name"] in unset_keys:
+            if item["name"] in unset_keys or item["value"] is None:
                 container["environment"].remove(item)
 
         if configuration.configure_cloudwatch_logs:
@@ -1256,6 +1265,13 @@ class ECSWorker(BaseWorker):
                 container["environment"] = [
                     {"name": k, "value": v} for k, v in container["environment"].items()
                 ]
+
+            # Remove null values — they're not allowed by AWS
+            container["environment"] = [
+                item
+                for item in container.get("environment", [])
+                if item["value"] is not None
+            ]
 
         if isinstance(task_run_request.get("tags"), dict):
             task_run_request["tags"] = [
