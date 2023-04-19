@@ -694,7 +694,9 @@ class ECSTask(Infrastructure):
                 raise InfrastructureNotFound(
                     f"Cannot stop ECS task: the cluster {cluster!r} could not be found."
                 ) from exc
-            if "not find task" in str(exc):
+            if "not find task" in str(exc) or "referenced task was not found" in str(
+                exc
+            ):
                 raise InfrastructureNotFound(
                     f"Cannot stop ECS task: the task {task!r} could not be found in "
                     f"cluster {cluster!r}."
