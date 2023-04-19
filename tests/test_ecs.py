@@ -1592,8 +1592,7 @@ async def test_deregister_task_definition_does_not_apply_to_linked_arn(aws_crede
     task_arn = await run_then_stop_task(task)
 
     task = describe_task(ecs_client, task_arn)
-    # The task definition can be retrieved still
-    assert describe_task_definition(ecs_client, task)
+    describe_task_definition(ecs_client, task)["status"] == "ACTIVE"
 
 
 @pytest.mark.usefixtures("ecs_mocks")

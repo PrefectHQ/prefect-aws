@@ -1,4 +1,5 @@
 import json
+import logging
 from functools import partial
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 from unittest.mock import ANY, MagicMock
@@ -6,6 +7,7 @@ from uuid import uuid4
 
 import anyio
 import pytest
+import yaml
 from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.server.schemas.core import FlowRun
@@ -25,6 +27,17 @@ from prefect_aws.workers.ecs_worker import (
     get_prefect_image_name,
     parse_identifier,
 )
+
+TEST_TASK_DEFINITION_YAML = """
+containerDefinitions:
+- cpu: 1024
+  image: prefecthq/prefect:2.1.0-python3.8
+  memory: 2048
+  name: prefect
+family: prefect
+"""
+
+TEST_TASK_DEFINITION = yaml.safe_load(TEST_TASK_DEFINITION_YAML)
 
 
 @pytest.fixture
@@ -597,6 +610,80 @@ async def test_container_command(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_task_definition_arn(aws_credentials: AwsCredentials, flow_run: FlowRun):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(**TEST_TASK_DEFINITION)[
+        "taskDefinition"
+    ]["taskDefinitionArn"]
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+    )
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    assert (
+        task["taskDefinitionArn"] == task_definition_arn
+    ), "The task definition should be used without registering a new one"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize(
+    "overrides",
+    [{"image": "new-image"}, {"configure_cloudwatch_logs": True}, {"family": "foobar"}],
+)
+async def test_task_definition_arn_with_variables_that_are_ignored(
+    aws_credentials, overrides, caplog, flow_run
+):
+    """
+    Any of these overrides should cause the task definition to be copied and
+    registered as a new version
+    """
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(
+        **TEST_TASK_DEFINITION, executionRoleArn="base"
+    )["taskDefinition"]["taskDefinitionArn"]
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+        **overrides,
+    )
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        with caplog.at_level(logging.INFO, logger=worker.get_logger(flow_run).name):
+            result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    assert (
+        task["taskDefinitionArn"] == task_definition_arn
+    ), "A new task definition should not be registered"
+
+    # TODO: Add logging for this case
+    # assert (
+    #     "Settings require changes to the linked task definition. "
+    #     "The settings will be ignored. "
+    #     "Enable DEBUG level logs to see the difference."
+    #     in caplog.text
+    # )
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_environment_variables(
     aws_credentials: AwsCredentials,
     flow_run: FlowRun,
@@ -993,6 +1080,56 @@ async def test_cloudwatch_log_options(
         else:
             # Other containers should not be modifed
             assert "logConfiguration" not in container
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_deregister_task_definition(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=True,
+    )
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+    assert task_definition["status"] == "INACTIVE"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_deregister_task_definition_does_not_apply_to_linked_arn(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task_definition_arn = ecs_client.register_task_definition(**TEST_TASK_DEFINITION)[
+        "taskDefinition"
+    ]["taskDefinitionArn"]
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=True,
+        task_definition_arn=task_definition_arn,
+        launch_type="EC2",
+    )
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    describe_task_definition(ecs_client, task)["status"] == "ACTIVE"
 
 
 @pytest.mark.usefixtures("ecs_mocks")

@@ -229,7 +229,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
             # TODO: Does not match
             # Do not raise if they've linked to another task definition or provided
             # it without using our shortcuts
-            and not values.get("task_definition_arn")
+            and not values.get("task_run_request", {}).get("taskDefinition")
             and not (values.get("task_definition") or {}).get("executionRoleArn")
         ):
             raise ValueError(
