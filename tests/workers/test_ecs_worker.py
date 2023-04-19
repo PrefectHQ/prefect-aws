@@ -1022,6 +1022,40 @@ async def test_user_defined_container_command_in_task_definition_template(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_user_defined_container_command_in_task_definition_template_override(
+    aws_credentials: AwsCredentials,
+    flow_run: FlowRun,
+):
+    configuration = await construct_configuration_with_job_template(
+        template_overrides=dict(
+            task_definition={
+                "containerDefinitions": [
+                    {"name": ECS_DEFAULT_CONTAINER_NAME, "command": ["echo", "hello"]}
+                ]
+            }
+        ),
+        aws_credentials=aws_credentials,
+        command="echo goodbye",
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+
+    container_overrides = _get_container(
+        task["overrides"]["containerOverrides"], ECS_DEFAULT_CONTAINER_NAME
+    )
+    assert container_overrides["command"] == ["echo", "goodbye"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_user_defined_container_in_task_definition_template(
     aws_credentials: AwsCredentials,
     flow_run: FlowRun,
@@ -1225,4 +1259,93 @@ async def test_user_defined_environment_variables_in_task_definition_template(
     assert prefect_container_overrides.get("environment") == [
         {"name": "FOO", "value": "BAR"},
         {"name": "OVERRIDE", "value": "NEW"},
+    ]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_user_defined_environment_variables_in_task_run_request_template(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    configuration = await construct_configuration_with_job_template(
+        template_overrides=dict(
+            task_run_request={
+                "overrides": {
+                    "containerOverrides": [
+                        {
+                            "name": ECS_DEFAULT_CONTAINER_NAME,
+                            "environment": [
+                                {"name": "BAR", "value": "FOO"},
+                                {"name": "OVERRIDE", "value": "OLD"},
+                                {"name": "UNSET", "value": "GONE"},
+                            ],
+                        }
+                    ],
+                },
+            },
+        ),
+        aws_credentials=aws_credentials,
+        env={"FOO": "BAR", "OVERRIDE": "NEW", "UNSET": None},
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    prefect_container_definition = _get_container(
+        task_definition["containerDefinitions"], ECS_DEFAULT_CONTAINER_NAME
+    )
+
+    assert (
+        prefect_container_definition["environment"] == []
+    ), "No environment variables in the task definition"
+
+    prefect_container_overrides = _get_container(
+        task["overrides"]["containerOverrides"], ECS_DEFAULT_CONTAINER_NAME
+    )
+    assert prefect_container_overrides.get("environment") == [
+        {"name": "BAR", "value": "FOO"},
+        {"name": "FOO", "value": "BAR"},
+        {"name": "OVERRIDE", "value": "NEW"},
+    ]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_user_defined_tags_in_task_run_request_template(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    configuration = await construct_configuration_with_job_template(
+        template_overrides=dict(
+            task_run_request={
+                "tags": [
+                    {"key": "BAR", "value": "FOO"},
+                    {"key": "OVERRIDE", "value": "OLD"},
+                ]
+            },
+        ),
+        aws_credentials=aws_credentials,
+        labels={"FOO": "BAR", "OVERRIDE": "NEW"},
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    assert task.get("tags") == [
+        {"key": "BAR", "value": "FOO"},
+        {"key": "FOO", "value": "BAR"},
+        {"key": "OVERRIDE", "value": "NEW"},
     ]
