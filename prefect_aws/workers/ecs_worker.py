@@ -1,6 +1,25 @@
 """
 Prefect worker for executing flow runs as ECS tasks.
 
+Get started by creating a work pool:
+
+```
+$ prefect work-pool create --type ecs my-ecs-pool
+```
+
+Then, you can start a worker for the pool:
+
+```
+$ prefect worker start --pool my-ecs-pool
+```
+
+It's common to deploy the worker as an ECS task as well. However, you can run the worker
+locally to get started.
+
+The worker may work without any additional configuration, but it is dependent on your
+specific AWS setup and we'd recommend opening the work pool editor in the UI to see the
+available options.
+
 By default, the worker will register a task definition for each flow run and run a task
 in your default ECS cluster using AWS Fargate. Fargate requires tasks to configure
 subnets, which we will infer from your default VPC. If you do not have a default VPC,
@@ -24,7 +43,6 @@ definition arn variable or by providing a "taskDefinition" in the task run reque
 a task definition is provided, the worker will never create a new task definition which
 may result in variables that are templated into the task definition payload being
 ignored.
-
 """
 import copy
 import json
