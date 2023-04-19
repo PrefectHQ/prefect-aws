@@ -1259,6 +1259,40 @@ async def test_worker_task_definition_cache_miss_on_config_changes(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize(
+    "overrides",
+    [{"image": "new-image"}, {"configure_cloudwatch_logs": True}, {"family": "foobar"}],
+)
+async def test_worker_task_definition_cache_miss_on_deregistered(
+    aws_credentials: AwsCredentials, flow_run: FlowRun, overrides: dict
+):
+    configuration_1 = await construct_configuration(
+        aws_credentials=aws_credentials,
+        execution_role_arn="test",
+        auto_deregister_task_defininition=True,
+    )
+    configuration_2 = await construct_configuration(
+        aws_credentials=aws_credentials, execution_role_arn="test", **overrides
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result_1 = await run_then_stop_task(worker, configuration_1, flow_run)
+        result_2 = await run_then_stop_task(worker, configuration_2, flow_run)
+
+    assert result_2.status_code == 0
+
+    _, task_arn_1 = parse_identifier(result_1.identifier)
+    task_1 = describe_task(ecs_client, task_arn_1)
+    _, task_arn_2 = parse_identifier(result_2.identifier)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] != task_2["taskDefinitionArn"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize("launch_type", ["EC2", "FARGATE"])
 @pytest.mark.parametrize(
     "overrides",

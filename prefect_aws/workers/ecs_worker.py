@@ -1,5 +1,30 @@
 """
 Prefect worker for executing flow runs as ECS tasks.
+
+By default, the worker will register a task definition for each flow run and run a task
+in your default ECS cluster using AWS Fargate. Fargate requires tasks to configure
+subnets, which we will infer from your default VPC. If you do not have a default VPC,
+you must provide a VPC ID or manually setup the network configuration for your tasks.
+
+Note, the worker caches task definitions for each deployment to avoid excessive
+registration. The worker will check that the cached task definition is compatible with
+your configuration before using it.
+
+The launch type option can be used to run your tasks in different modes. For example,
+`FARGATE_SPOT` can be used to use spot instances for your Fargate tasks or `EC2` can be
+used to run your tasks on a cluster backed by EC2 instances.
+
+Generally, it is very useful to enable CloudWatch logging for your ECS tasks; this can
+help you debug task failures. To enable CloudWatch logging, you must provide an
+execution role ARN with permissions to create and write to log streams. See the
+`configure_cloudwatch_logs` field documentation for details.
+
+The worker can be configured to use an existing task definition by setting the task
+definition arn variable or by providing a "taskDefinition" in the task run request. When
+a task definition is provided, the worker will never create a new task definition which
+may result in variables that are templated into the task definition payload being
+ignored.
+
 """
 import copy
 import json
@@ -418,7 +443,7 @@ class ECSVariables(BaseVariables):
         ),
     )
     auto_deregister_task_definition: bool = Field(
-        default=True,
+        default=False,
         description=(
             "If enabled, any task definitions that are created by this block will be "
             "deregistered. Existing task definitions linked by ARN will never be "
@@ -560,7 +585,15 @@ class ECSWorker(BaseWorker):
                     _TASK_DEFINITION_CACHE.pop(flow_run.deployment_id, None)
                     cached_task_definition_arn = None
                 else:
-                    if not self._task_definitions_equal(
+                    if not cached_task_definition["status"] == "ACTIVE":
+                        # Cached task definition is not active
+                        logger.warning(
+                            "Cached task definition"
+                            f" {cached_task_definition_arn!r} is not active"
+                        )
+                        _TASK_DEFINITION_CACHE.pop(flow_run.deployment_id, None)
+                        cached_task_definition_arn = None
+                    elif not self._task_definitions_equal(
                         task_definition, cached_task_definition
                     ):
                         # Cached task definition is not valid
