@@ -14,6 +14,7 @@ from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 
 from prefect_aws.workers.ecs_worker import (
+    _TASK_DEFINITION_CACHE,
     ECS_DEFAULT_CONTAINER_NAME,
     ECS_DEFAULT_CPU,
     ECS_DEFAULT_MEMORY,
@@ -48,6 +49,12 @@ def flow_run():
 @pytest.fixture
 def container_status_code():
     yield MagicMock(return_value=0)
+
+
+@pytest.fixture(autouse=True)
+def reset_task_definition_cache():
+    _TASK_DEFINITION_CACHE.clear()
+    yield
 
 
 @pytest.fixture(autouse=True)
@@ -1130,6 +1137,125 @@ async def test_deregister_task_definition_does_not_apply_to_linked_arn(
 
     task = describe_task(ecs_client, task_arn)
     describe_task_definition(ecs_client, task)["status"] == "ACTIVE"
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_worker_caches_registered_task_definitions(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, command="echo test"
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result_1 = await run_then_stop_task(worker, configuration, flow_run)
+        result_2 = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result_2.status_code == 0
+
+    _, task_arn_1 = parse_identifier(result_1.identifier)
+    task_1 = describe_task(ecs_client, task_arn_1)
+    _, task_arn_2 = parse_identifier(result_2.identifier)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] == task_2["taskDefinitionArn"]
+    assert flow_run.deployment_id in _TASK_DEFINITION_CACHE
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_worker_cache_miss_for_registered_task_definitions_clears_from_cache(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, command="echo test"
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result_1 = await run_then_stop_task(worker, configuration, flow_run)
+
+        # Fail to retrieve from cache on next run
+        worker._retrieve_task_definition = MagicMock(
+            side_effect=RuntimeError("failure retrieving from cache")
+        )
+
+        result_2 = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result_2.status_code == 0
+
+    _, task_arn_1 = parse_identifier(result_1.identifier)
+    task_1 = describe_task(ecs_client, task_arn_1)
+    _, task_arn_2 = parse_identifier(result_2.identifier)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] != task_2["taskDefinitionArn"]
+    assert (
+        task_1["taskDefinitionArn"] not in _TASK_DEFINITION_CACHE.values()
+    ), _TASK_DEFINITION_CACHE
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_worker_task_definition_cache_is_per_deployment_id(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, command="echo test"
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result_1 = await run_then_stop_task(worker, configuration, flow_run)
+        result_2 = await run_then_stop_task(
+            worker, configuration, flow_run.copy(update=dict(deployment_id=uuid4()))
+        )
+
+    assert result_2.status_code == 0
+
+    _, task_arn_1 = parse_identifier(result_1.identifier)
+    task_1 = describe_task(ecs_client, task_arn_1)
+    _, task_arn_2 = parse_identifier(result_2.identifier)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] != task_2["taskDefinitionArn"]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+@pytest.mark.parametrize(
+    "overrides",
+    [{"image": "new-image"}, {"configure_cloudwatch_logs": True}, {"family": "foobar"}],
+)
+async def test_worker_task_definition_cache_miss_on_config_changes(
+    aws_credentials: AwsCredentials, flow_run: FlowRun, overrides: dict
+):
+    configuration_1 = await construct_configuration(
+        aws_credentials=aws_credentials, execution_role_arn="test"
+    )
+    configuration_2 = await construct_configuration(
+        aws_credentials=aws_credentials, execution_role_arn="test", **overrides
+    )
+
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        result_1 = await run_then_stop_task(worker, configuration_1, flow_run)
+        result_2 = await run_then_stop_task(worker, configuration_2, flow_run)
+
+    assert result_2.status_code == 0
+
+    _, task_arn_1 = parse_identifier(result_1.identifier)
+    task_1 = describe_task(ecs_client, task_arn_1)
+    _, task_arn_2 = parse_identifier(result_2.identifier)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] != task_2["taskDefinitionArn"]
 
 
 @pytest.mark.usefixtures("ecs_mocks")

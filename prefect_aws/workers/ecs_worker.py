@@ -539,8 +539,8 @@ class ECSWorker(BaseWorker):
             if cached_task_definition_arn:
                 # Read the task definition to see if the cached task definition is valid
                 try:
-                    cached_task_definition = self._rsetrieve_task_definition(
-                        ecs_client, cached_task_definition_arn
+                    cached_task_definition = self._retrieve_task_definition(
+                        logger, ecs_client, cached_task_definition_arn
                     )
                 except Exception as exc:
                     logger.warning(
@@ -548,7 +548,7 @@ class ECSWorker(BaseWorker):
                         f" {cached_task_definition_arn!r}: {exc!r}"
                     )
                     # Clear from cache
-                    _TASK_DEFINITION_CACHE.pop(cached_task_definition_arn, None)
+                    _TASK_DEFINITION_CACHE.pop(flow_run.deployment_id, None)
                     cached_task_definition_arn = None
                 else:
                     if not self._task_definitions_equal(
@@ -560,7 +560,7 @@ class ECSWorker(BaseWorker):
                             f" {cached_task_definition_arn!r} does not meet"
                             " requirements"
                         )
-                        _TASK_DEFINITION_CACHE.pop(cached_task_definition_arn, None)
+                        _TASK_DEFINITION_CACHE.pop(flow_run.deployment_id, None)
                         cached_task_definition_arn = None
 
             if not cached_task_definition_arn:
