@@ -150,6 +150,23 @@ def _default_task_run_request_template() -> dict:
     return yaml.safe_load(DEFAULT_TASK_RUN_REQUEST_TEMPLATE)
 
 
+def _drop_empty_keys_from_task_definition(taskdef: dict):
+    """
+    Recursively drop keys with 'empty' values from a task definition dict.
+
+    Mutates the task definition in place. Only supports recursion into dicts and lists.
+    """
+    for key, value in tuple(taskdef.items()):
+        if not value:
+            taskdef.pop(key)
+        if isinstance(value, dict):
+            _drop_empty_keys_from_task_definition(value)
+        if isinstance(value, list):
+            for v in value:
+                if isinstance(v, dict):
+                    _drop_empty_keys_from_task_definition(v)
+
+
 def _get_container(containers: List[dict], name: str) -> Optional[dict]:
     """
     Extract a container from a list of containers or container definitions.
@@ -1403,20 +1420,8 @@ class ECSWorker(BaseWorker):
 
             taskdef.setdefault("networkMode", "bridge")
 
-        def _drop_empty_keys(dict_):
-            """Recursively drop keys with 'empty' values"""
-            for key, value in tuple(dict_.items()):
-                if not value:
-                    dict_.pop(key)
-                if isinstance(value, dict):
-                    _drop_empty_keys(value)
-                if isinstance(value, list):
-                    for v in value:
-                        if isinstance(v, dict):
-                            _drop_empty_keys(v)
-
-        _drop_empty_keys(taskdef_1)
-        _drop_empty_keys(taskdef_2)
+        _drop_empty_keys_from_task_definition(taskdef_1)
+        _drop_empty_keys_from_task_definition(taskdef_2)
 
         # Clear fields that change on registration for comparison
         for field in ECS_POST_REGISTRATION_FIELDS:
