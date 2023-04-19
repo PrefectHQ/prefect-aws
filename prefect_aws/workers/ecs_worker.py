@@ -257,7 +257,14 @@ class ECSJobConfiguration(BaseJobConfiguration):
 
 
 class ECSVariables(BaseVariables):
-    task_definition_arn: Optional[str] = Field(default=None)
+    task_definition_arn: Optional[str] = Field(
+        default=None,
+        description=(
+            "An identifier for an existing task definition to use. If set, options that"
+            " require changes to the task definition will be ignored. All contents of "
+            "the task definition in the job configuration will be ignored."
+        ),
+    )
     aws_credentials: AwsCredentials = Field(
         title="AWS Credentials",
         default_factory=AwsCredentials,
@@ -1318,8 +1325,8 @@ class ECSWorker(BaseWorker):
         taskdef_1 = copy.deepcopy(taskdef_1)
         taskdef_2 = copy.deepcopy(taskdef_2)
 
-        def _set_aws_defaults(taskdef):
-            """Set defaults that AWS would set after registration"""
+        for taskdef in (taskdef_1, taskdef_2):
+            # Set defaults that AWS would set after registration
             container_definitions = taskdef.get("containerDefinitions", [])
             essential = any(
                 container.get("essential") for container in container_definitions
@@ -1328,9 +1335,6 @@ class ECSWorker(BaseWorker):
                 container_definitions[0].setdefault("essential", True)
 
             taskdef.setdefault("networkMode", "bridge")
-
-        _set_aws_defaults(taskdef_1)
-        _set_aws_defaults(taskdef_2)
 
         def _drop_empty_keys(dict_):
             """Recursively drop keys with 'empty' values"""
