@@ -1506,12 +1506,10 @@ async def test_task_definition_arn_with_overrides_requiring_copy_shows_diff(
 
     assert "Enable DEBUG level logs to see the difference." not in caplog.text
 
-    expected_diff = textwrap.dedent(
-        """
+    expected_diff = textwrap.dedent("""
         -                            'image': 'prefecthq/prefect:2.1.0-python3.8',
         +                            'image': 'foobar',
-        """
-    )
+        """)
     assert expected_diff in caplog.text
 
 
@@ -1549,7 +1547,9 @@ async def test_task_definition_arn_with_overrides_that_do_not_require_copy(
         create_test_ecs_cluster(ecs_client, overrides["cluster"])
         add_ec2_instance_to_ecs_cluster(session, overrides["cluster"])
 
-    task_definition_arn = ecs_client.register_task_definition(**BASE_TASK_DEFINITION,)[
+    task_definition_arn = ecs_client.register_task_definition(
+        **BASE_TASK_DEFINITION,
+    )[
         "taskDefinition"
     ]["taskDefinitionArn"]
 
