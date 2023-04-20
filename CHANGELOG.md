@@ -27,7 +27,8 @@ Released on April 20th, 2023.
 
 ### Fixed
 
-- Fixes retrieving files from large buckets via pagination in the `pull_project_from_s3` step - [#240]((https://github.com/PrefectHQ/prefect-aws/pull/240)
+- Fixes retrieving files from large buckets via pagination in the `pull_project_from_s3` step - [#240](https://github.com/PrefectHQ/prefect-aws/pull/240)
+- Slugify tags to ensure compatibility with ECS limitations - [#245](https://github.com/PrefectHQ/prefect-aws/pull/245)
 
 ### 0.3.0
 
