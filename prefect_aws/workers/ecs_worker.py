@@ -221,15 +221,15 @@ class ECSJobConfiguration(BaseJobConfiguration):
     task_run_request: Dict[str, Any] = Field(
         template=_default_task_run_request_template()
     )
-    configure_cloudwatch_logs: Optional[bool]
+    configure_cloudwatch_logs: Optional[bool] = Field(default=None)
     cloudwatch_logs_options: Dict[str, str] = Field(default_factory=dict)
-    stream_output: Optional[bool]
-    task_start_timeout_seconds: int
-    task_watch_poll_interval: float
-    auto_deregister_task_definition: bool
-    vpc_id: Optional[str]
-    container_name: Optional[str]
-    cluster: Optional[str]
+    stream_output: Optional[bool] = Field(default=None)
+    task_start_timeout_seconds: int = Field(default=240)
+    task_watch_poll_interval: float = Field(default=5.0)
+    auto_deregister_task_definition: bool = Field(default=False)
+    vpc_id: Optional[str] = Field(default=None)
+    container_name: Optional[str] = Field(default=None)
+    cluster: Optional[str] = Field(default=None)
 
     @root_validator
     def task_run_request_requires_arn_if_no_task_definition_given(cls, values) -> dict:
@@ -463,7 +463,7 @@ class ECSVariables(BaseVariables):
         ),
     )
     task_start_timeout_seconds: int = Field(
-        default=120,
+        default=240,
         description=(
             "The amount of time to watch for the start of the ECS task "
             "before marking it as failed. The task must enter a RUNNING state to be "
