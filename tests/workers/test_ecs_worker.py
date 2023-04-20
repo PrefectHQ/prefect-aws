@@ -759,8 +759,8 @@ async def test_labels(
         },
         {
             # Slugified to remove invalid characters
-            "key": "af_sn253@-@-@-bfausfg-:@casXY",
-            "value": "af_sn253@-@-@-bfausfg-:@casXY",
+            "key": "af_sn253@-@-@-bfausfg-:@cas-XY",
+            "value": "af_sn253@-@-@-bfausfg-:@cas-XY",
         },
     ]
 
