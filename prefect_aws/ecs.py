@@ -126,6 +126,7 @@ from slugify import slugify
 from typing_extensions import Literal, Self
 
 from prefect_aws import AwsCredentials
+from prefect_aws.workers.ecs_worker import _TAG_REGEX
 
 # Internal type alias for ECS clients which are generated dynamically in botocore
 _ECSClient = Any
@@ -391,15 +392,15 @@ class ECSTask(Infrastructure):
     )
 
     # Task run settings
-    launch_type: Optional[
-        Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]
-    ] = Field(
-        default="FARGATE",
-        description=(
-            "The type of ECS task run infrastructure that should be used. Note that"
-            " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
-            " the proper capacity provider stategy if set here."
-        ),
+    launch_type: Optional[Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]] = (
+        Field(
+            default="FARGATE",
+            description=(
+                "The type of ECS task run infrastructure that should be used. Note that"
+                " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
+                " the proper capacity provider stategy if set here."
+            ),
+        )
     )
     vpc_id: Optional[str] = Field(
         title="VPC ID",
@@ -1181,8 +1182,10 @@ class ECSTask(Infrastructure):
                 response = logs_client.get_log_events(**request)
             except Exception:
                 self.logger.error(
-                    f"{self._log_prefix}: Failed to read log events with request "
-                    f"{request}",
+                    (
+                        f"{self._log_prefix}: Failed to read log events with request "
+                        f"{request}"
+                    ),
                     exc_info=True,
                 )
                 return last_log_timestamp
@@ -1439,7 +1442,21 @@ class ECSTask(Infrastructure):
         task_run = {
             "overrides": self._prepare_task_run_overrides(),
             "tags": [
-                {"key": key, "value": value} for key, value in self.labels.items()
+                {
+                    "key": slugify(
+                        key,
+                        regex_pattern=_TAG_REGEX,
+                        allow_unicode=True,
+                        lowercase=False,
+                    ),
+                    "value": slugify(
+                        value,
+                        regex_pattern=_TAG_REGEX,
+                        allow_unicode=True,
+                        lowercase=False,
+                    ),
+                }
+                for key, value in self.labels.items()
             ],
             "taskDefinition": task_definition_arn,
         }

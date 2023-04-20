@@ -27,12 +27,10 @@ def tmp_files(tmp_path: Path):
         "testdir2/testfile5.txt",
     ]
 
-    (tmp_path / ".prefectignore").write_text(
-        """
+    (tmp_path / ".prefectignore").write_text("""
     testdir1/*
     .prefectignore
-    """
-    )
+    """)
 
     for file in files:
         filepath = tmp_path / file
@@ -206,14 +204,12 @@ def test_prefectignore_with_comments_and_empty_lines(
     folder = "my-project"
 
     # Update the .prefectignore file with comments and empty lines
-    (tmp_files / ".prefectignore").write_text(
-        """
+    (tmp_files / ".prefectignore").write_text("""
         # This is a comment
         testdir1/*
 
         .prefectignore
-        """
-    )
+        """)
 
     os.chdir(tmp_files)
 
