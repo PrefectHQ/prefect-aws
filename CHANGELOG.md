@@ -17,6 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### 0.3.1
+
+Released on April 20th, 2023.
+
+### Added
+
+- `ECSWorker` for executing Prefect flow runs as ECS tasks - [#238](https://github.com/PrefectHQ/prefect-aws/pull/238)
+
+### Fixed
+
+- Fixes retrieving files from large buckets via pagination in the `pull_project_from_s3` step - [#240]((https://github.com/PrefectHQ/prefect-aws/pull/240)
+
 ### 0.3.0
 
 Released on April 6th, 2023.
