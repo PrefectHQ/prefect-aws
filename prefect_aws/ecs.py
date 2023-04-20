@@ -1441,9 +1441,17 @@ class ECSTask(Infrastructure):
             "overrides": self._prepare_task_run_overrides(),
             "tags": [
                 {
-                    "key": slugify(key, regex_pattern=_TAG_REGEX, allow_unicode=True),
+                    "key": slugify(
+                        key,
+                        regex_pattern=_TAG_REGEX,
+                        allow_unicode=True,
+                        lowercase=False,
+                    ),
                     "value": slugify(
-                        value, regex_pattern=_TAG_REGEX, allow_unicode=True
+                        value,
+                        regex_pattern=_TAG_REGEX,
+                        allow_unicode=True,
+                        lowercase=False,
                     ),
                 }
                 for key, value in self.labels.items()

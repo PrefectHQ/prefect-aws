@@ -734,8 +734,8 @@ async def test_labels(
         aws_credentials=aws_credentials,
         labels={
             "foo": "bar",
-            "af_sn253@!$@&$%@(bfausfg!#!*&):@cas{}[]'": (
-                "af_sn253@!$@&$%@(bfausfg!#!*&):@cas{}[]'"
+            "af_sn253@!$@&$%@(bfausfg!#!*&):@cas{}[]'XY": (
+                "af_sn253@!$@&$%@(bfausfg!#!*&):@cas{}[]'XY"
             ),
         },
     )
@@ -759,8 +759,8 @@ async def test_labels(
         },
         {
             # Slugified to remove invalid characters
-            "key": "af_sn253@-@-@-bfausfg-:@cas",
-            "value": "af_sn253@-@-@-bfausfg-:@cas",
+            "key": "af_sn253@-@-@-bfausfg-:@casXY",
+            "value": "af_sn253@-@-@-bfausfg-:@casXY",
         },
     ]
 

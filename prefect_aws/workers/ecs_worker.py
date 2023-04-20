@@ -1369,10 +1369,16 @@ class ECSWorker(BaseWorker):
         tags = [
             {
                 "key": slugify(
-                    item["key"], regex_pattern=_TAG_REGEX, allow_unicode=True
+                    item["key"],
+                    regex_pattern=_TAG_REGEX,
+                    allow_unicode=True,
+                    lowercase=False,
                 ),
                 "value": slugify(
-                    item["value"], regex_pattern=_TAG_REGEX, allow_unicode=True
+                    item["value"],
+                    regex_pattern=_TAG_REGEX,
+                    allow_unicode=True,
+                    lowercase=False,
                 ),
             }
             for item in tags
