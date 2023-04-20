@@ -732,7 +732,12 @@ async def test_labels(
 ):
     configuration = await construct_configuration(
         aws_credentials=aws_credentials,
-        labels={"foo": "bar"},
+        labels={
+            "foo": "bar",
+            "af_sn253@!$@&$%@(bfausfg!#!*&):@cas{}[]'": (
+                "af_sn253@!$@&$%@(bfausfg!#!*&):@cas{}[]'"
+            ),
+        },
     )
 
     session = aws_credentials.get_boto3_session()
@@ -747,7 +752,17 @@ async def test_labels(
     task = describe_task(ecs_client, task_arn)
     task_definition = describe_task_definition(ecs_client, task)
     assert not task_definition.get("tags"), "Labels should not be passed until runtime"
-    assert task.get("tags") == [{"key": "foo", "value": "bar"}]
+    assert task.get("tags") == [
+        {
+            "key": "foo",
+            "value": "bar",
+        },
+        {
+            # Slugified to remove invalid characters
+            "key": "af_sn253@-@-@-bfausfg-:@cas",
+            "value": "af_sn253@-@-@-bfausfg-:@cas",
+        },
+    ]
 
 
 @pytest.mark.usefixtures("ecs_mocks")
