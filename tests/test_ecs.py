@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import anyio
 import pytest
 import yaml
+from botocore.exceptions import ClientError
 from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.docker import get_prefect_image_name
@@ -20,7 +21,6 @@ from pydantic import ValidationError
 from prefect_aws.ecs import (
     ECS_DEFAULT_CPU,
     ECS_DEFAULT_MEMORY,
-    PREFECT_ECS_CONTAINER_NAME,
     ECSTask,
     get_container,
     get_prefect_container,
@@ -59,22 +59,25 @@ def inject_moto_patches(moto_mock, patches: Dict[str, List[Callable]]):
                 )
 
 
-def patch_describe_tasks_add_prefect_container(describe_tasks, *args, **kwargs):
-    """
-    Adds the minimal prefect container to moto's task description.
-    """
-    result = describe_tasks(*args, **kwargs)
-    for task in result:
-        task.containers = [{"name": PREFECT_ECS_CONTAINER_NAME}]
-    return result
-
-
 def patch_run_task(mock, run_task, *args, **kwargs):
     """
     Track calls to `run_task` by calling a mock as well.
     """
     mock(*args, **kwargs)
     return run_task(*args, **kwargs)
+
+
+def patch_describe_tasks_add_prefect_container(describe_tasks, *args, **kwargs):
+    """
+    Adds the minimal prefect container to moto's task description.
+    """
+    result = describe_tasks(*args, **kwargs)
+    for task in result:
+        if not task.containers:
+            task.containers = []
+        if not get_prefect_container(task.containers):
+            task.containers.append({"name": "prefect"})
+    return result
 
 
 def patch_calculate_task_resource_requirements(
@@ -173,7 +176,9 @@ def describe_task(ecs_client, task_arn, **kwargs) -> dict:
     """
     Describe a single ECS task
     """
-    return ecs_client.describe_tasks(tasks=[task_arn], **kwargs)["tasks"][0]
+    return ecs_client.describe_tasks(tasks=[task_arn], include=["TAGS"], **kwargs)[
+        "tasks"
+    ][0]
 
 
 async def stop_task(ecs_client, task_arn, **kwargs):
@@ -241,7 +246,7 @@ def ecs_mocks(aws_credentials):
                 inject_moto_patches(
                     ecs,
                     {
-                        # Add a container when describing any task
+                        # Ensure container is created in described tasks
                         "describe_tasks": [patch_describe_tasks_add_prefect_container],
                         # Fix moto internal resource requirement calculations
                         "_calculate_task_resource_requirements": [
@@ -948,7 +953,11 @@ async def test_network_config_from_vpc_id(aws_credentials):
 
     # Subnet ids are copied from the vpc
     assert network_configuration == {
-        "awsvpcConfiguration": {"subnets": [subnet.id], "assignPublicIp": "ENABLED"}
+        "awsvpcConfiguration": {
+            "subnets": [subnet.id],
+            "assignPublicIp": "ENABLED",
+            "securityGroups": [],
+        }
     }
 
 
@@ -982,6 +991,7 @@ async def test_network_config_from_default_vpc(aws_credentials):
         "awsvpcConfiguration": {
             "subnets": [subnet["SubnetId"] for subnet in default_subnets],
             "assignPublicIp": "ENABLED",
+            "securityGroups": [],
         }
     }
 
@@ -1244,7 +1254,8 @@ async def test_bridge_network_mode_warns_on_fargate(aws_credentials, launch_type
             f"{launch_type!r}"
         ),
     ):
-        await run_then_stop_task(task)
+        with pytest.raises(ClientError):
+            await run_then_stop_task(task)
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -1261,9 +1272,8 @@ async def test_deregister_task_definition(aws_credentials):
     task_arn = await run_then_stop_task(task)
 
     task = describe_task(ecs_client, task_arn)
-    with pytest.raises(Exception, match="is not a task_definition"):
-        # Oh no it's gone
-        describe_task_definition(ecs_client, task)
+    task_definition = describe_task_definition(ecs_client, task)
+    assert task_definition["status"] == "INACTIVE"
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -1582,8 +1592,7 @@ async def test_deregister_task_definition_does_not_apply_to_linked_arn(aws_crede
     task_arn = await run_then_stop_task(task)
 
     task = describe_task(ecs_client, task_arn)
-    # The task definition can be retrieved still
-    assert describe_task_definition(ecs_client, task)
+    describe_task_definition(ecs_client, task)["status"] == "ACTIVE"
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -1624,8 +1633,8 @@ async def test_adding_security_groups_to_network_config(aws_credentials):
     assert network_configuration == {
         "awsvpcConfiguration": {
             "subnets": [subnet.id],
-            "securityGroups": [security_group_id],
             "assignPublicIp": "ENABLED",
+            "securityGroups": [security_group_id],
         }
     }
 
@@ -1665,6 +1674,7 @@ async def test_disable_public_ip_in_network_config(aws_credentials):
         "awsvpcConfiguration": {
             "subnets": [subnet.id],
             "assignPublicIp": "DISABLED",
+            "securityGroups": [],
         }
     }
 
@@ -1708,6 +1718,7 @@ async def test_custom_subnets_in_the_network_configuration(aws_credentials):
         "awsvpcConfiguration": {
             "subnets": [subnet.id],
             "assignPublicIp": "DISABLED",
+            "securityGroups": [],
         }
     }
 

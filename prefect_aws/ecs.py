@@ -152,6 +152,7 @@ POST_REGISTRATION_FIELDS = [
     "requiresAttributes",
     "registeredAt",
     "registeredBy",
+    "deregisteredAt",
 ]
 
 
@@ -693,7 +694,9 @@ class ECSTask(Infrastructure):
                 raise InfrastructureNotFound(
                     f"Cannot stop ECS task: the cluster {cluster!r} could not be found."
                 ) from exc
-            if "not find task" in str(exc):
+            if "not find task" in str(exc) or "referenced task was not found" in str(
+                exc
+            ):
                 raise InfrastructureNotFound(
                     f"Cannot stop ECS task: the task {task!r} could not be found in "
                     f"cluster {cluster!r}."
@@ -1013,9 +1016,9 @@ class ECSTask(Infrastructure):
         last_status = status = current_status
         t0 = time.time()
         while status != until_status:
-            tasks = ecs_client.describe_tasks(tasks=[task_arn], cluster=cluster_arn)[
-                "tasks"
-            ]
+            tasks = ecs_client.describe_tasks(
+                tasks=[task_arn], cluster=cluster_arn, include=["TAGS"]
+            )["tasks"]
 
             if tasks:
                 task = tasks[0]
@@ -1041,7 +1044,7 @@ class ECSTask(Infrastructure):
             if timeout is not None and elapsed_time > timeout:
                 raise RuntimeError(
                     f"Timed out after {elapsed_time}s while watching task for status "
-                    "{until_status or 'STOPPED'}"
+                    f"{until_status or 'STOPPED'}"
                 )
             time.sleep(self.task_watch_poll_interval)
 
@@ -1421,6 +1424,7 @@ class ECSTask(Infrastructure):
             "awsvpcConfiguration": {
                 "subnets": [s["SubnetId"] for s in subnets],
                 "assignPublicIp": "ENABLED",
+                "securityGroups": [],
             }
         }
 
