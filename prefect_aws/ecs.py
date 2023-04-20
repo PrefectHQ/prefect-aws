@@ -392,15 +392,15 @@ class ECSTask(Infrastructure):
     )
 
     # Task run settings
-    launch_type: Optional[
-        Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]
-    ] = Field(
-        default="FARGATE",
-        description=(
-            "The type of ECS task run infrastructure that should be used. Note that"
-            " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
-            " the proper capacity provider stategy if set here."
-        ),
+    launch_type: Optional[Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]] = (
+        Field(
+            default="FARGATE",
+            description=(
+                "The type of ECS task run infrastructure that should be used. Note that"
+                " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
+                " the proper capacity provider stategy if set here."
+            ),
+        )
     )
     vpc_id: Optional[str] = Field(
         title="VPC ID",
@@ -1182,8 +1182,10 @@ class ECSTask(Infrastructure):
                 response = logs_client.get_log_events(**request)
             except Exception:
                 self.logger.error(
-                    f"{self._log_prefix}: Failed to read log events with request "
-                    f"{request}",
+                    (
+                        f"{self._log_prefix}: Failed to read log events with request "
+                        f"{request}"
+                    ),
                     exc_info=True,
                 )
                 return last_log_timestamp
