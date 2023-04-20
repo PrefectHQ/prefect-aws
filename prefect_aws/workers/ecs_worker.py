@@ -125,6 +125,7 @@ taskDefinition: "{{ task_definition_arn }}"
 
 
 _TASK_DEFINITION_CACHE: Dict[UUID, str] = {}
+_TAG_REGEX = r"[^a-zA-Z0-9-_.=+-@: ]+"
 
 
 class ECSIdentifier(NamedTuple):
@@ -1363,6 +1364,26 @@ class ECSWorker(BaseWorker):
             for k, v in configuration.labels.items()
             if v is not None
         ]
+
+        # Slugify tags keys and values
+        tags = [
+            {
+                "key": slugify(
+                    item["key"],
+                    regex_pattern=_TAG_REGEX,
+                    allow_unicode=True,
+                    lowercase=False,
+                ),
+                "value": slugify(
+                    item["value"],
+                    regex_pattern=_TAG_REGEX,
+                    allow_unicode=True,
+                    lowercase=False,
+                ),
+            }
+            for item in tags
+        ]
+
         if tags:
             task_run_request["tags"] = tags
 
