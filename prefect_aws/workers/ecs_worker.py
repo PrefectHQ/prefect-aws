@@ -224,7 +224,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
     configure_cloudwatch_logs: Optional[bool] = Field(default=None)
     cloudwatch_logs_options: Dict[str, str] = Field(default_factory=dict)
     stream_output: Optional[bool] = Field(default=None)
-    task_start_timeout_seconds: int = Field(default=240)
+    task_start_timeout_seconds: int = Field(default=300)
     task_watch_poll_interval: float = Field(default=5.0)
     auto_deregister_task_definition: bool = Field(default=False)
     vpc_id: Optional[str] = Field(default=None)
@@ -463,7 +463,7 @@ class ECSVariables(BaseVariables):
         ),
     )
     task_start_timeout_seconds: int = Field(
-        default=240,
+        default=300,
         description=(
             "The amount of time to watch for the start of the ECS task "
             "before marking it as failed. The task must enter a RUNNING state to be "
