@@ -126,6 +126,7 @@ from slugify import slugify
 from typing_extensions import Literal, Self
 
 from prefect_aws import AwsCredentials
+from prefect_aws.workers.ecs_worker import _TAG_REGEX
 
 # Internal type alias for ECS clients which are generated dynamically in botocore
 _ECSClient = Any
@@ -1439,7 +1440,21 @@ class ECSTask(Infrastructure):
         task_run = {
             "overrides": self._prepare_task_run_overrides(),
             "tags": [
-                {"key": key, "value": value} for key, value in self.labels.items()
+                {
+                    "key": slugify(
+                        key,
+                        regex_pattern=_TAG_REGEX,
+                        allow_unicode=True,
+                        lowercase=False,
+                    ),
+                    "value": slugify(
+                        value,
+                        regex_pattern=_TAG_REGEX,
+                        allow_unicode=True,
+                        lowercase=False,
+                    ),
+                }
+                for key, value in self.labels.items()
             ],
             "taskDefinition": task_definition_arn,
         }
