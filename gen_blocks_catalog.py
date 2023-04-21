@@ -35,9 +35,7 @@ def insert_blocks_catalog(generated_file):
     module_blocks = find_module_blocks()
     if len(module_blocks) == 0:
         return
-    generated_file.write(
-        dedent(
-            f"""
+    generated_file.write(dedent(f"""
             Below is a list of Blocks available for registration in
             `prefect-aws`.
 
@@ -49,9 +47,7 @@ def insert_blocks_catalog(generated_file):
             ```bash
             prefect block register -m {COLLECTION_SLUG}
             ```
-            """  # noqa
-        )
-    )
+            """))  # noqa
     generated_file.write(
         "Note, to use the `load` method on Blocks, you must already have a block document "  # noqa
         "[saved through code](https://docs.prefect.io/concepts/blocks/#saving-blocks) "  # noqa
@@ -74,9 +70,7 @@ def insert_blocks_catalog(generated_file):
             generated_file.write(
                 f"[{block_name}][{module_path}.{block_name}]\n\n{block_description}\n\n"
             )
-            generated_file.write(
-                dedent(
-                    f"""
+            generated_file.write(dedent(f"""
                     To load the {block_name}:
                     ```python
                     from prefect import flow
@@ -88,13 +82,11 @@ def insert_blocks_catalog(generated_file):
 
                     my_flow()
                     ```
-                    """
-                )
-            )
+                    """))
         generated_file.write(
             f"For additional examples, check out the [{module_title} Module]"
             f"(../examples_catalog/#{module_nesting[-1]}-module) "
-            f"under Examples Catalog.\n"
+            "under Examples Catalog.\n"
         )
 
 
