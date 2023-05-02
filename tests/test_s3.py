@@ -585,6 +585,10 @@ class TestS3Bucket:
         )
         return _s3_bucket_with_objects
 
+    def test_credentials_are_correct_type(self, credentials):
+        s3_bucket = S3Bucket(bucket_name="bucket", credentials=credentials)
+        assert isinstance(s3_bucket.credentials, type(credentials))
+
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
     def test_list_objects_empty(self, s3_bucket_empty, client_parameters):
         assert s3_bucket_empty.list_objects() == []
