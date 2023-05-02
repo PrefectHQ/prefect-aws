@@ -265,6 +265,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         ),
     )
 
+    class Config:
+        smart_union = True
+
     # Property to maintain compatibility with storage block based deployments
     @property
     def basepath(self) -> str:
