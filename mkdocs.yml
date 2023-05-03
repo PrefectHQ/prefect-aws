@@ -79,6 +79,7 @@ nav:
         - Batch: batch.md
         - Client Waiter: client_waiter.md
         - Credentials: credentials.md
+        - ECS Worker: ecs_worker.md
         - ECS: ecs.md
         - Projects:
           - Steps: projects/steps.md
