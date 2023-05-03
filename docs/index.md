@@ -105,7 +105,7 @@ s3_client.create_bucket(
 )
 s3_bucket = S3Bucket(
     bucket_name=bucket_name,
-    aws_credentials=aws_credentials,
+    credentials=aws_credentials,
 )
 s3_bucket.save(os.environ["S3_BUCKET_BLOCK_NAME"], overwrite=True)
 ```
