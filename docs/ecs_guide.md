@@ -206,6 +206,7 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
 'prefect deploy my_flow.py:my_flow --name ecs-worker-test-deployment --pool my-ecs-pool'
 - Ad hoc run the flow
 
+**Ensure you have a project set up that has the necessary build, pull, and push steps configured in order to take advantage of the ECS worker**
 TODO: clean this up and add more
 - Create a project example of pulling & pushing with the ecs worker
 
