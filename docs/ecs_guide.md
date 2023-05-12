@@ -208,8 +208,3 @@ TODO: clean this up and add more
 'prefect deploy my_flow.py:my_flow --name ecs-worker-test-deployment --pool my-ecs-pool'
 - Ad hoc run the flow
 
-## Trouble Shooting
-TODO: Add more here
-
-## Next Steps -- ECS Work Pool Configuration Options for finer tuned flow execution
-TODO: Add in reccomendations for ecs workpool fields
