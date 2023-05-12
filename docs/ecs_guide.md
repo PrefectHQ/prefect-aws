@@ -209,10 +209,6 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
 TODO: clean this up and add more
 - Create a project example of pulling & pushing with the ecs worker
 
-## Trouble Shooting
-- Ensuring 'prefect-aws' is correctly installed
-- VPC group created in order to run work
-- Recycling the api key associated with your agent
 
 ## Next Steps -- ECS Work Pool Configuration Options for finer tuned flow execution
 TODO: Add in recommendations for ecs workpool fields
