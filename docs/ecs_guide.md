@@ -202,11 +202,12 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
     The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is alive!
 
 ### Now pick up a flow run with our new worker!
-TODO: clean this up and add more
-- Create a simple flow 
 - Deploy the flow with the preconfigured ecs-pool
 'prefect deploy my_flow.py:my_flow --name ecs-worker-test-deployment --pool my-ecs-pool'
 - Ad hoc run the flow
+
+TODO: clean this up and add more
+- Create a project example of pulling & pushing with the ecs worker
 
 ## Trouble Shooting
 - Ensuring 'prefect-aws' is correctly installed
