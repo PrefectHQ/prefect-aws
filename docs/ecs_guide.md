@@ -1,4 +1,4 @@
-# ECS Execution
+# Deploy an ECS Worker in AWS
 
 ## General Introduction
 
@@ -52,20 +52,28 @@ You can use either EC2 or Fargate as capacity providers. Fargate simplifies init
 
 # **How to Get Started**
 
-### Setting Up an ECS Work Pool
-Before setting up the worker, you'll want to create a bare-bones Work Pool with type ECS so that you have something for the worker to pull from.
-
-`prefect work-pool create --type ecs my-ecs-pool`
-
-### Setting up an ECS Worker
-Next, you'll want to start a Prefect worker in your ECS cluster.
-
 #### Prerequisites
 Before you begin, make sure you have:
 
 - An AWS account with permissions to create ECS services and IAM roles.
 - The AWS CLI installed on your local machine. You can [download it from the AWS website](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
-- A Docker image for your Prefect worker, which you can build and push to the Amazon ECR registry. 
+- An [ECS Cluster](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html) to host both the worker and the flow runs it submits.
+- A VPC configured for your ECS tasks, especially important to have this if you are choosing to use AWS Fargate as the ECS capacity provider.
+
+### Setting Up an ECS Work Pool
+Before setting up the worker, you'll want to create a bare-bones [Work Pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration) with type ECS so that you have something for the worker to pull from.
+
+`prefect work-pool create --type ecs my-ecs-pool`
+
+Configuring any custom fields is easiest from the UI.
+!!! Warning
+    You need to have a VPC specified for your work pool if you are using AWS Fargate.
+
+Next, lets set up an ECS worker that will discover and pull work from this Work Pool.
+### Setting up an ECS Worker
+Now, you'll want to start a Prefect worker in your ECS cluster.
+
+Create a Docker image for your Prefect worker, which you can build and push to the Amazon ECR registry. 
 
 For example, a minimal Dockerfile for an ECS worker could look like:
 ```Dockerfile
@@ -124,9 +132,9 @@ To create an IAM role for the ECS task using AWS CLI, you will need to follow th
     ```
 
 
-Now, you have a role named `ecsTaskExecutionRole` that you can assign to your ECS tasks. This role has the necessary permissions to pull container images and publish logs to CloudWatch.
+Remember to replace the `--role-name` and `--policy-arn` with the actual role name and policy Amazon Resource Name (ARN) you want to use.
 
-Also, remember to replace the --role-name and --policy-arn with the actual role name and policy Amazon Resource Name (ARN) you want to use.
+Now, you have a role named `ecsTaskExecutionRole` that you can assign to your ECS tasks. This role has the necessary permissions to pull container images and publish logs to CloudWatch.
 
 
 ### Step 2: Create a Task Definition
@@ -174,14 +182,17 @@ Here are the steps:
 
 - Use `prefect config view` to see the values for `PREFECT_API_URL`. For the `PREFECT_API_KEY`, organization tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker, personal tiers can pass a user’s API key here.
 - Replace `<your-ecs-task-role-arn>` with the ARN of the IAM role you created in Step 1, and `<your-ecr-image>` with the URI of the Docker image you pushed to Amazon ECR.
+- As you can see the CPU and Memory allocations are relatively small given that the workers main responsibility is to submit work _not_ to execute your Prefect flow.
 
 !!! tip 
     To avoid hardcoding your API key into the task definition JSON see [how to add environment variables to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition).
 
 
-## Step 3: Create an ECS Service to Host and Restart your worker as needed
+## Step 3: Create an ECS Service to run your Worker
 
-Finally, you can create an ECS Fargate service that will run your Prefect worker task without needing to manage the underlying EC2 instances. Here are the steps:
+Finally, you can create an service that will manage your Prefect worker. 
+
+Here are the steps:
 
 1. Open a terminal window and run the following command to create an ECS Fargate service:
 
@@ -202,12 +213,13 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
     The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is alive!
 
 ### Now pick up a flow run with our new worker!
-- Programatically [create a work pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration)
-- (Alternate) Configure the ecs-pool within the UI accordingly
-### ![ECS Work Pool Screenshot1](img/workpool_UI_1.png)
-- Only necessary configuration is the VPC 
-### ![ECS Work Pool Screenshot2](img/workpool_UI_2.png)
-- Include AWS credentials block to streamline the work pool creation
-- Deploy the flow with the preconfigured ecs-pool
-'prefect deploy my_flow.py:my_flow --name ecs-worker-test-deployment --pool my-ecs-pool'
-- Ad hoc run the flow
+
+1. Create a prefect project
+https://docs.prefect.io/latest/concepts/projects/#the-pull-section
+
+2. Deploy a flow that sends work to the new ECS Work Pool
+
+```bash
+prefect deploy my_flow.py:my_flow --name ecs-test-deployment --pool my-ecs-pool
+```
+3. Run your flow and profit $$$$$
