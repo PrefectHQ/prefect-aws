@@ -69,6 +69,8 @@ Configuring any custom fields is easiest from the UI.
 !!! Warning
     You need to have a VPC specified for your work pool if you are using AWS Fargate.
 
+TODO:
+Pictures of UI cropped
 Next, lets set up an ECS worker that will discover and pull work from this Work Pool.
 ### Setting up an ECS Worker
 Now, you'll want to start a Prefect worker in your ECS cluster.
