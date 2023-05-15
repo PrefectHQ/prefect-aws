@@ -204,9 +204,9 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
 ### Now pick up a flow run with our new worker!
 - Programatically [create a work pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration)
 - (Alternate) Configure the ecs-pool within the UI accordingly
-![ECS Work Pool Screenshot1](img/workpool_UI_1.png)
+### ![ECS Work Pool Screenshot1](img/workpool_UI_1.png)
 - Only necessary configuration is the VPC 
-![ECS Work Pool Screenshot2](img/workpool_UI_2.png)
+### ![ECS Work Pool Screenshot2](img/workpool_UI_2.png)
 - Include AWS credentials block to streamline the work pool creation
 - Deploy the flow with the preconfigured ecs-pool
 'prefect deploy my_flow.py:my_flow --name ecs-worker-test-deployment --pool my-ecs-pool'
