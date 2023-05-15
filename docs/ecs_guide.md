@@ -202,6 +202,10 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
     The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is alive!
 
 ### Now pick up a flow run with our new worker!
+- Programatically [create a work pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration)
+- (Alternate) Configure the ecs-pool within the UI accordingly
+![ECS Work Pool Screenshot1](img/workpool_UI_1.png)
+![ECS Work Pool Screenshot2](img/workpool_UI_2.png)
 - Deploy the flow with the preconfigured ecs-pool
 'prefect deploy my_flow.py:my_flow --name ecs-worker-test-deployment --pool my-ecs-pool'
 - Ad hoc run the flow
