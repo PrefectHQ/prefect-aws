@@ -173,7 +173,7 @@ Here are the steps:
         "start",
         "--pool",
         "my-ecs-pool"
-      ]
+      ],
       "environment": [
         {
           "name": "PREFECT_API_URL",
