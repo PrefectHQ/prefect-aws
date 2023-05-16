@@ -65,11 +65,18 @@ Before setting up the worker, you'll want to create a bare-bones [Work Pool](htt
 
 `prefect work-pool create --type ecs my-ecs-pool`
 
+Configure the VPC and ECS Cluster via the UI edit configuration option on the work pool
+![VPC](img/VPC_UI.png)
+
 Configuring any custom fields is easiest from the UI.
+
+![ECSCluster](img/ECSCluster_UI.png)
+
 !!! Warning
     You need to have a VPC specified for your work pool if you are using AWS Fargate.
+    
+![Launch](img/LaunchType_UI.png)
 
-TODO:
 Pictures of UI cropped
 Next, lets set up an ECS worker that will discover and pull work from this Work Pool.
 ### Setting up an ECS Worker
