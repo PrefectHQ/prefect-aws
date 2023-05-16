@@ -223,24 +223,25 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
 
 ### Now pick up a flow run with our new worker!
 
-0. Write a simple test flow.
+1. Write a simple test flow.
 
-`my_flow.py`
-```python
-from prefect import flow, get_run_logger
+    `my_flow.py`
+    ```python
+    from prefect import flow, get_run_logger
 
-@flow
-def my_flow():
-    logger = get_run_logger()
-    logger.info("Hello from ECS!!")
-```
+    @flow
+    def my_flow():
+        logger = get_run_logger()
+        logger.info("Hello from ECS!!")
+    ```
 
-1. [Create a prefect project](https://docs.prefect.io/latest/tutorials/projects/#initializing-a-project) and, most importantly, populate a [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code.
+2. [Create a prefect project](https://docs.prefect.io/latest/tutorials/projects/#initializing-a-project) and, most importantly, populate a [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code.
 
 
-2. Deploy a flow that sends work to the new ECS Work Pool
+3. Deploy a flow that sends work to the new ECS Work Pool
 
-```bash
-prefect deploy my_flow.py:my_flow --name ecs-test-deployment --pool my-ecs-pool
-```
-3. Find the deployment in the UI and click the quick run button!
+    ```bash
+    prefect deploy my_flow.py:my_flow --name ecs-test-deployment --pool my-ecs-pool
+    ```
+
+4. Find the deployment in the UI and click the quick run button!
