@@ -5,31 +5,24 @@
 
 ```mermaid
 graph TB
-    subgraph ecs_cluster[ECS Cluster]
-  
-        subgraph ecs_service[ECS Service]
-            td_worker[Worker Task Definition] -- rebuilds --> prefect_worker((Prefect Worker))
-        end
-
-        prefect_worker -- spins up --> ecs_task
-
-        subgraph ecs_task[ECS Task for Each Flow Run]
-            fr_task_definition[Flow Run Task Definition]
-        end
+  subgraph ecs_cluster[ECS Cluster]
+    subgraph ecs_service[ECS Service]
+      td_worker[Worker Task Definition] --> prefect_worker((Prefect Worker))
     end
-
-    subgraph prefect_cloud[Prefect Cloud]
-
-        subgraph prefect_workpool[ECS Workpool]
-
-        default_workqueue[Default Workqueue]
-    
-        end
+    prefect_worker --> ecs_task
+    subgraph ecs_task[ECS Task for Each Flow Run]
+      fr_task_definition[Flow Run Task Definition]
     end
+  end
 
-        prefect_workpool -- configures --> fr_task_definition
+  subgraph prefect_cloud[Prefect Cloud]
+    subgraph prefect_workpool[ECS Workpool]
+      default_workqueue[Default Workqueue]
+    end
+  end
 
-        prefect_worker -- polls --> default_workqueue
+  prefect_worker -->|polls| default_workqueue
+  prefect_workpool -->|configures| fr_task_definition
 ```
 
 ECS (Elastic Container Service) tasks are a good option for hosting Prefect 2 flow runs due to the few reasons:
