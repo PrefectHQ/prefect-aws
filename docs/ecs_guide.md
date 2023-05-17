@@ -9,7 +9,7 @@ graph TB
     subgraph ecs_service[ECS Service]
       td_worker[Worker Task Definition] --> prefect_worker((Prefect Worker))
     end
-    prefect_worker --> ecs_task
+    prefect_worker -->|kicks off| ecs_task
     subgraph ecs_task[ECS Task for Each Flow Run]
       fr_task_definition[Flow Run Task Definition]
     end
@@ -24,6 +24,7 @@ graph TB
   prefect_worker -->|polls| default_workqueue
   prefect_workpool -->|configures| fr_task_definition
 ```
+### Why Use ECS for Flow Execution?
 
 ECS (Elastic Container Service) tasks are a good option for hosting Prefect 2 flow runs due to the few reasons:
 
@@ -35,15 +36,21 @@ ECS (Elastic Container Service) tasks are a good option for hosting Prefect 2 fl
 !!! tip "ECS Tasks != Prefect Tasks"
     An ECS Task is **not** the same thing as a Prefect task. ECS tasks are run as part of an ECS Cluster, they launch container(s) as defined in the ECS Task definition. An ECS *task definition* is the blueprint for the ECS task that describes which Docker container(s) to run and what you want to have happen inside these container(s).
 
+### ECS in Prefect Terms
 
 The ECS task running the Prefect worker should be an ECS service, given its long-running nature and need for auto-recovery in case of abrupt stops. ECS services ensure a constant number of tasks, replacing any that fail due to errors or instance replacements, making them ideal for managing long-term processes like the Prefect Worker.
 
 Conversely, ECS Tasks are temporary instances of a Task Definition. They launch containers as per the task definition until they're stopped or exit, making them ideal for ephemeral processes like a Prefect Flow Run.
 
+The ECS Work Pool will build a task definition for each flow run based on its configuration, if you do not pass a Task Definition ARN to the Work Pool instead. 
+
 You can use either EC2 or Fargate as capacity providers. Fargate simplifies initiation but lengthens infrastructure setup time for each flow run. Using EC2 for the ECS cluster can lessen this delay.
 <hr>
 
-# **How to Get Started**
+!!! tip
+    If you prefer IaC check out this [terraform module](https://github.com/PrefectHQ/prefect-recipes/tree/main/devops/infrastructure-as-code/aws/tf-prefect2-ecs-worker) to provision an ECS cluster with a worker.
+
+## **How to Get Started**
 
 #### Prerequisites
 Before you begin, make sure you have:
@@ -190,7 +197,7 @@ Here are the steps:
     To avoid hardcoding your API key into the task definition JSON see [how to add environment variables to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition).
 
 
-## Step 3: Create an ECS Service to run your Worker
+### Step 3: Create an ECS Service to run your Worker
 
 Finally, you can create an service that will manage your Prefect worker. 
 
