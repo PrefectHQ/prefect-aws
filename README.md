@@ -34,4 +34,4 @@ pip install prefect-aws
 
 ### Contributing
 
-Thanks for thinking about chipping in! Check out this [step-by-step guide](https://prefecthq.github.io/prefect-gcp/#installation) on how to get started.
+Thanks for thinking about chipping in! Check out this [step-by-step guide](https://prefecthq.github.io/prefect-aws/#installation) on how to get started.
