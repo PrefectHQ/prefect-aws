@@ -63,9 +63,11 @@ Before you begin, make sure you have:
 ### Setting Up an ECS Work Pool
 Before setting up the worker, you'll want to create a bare-bones [Work Pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration) with type ECS so that you have something for the worker to pull from.
 
+Using the Prefect CLI:
+
 `prefect work-pool create --type ecs my-ecs-pool`
 
-Configure the VPC and ECS Cluster via the UI edit configuration option on the work pool
+Configure the VPC and ECS Cluster for your Work Pool via the UI:
 ![VPC](img/VPC_UI.png)
 
 Configuring any custom fields is easiest from the UI.
@@ -76,8 +78,8 @@ Configuring any custom fields is easiest from the UI.
     You need to have a VPC specified for your work pool if you are using AWS Fargate.
     
 ![Launch](img/LaunchType_UI.png)
+<sub>Pictures of UI Cropped
 
-Pictures of UI cropped
 Next, lets set up an ECS worker that will discover and pull work from this Work Pool.
 ### Setting up an ECS Worker
 Now, you'll want to start a Prefect worker in your ECS cluster.
@@ -197,7 +199,7 @@ Here are the steps:
     To avoid hardcoding your API key into the task definition JSON see [how to add environment variables to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition).
 
 
-### Step 3: Create an ECS Service to run your Worker
+### Step 3: Create an ECS Service to host your Worker
 
 Finally, you can create an service that will manage your Prefect worker. 
 
@@ -245,3 +247,10 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
     ```
 
 4. Find the deployment in the UI and click the quick run button!
+
+### Next Steps
+!!! Reminder
+    Work Pools allow you to set flow run infrastructure configuration.
+
+Now that you are confident the ECS Worker is healthy, you can experiment with different Work Pool configurations. Do your work flows require higher CPU? Would an EC2 launch type speed up your flow run execution? Also remember that these infrastructure configuration values can be [overriden on the deployment level](https://docs.prefect.io/latest/concepts/infrastructure/#kubernetesjob-overrides-and-customizations) if desired.
+
