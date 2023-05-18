@@ -5,11 +5,13 @@
 
 ```mermaid
 graph TB
+
   subgraph ecs_cluster[ECS Cluster]
     subgraph ecs_service[ECS Service]
-      td_worker[Worker Task Definition] --> prefect_worker((Prefect Worker))
+      td_worker[Worker Task Definition] --> |restarts| prefect_worker((Prefect Worker))
     end
     prefect_worker -->|kicks off| ecs_task
+    
     subgraph ecs_task[ECS Task for Each Flow Run]
       fr_task_definition[Flow Run Task Definition]
     end
@@ -21,6 +23,7 @@ graph TB
     end
   end
 
+  flow_code[Flow Code] --> |prefect project pull step| ecs_task
   prefect_worker -->|polls| default_workqueue
   prefect_workpool -->|configures| fr_task_definition
 ```
