@@ -225,7 +225,7 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
 
 ### Now pick up a flow run with our new worker!
 
-1. Write a simple test flow.
+1. Write a simple test flow:
 
     `my_flow.py`
     ```python
@@ -237,20 +237,25 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
         logger.info("Hello from ECS!!")
     ```
 
-2. [Create a prefect project](https://docs.prefect.io/latest/tutorials/projects/#initializing-a-project) and, most importantly, populate a [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code.
+2. [Create a Prefect Project](https://docs.prefect.io/latest/tutorials/projects/#initializing-a-project) and, most importantly, define a [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code.
 
 
-3. Deploy a flow that sends work to the new ECS Work Pool
+3. Deploy a flow to the ECS Work Pool
 
     ```bash
     prefect deploy my_flow.py:my_flow --name ecs-test-deployment --pool my-ecs-pool
     ```
 
-4. Find the deployment in the UI and click the quick run button!
+4. Find the deployment in the UI and click the **Quick Run** button!
 
 ### Next Steps
 !!! Reminder
-    Work Pools allow you to set flow run infrastructure configuration.
+    Flow run infrastructure configuration is set a the [Work Pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-overview) or [Deployment](https://docs.prefect.io/latest/concepts/deployments/) level.
 
-Now that you are confident the ECS Worker is healthy, you can experiment with different Work Pool configurations. Do your work flows require higher CPU? Would an EC2 launch type speed up your flow run execution? Also remember that these infrastructure configuration values can be [overriden on the deployment level](https://docs.prefect.io/latest/concepts/infrastructure/#kubernetesjob-overrides-and-customizations) if desired.
+Now that you are confident the ECS Worker is healthy, you can experiment with different Work Pool configurations. 
+
+- Do your flow runs require higher `CPU`?
+- Would an EC2 `Launch Type` speed up your flow run execution? 
+
+These infrastructure configuration values can be set on your ECS Work Pool or they can be [overriden on the deployment level](https://docs.prefect.io/latest/concepts/infrastructure/#kubernetesjob-overrides-and-customizations) if desired.
 
