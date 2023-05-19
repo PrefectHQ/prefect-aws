@@ -67,8 +67,10 @@ def object_in_folder(bucket, tmp_path):
 def objects_in_folder(bucket, tmp_path):
     objects = []
     for filename in [
-        "folderobject/foo.txt", "folderobject/bar.txt",
-        "folder/object/foo.txt", "folder/object/bar.txt"
+        "folderobject/foo.txt",
+        "folderobject/bar.txt",
+        "folder/object/foo.txt",
+        "folder/object/bar.txt",
     ]:
         file = tmp_path / filename
         file.parent.mkdir(parents=True, exist_ok=True)
@@ -258,7 +260,7 @@ async def test_s3_list_objects_prefix(
     assert [object["Key"] for object in objects] == ["folder/object"]
 
 
-@pytest.mark.parametrize('client_parameters', aws_clients, indirect=True)
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
 async def test_s3_list_objects_prefix_slashes(
     object, client_parameters, objects_in_folder, aws_credentials
 ):
@@ -266,19 +268,26 @@ async def test_s3_list_objects_prefix_slashes(
     async def test_flow(slash=False):
         return await s3_list_objects(
             bucket="bucket",
-            prefix="folder" + (os.sep if slash else ''),
+            prefix="folder" + (os.sep if slash else ""),
             aws_credentials=aws_credentials,
-            aws_client_parameters=client_parameters
+            aws_client_parameters=client_parameters,
         )
 
     objects = await test_flow(slash=True)
     assert len(objects) == 2
-    assert [object["Key"] for object in objects] == ['folder/object/bar', 'folder/object/foo']
+    assert [object["Key"] for object in objects] == [
+        "folder/object/bar",
+        "folder/object/foo",
+    ]
 
     objects = await test_flow(slash=False)
     assert len(objects) == 4
     assert [object["Key"] for object in objects] == [
-        'folder/object/bar', 'folder/object/foo', 'folderobject/bar', 'folderobject/foo']
+        "folder/object/bar",
+        "folder/object/foo",
+        "folderobject/bar",
+        "folderobject/foo",
+    ]
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
@@ -653,15 +662,25 @@ class TestS3Bucket:
         assert [object["Key"] for object in objects] == ["folder/object", "object"]
 
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
-    def test_list_objects_with_params(self, s3_bucket_with_similar_objects, client_parameters):
+    def test_list_objects_with_params(
+        self, s3_bucket_with_similar_objects, client_parameters
+    ):
         objects = s3_bucket_with_similar_objects.list_objects("folder/object/")
         assert len(objects) == 2
-        assert [object["Key"] for object in objects] == ['folder/object/bar', 'folder/object/foo']
+        assert [object["Key"] for object in objects] == [
+            "folder/object/bar",
+            "folder/object/foo",
+        ]
 
         objects = s3_bucket_with_similar_objects.list_objects("folder")
         assert len(objects) == 5
         assert [object["Key"] for object in objects] == [
-            'folder/object', 'folder/object/bar', 'folder/object/foo', 'folderobject/bar', 'folderobject/foo']
+            "folder/object",
+            "folder/object/bar",
+            "folder/object/foo",
+            "folderobject/bar",
+            "folderobject/foo",
+        ]
 
     @pytest.mark.parametrize("to_path", [Path("to_path"), "to_path", None])
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)

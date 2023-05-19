@@ -546,8 +546,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                 f"bucket folder {self.bucket_folder!r}; is this intentional?"
             )
 
-        return (Path(self.bucket_folder) / bucket_path).as_posix() +\
-               ("" if not os.path.join(bucket_path).endswith(os.sep) else os.sep)
+        return (Path(self.bucket_folder) / bucket_path).as_posix() + (
+            "" if not os.path.join(bucket_path).endswith(os.sep) else os.sep
+        )
 
     @sync_compatible
     async def list_objects(
