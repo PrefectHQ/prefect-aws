@@ -268,7 +268,7 @@ async def test_s3_list_objects_prefix_slashes(
     async def test_flow(slash=False):
         return await s3_list_objects(
             bucket="bucket",
-            prefix="folder" + (os.sep if slash else ""),
+            prefix="folder" + ("/" if slash else ""),
             aws_credentials=aws_credentials,
             aws_client_parameters=client_parameters,
         )
