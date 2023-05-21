@@ -547,7 +547,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             )
 
         return (Path(self.bucket_folder) / bucket_path).as_posix() + (
-            "" if not os.path.join(bucket_path).endswith(os.sep) else os.sep
+            "" if not os.path.join(bucket_path).endswith("/") else "/"
         )
 
     @sync_compatible
