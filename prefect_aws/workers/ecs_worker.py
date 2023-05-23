@@ -497,6 +497,14 @@ class ECSWorker(BaseWorker):
     type = "ecs"
     job_configuration = ECSJobConfiguration
     job_configuration_variables = ECSVariables
+    _description = (
+        "Execute flow runs within containers on AWS ECS. Works with existing ECS "
+        "clusters and serverless execution via AWS Fargate. Requires an AWS account."
+    )
+    _display_name = "AWS Elastic Container Service"
+    _documentation_url = "https://prefecthq.github.io/prefect-aws/ecs_worker/"
+    _is_beta = True
+    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
 
     def get_logger(self, flow_run: FlowRun):
         """
