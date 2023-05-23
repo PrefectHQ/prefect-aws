@@ -64,6 +64,25 @@ def object_in_folder(bucket, tmp_path):
 
 
 @pytest.fixture
+def objects_in_folder(bucket, tmp_path):
+    objects = []
+    for filename in [
+        "folderobject/foo.txt",
+        "folderobject/bar.txt",
+        "folder/object/foo.txt",
+        "folder/object/bar.txt",
+    ]:
+        file = tmp_path / filename
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_text("TEST OBJECTS IN FOLDER")
+        with open(file, "rb") as f:
+            filename = Path(filename)
+            obj = bucket.upload_fileobj(f, (filename.parent / filename.stem).as_posix())
+            objects.append(obj)
+    return objects
+
+
+@pytest.fixture
 def a_lot_of_objects(bucket, tmp_path):
     objects = []
     for i in range(0, 20):
@@ -239,6 +258,36 @@ async def test_s3_list_objects_prefix(
     objects = await test_flow()
     assert len(objects) == 1
     assert [object["Key"] for object in objects] == ["folder/object"]
+
+
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
+async def test_s3_list_objects_prefix_slashes(
+    object, client_parameters, objects_in_folder, aws_credentials
+):
+    @flow
+    async def test_flow(slash=False):
+        return await s3_list_objects(
+            bucket="bucket",
+            prefix="folder" + ("/" if slash else ""),
+            aws_credentials=aws_credentials,
+            aws_client_parameters=client_parameters,
+        )
+
+    objects = await test_flow(slash=True)
+    assert len(objects) == 2
+    assert [object["Key"] for object in objects] == [
+        "folder/object/bar",
+        "folder/object/foo",
+    ]
+
+    objects = await test_flow(slash=False)
+    assert len(objects) == 4
+    assert [object["Key"] for object in objects] == [
+        "folder/object/bar",
+        "folder/object/foo",
+        "folderobject/bar",
+        "folderobject/foo",
+    ]
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
@@ -585,6 +634,13 @@ class TestS3Bucket:
         )
         return _s3_bucket_with_objects
 
+    @pytest.fixture
+    def s3_bucket_with_similar_objects(self, s3_bucket_with_objects, objects_in_folder):
+        _s3_bucket_with_multiple_objects = (
+            s3_bucket_with_objects  # objects in folder will be added
+        )
+        return _s3_bucket_with_multiple_objects
+
     def test_credentials_are_correct_type(self, credentials):
         s3_bucket = S3Bucket(bucket_name="bucket", credentials=credentials)
         assert isinstance(s3_bucket.credentials, type(credentials))
@@ -604,6 +660,27 @@ class TestS3Bucket:
         objects = s3_bucket_with_objects.list_objects()
         assert len(objects) == 2
         assert [object["Key"] for object in objects] == ["folder/object", "object"]
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_list_objects_with_params(
+        self, s3_bucket_with_similar_objects, client_parameters
+    ):
+        objects = s3_bucket_with_similar_objects.list_objects("folder/object/")
+        assert len(objects) == 2
+        assert [object["Key"] for object in objects] == [
+            "folder/object/bar",
+            "folder/object/foo",
+        ]
+
+        objects = s3_bucket_with_similar_objects.list_objects("folder")
+        assert len(objects) == 5
+        assert [object["Key"] for object in objects] == [
+            "folder/object",
+            "folder/object/bar",
+            "folder/object/foo",
+            "folderobject/bar",
+            "folderobject/foo",
+        ]
 
     @pytest.mark.parametrize("to_path", [Path("to_path"), "to_path", None])
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)

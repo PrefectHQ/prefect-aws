@@ -545,7 +545,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                 f"Bucket path {bucket_path!r} is already prefixed with "
                 f"bucket folder {self.bucket_folder!r}; is this intentional?"
             )
-        return (Path(self.bucket_folder) / bucket_path).as_posix()
+
+        return (Path(self.bucket_folder) / bucket_path).as_posix() + (
+            "" if not bucket_path.endswith("/") else "/"
+        )
 
     @sync_compatible
     async def list_objects(
