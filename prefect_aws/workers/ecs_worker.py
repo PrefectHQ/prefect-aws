@@ -1462,15 +1462,15 @@ class ECSWorker(BaseWorker):
     async def kill_infrastructure(
         self,
         configuration: ECSJobConfiguration,
-        identifier: str,
+        infrastructure_pid: str,
         grace_seconds: int = 30,
     ) -> None:
         """
         Kill a task running on ECS.
 
         Args:
-            identifier: A cluster and task arn combination. This should match a value
-                yielded by `ECSTask.run`.
+            infrastructure_pid: A cluster and task arn combination. This should match a
+                value yielded by `ECSWorker.run`.
         """
         if grace_seconds != 30:
             self._logger.warning(
@@ -1478,7 +1478,7 @@ class ECSWorker(BaseWorker):
                 "support dynamic grace period configuration so 30s will be used. "
                 "See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html for configuration of grace periods."  # noqa
             )
-        cluster, task = parse_identifier(identifier)
+        cluster, task = parse_identifier(infrastructure_pid)
         await run_sync_in_worker_thread(self._stop_task, configuration, cluster, task)
 
     def _stop_task(
