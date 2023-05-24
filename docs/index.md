@@ -62,9 +62,9 @@ AwsCredentials.load("BLOCK-NAME-PLACEHOLDER")
 
 ### Using Prefect with AWS ECS
 
-`prefect_aws` allows you to use [AWS ECS](https://aws.amazon.com/ecs/) as infrastructure for your deployments. Using ECS for scheduled flow runs enabled the dynamic provisioning of infrastructure for containers and unlocked greater scalability.
+`prefect_aws` allows you to use [AWS ECS](https://aws.amazon.com/ecs/) as infrastructure for your deployments. Using ECS for scheduled flow runs enables the dynamic provisioning of infrastructure for containers and unlocks greater scalability.
 
-The snippets below show how you can use `prefect_aws` to run a task on ECS. It uses the `ECSTask` block as [Prefect infrastructure](https://docs.prefect.io/concepts/infrastructure/) or simply within a flow.
+The snippets below show how you can use `prefect_aws` to run a task on ECS. The first example uses the `ECSTask` block as [infrastructure](https://docs.prefect.io/concepts/infrastructure/) and the second example shows using ECS within a flow.
 
 #### As deployment Infrastructure
 
@@ -145,30 +145,30 @@ prefect deployment apply ecs_task_flow-deployment.yaml
 
 ##### Test the deployment
 
-Start up an agent in a separate terminal. The agent will poll the Prefect API for scheduled flow runs that are ready to run.
+Start an [agent](https://docs.prefect.io/latest/concepts/work-pools/) (or worker) in a separate terminal. The agent will poll the Prefect API's work pool for scheduled flow runs.
 
 ```bash
 prefect agent start -q 'default'
 ```
 
-Run the deployment once to test.
+Run the deployment once to test it.
 
 ```bash
 prefect deployment run ecs-task-flow/ecs-task-deployment
 ```
 
-Once the flow run has completed, you will see `Hello, Prefect!` logged in the Prefect UI.
+Once the flow run has completed, you will see `Hello, Prefect!` logged in the CLI and the Prefect UI.
 
 !!! info "No class found for dispatch key"
 
     If you encounter an error message like `KeyError: "No class found for dispatch key 'ecs-task' in registry for type 'Block'."`,
-    ensure `prefect-aws` is installed in the environment that your agent is running!
+    ensure `prefect-aws` is installed in the environment in which your agent is running!
 
 Another tutorial on `ECSTask` can be found [here](https://towardsdatascience.com/prefect-aws-ecs-fargate-github-actions-make-serverless-dataflows-as-easy-as-py-f6025335effc).
 
 #### Within Flow
 
-You can also execute commands through ECS Task directly within a Prefect flow. Running containers via ECS in your flows is useful for executing non-python code in a distributed manner via Prefect.
+You can also execute commands with ECSTask directly within a Prefect flow. Running containers via ECS in your flows is useful for executing non-Python code in a distributed manner while using Prefect.
 
 ```python
 from prefect import flow
@@ -185,6 +185,8 @@ def ecs_task_flow():
     )
     return ecs_task.run()
 ```
+
+This setup gives you all of the observation and orchestration benefits of Prefect, while also providing you the scalability of ECS.
 
 ### Using Prefect with AWS S3
 
