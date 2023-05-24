@@ -1766,7 +1766,9 @@ async def test_kill_infrastructure(aws_credentials, cluster: str, flow_run):
             async with anyio.create_task_group() as tg:
                 identifier = await tg.start(worker.run, flow_run, configuration)
 
-                await worker.kill_infrastructure(configuration, identifier)
+                await worker.kill_infrastructure(
+                    configuration=configuration, infrastructure_pid=identifier
+                )
 
     _, task_arn = parse_identifier(identifier)
     task = describe_task(ecs_client, task_arn)
