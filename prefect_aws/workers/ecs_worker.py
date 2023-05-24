@@ -60,7 +60,6 @@ import boto3
 import yaml
 from prefect.docker import get_prefect_image_name
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
-from prefect.logging.loggers import get_logger
 from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from prefect.workers.base import (
@@ -318,6 +317,10 @@ class ECSJobConfiguration(BaseJobConfiguration):
 
 
 class ECSVariables(BaseVariables):
+    """
+    Variables for templating an ECS job.
+    """
+
     task_definition_arn: Optional[str] = Field(
         default=None,
         description=(
@@ -490,10 +493,16 @@ class ECSVariables(BaseVariables):
 
 
 class ECSWorkerResult(BaseWorkerResult):
-    pass
+    """
+    The result of an ECS job.
+    """
 
 
 class ECSWorker(BaseWorker):
+    """
+    A Prefect worker to run flow runs as ECS tasks.
+    """
+
     type = "ecs"
     job_configuration = ECSJobConfiguration
     job_configuration_variables = ECSVariables
@@ -505,14 +514,6 @@ class ECSWorker(BaseWorker):
     _documentation_url = "https://prefecthq.github.io/prefect-aws/ecs_worker/"
     _is_beta = True
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
-
-    def get_logger(self, flow_run: FlowRun):
-        """
-        Get a logger for the given flow run.
-        """
-        # This could stream to the API in the future; should be implemented on the base
-        # worker class
-        return get_logger("prefect.workers.ecs").getChild(slugify(flow_run.name))
 
     async def run(
         self,
@@ -527,7 +528,7 @@ class ECSWorker(BaseWorker):
             self._get_session_and_client, configuration
         )
 
-        logger = self.get_logger(flow_run)
+        logger = self.get_flow_run_logger(flow_run)
 
         (
             task_arn,
