@@ -19,7 +19,7 @@
         <link rel="next" href="../secrets_manager/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.9">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
     
     
       
@@ -1377,7 +1377,10 @@ for reading and writing objects.</p></td>
                 <span class="sa">f</span><span class="s2">&quot;Bucket path </span><span class="si">{</span><span class="n">bucket_path</span><span class="si">!r}</span><span class="s2"> is already prefixed with &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;bucket folder </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket_folder</span><span class="si">!r}</span><span class="s2">; is this intentional?&quot;</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket_folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">bucket_path</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket_folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">bucket_path</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span> <span class="o">+</span> <span class="p">(</span>
+            <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;/&quot;</span>
+        <span class="p">)</span>
 
     <span class="nd">@sync_compatible</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">list_objects</span><span class="p">(</span>
@@ -4067,7 +4070,7 @@ supplied when creating the task.</p></td>
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fac441b0.min.js"></script>
+      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
       
     
   </body>

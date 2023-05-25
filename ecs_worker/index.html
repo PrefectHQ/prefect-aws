@@ -19,7 +19,7 @@
         <link rel="next" href="../ecs/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.9">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
     
     
       
@@ -782,13 +782,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.workers.ecs_worker.ECSWorker.get_logger" class="md-nav__link">
-    get_logger()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#prefect_aws.workers.ecs_worker.ECSWorker.kill_infrastructure" class="md-nav__link">
     kill_infrastructure()
   </a>
@@ -809,6 +802,13 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.workers.ecs_worker.ECSWorkerResult" class="md-nav__link">
+    ECSWorkerResult
+  </a>
   
 </li>
         
@@ -1306,13 +1306,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.workers.ecs_worker.ECSWorker.get_logger" class="md-nav__link">
-    get_logger()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#prefect_aws.workers.ecs_worker.ECSWorker.kill_infrastructure" class="md-nav__link">
     kill_infrastructure()
   </a>
@@ -1333,6 +1326,13 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.workers.ecs_worker.ECSWorkerResult" class="md-nav__link">
+    ECSWorkerResult
+  </a>
   
 </li>
         
@@ -1983,10 +1983,15 @@ ECSVariables            (<span title="prefect.workers.base.BaseVariables">BaseVa
 
     <div class="doc doc-contents ">
 
+      <p>Variables for templating an ECS job.</p>
 
         <details class="quote">
           <summary>Source code in <code>prefect_aws/workers/ecs_worker.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ECSVariables</span><span class="p">(</span><span class="n">BaseVariables</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Variables for templating an ECS job.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">task_definition_arn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="p">(</span>
@@ -2594,21 +2599,26 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
 
     <div class="doc doc-contents ">
 
+      <p>A Prefect worker to run flow runs as ECS tasks.</p>
 
         <details class="quote">
           <summary>Source code in <code>prefect_aws/workers/ecs_worker.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ECSWorker</span><span class="p">(</span><span class="n">BaseWorker</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Prefect worker to run flow runs as ECS tasks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;ecs&quot;</span>
     <span class="n">job_configuration</span> <span class="o">=</span> <span class="n">ECSJobConfiguration</span>
     <span class="n">job_configuration_variables</span> <span class="o">=</span> <span class="n">ECSVariables</span>
-
-    <span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow_run</span><span class="p">:</span> <span class="n">FlowRun</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get a logger for the given flow run.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># This could stream to the API in the future; should be implemented on the base</span>
-        <span class="c1"># worker class</span>
-        <span class="k">return</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;prefect.workers.ecs&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getChild</span><span class="p">(</span><span class="n">slugify</span><span class="p">(</span><span class="n">flow_run</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+    <span class="n">_description</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;Execute flow runs within containers on AWS ECS. Works with existing ECS &quot;</span>
+        <span class="s2">&quot;clusters and serverless execution via AWS Fargate. Requires an AWS account.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">_display_name</span> <span class="o">=</span> <span class="s2">&quot;AWS Elastic Container Service&quot;</span>
+    <span class="n">_documentation_url</span> <span class="o">=</span> <span class="s2">&quot;https://prefecthq.github.io/prefect-aws/ecs_worker/&quot;</span>
+    <span class="n">_is_beta</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">_logo_url</span> <span class="o">=</span> <span class="s2">&quot;https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250&quot;</span>  <span class="c1"># noqa</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -2623,7 +2633,7 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
             <span class="bp">self</span><span class="o">.</span><span class="n">_get_session_and_client</span><span class="p">,</span> <span class="n">configuration</span>
         <span class="p">)</span>
 
-        <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">flow_run</span><span class="p">)</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flow_run_logger</span><span class="p">(</span><span class="n">flow_run</span><span class="p">)</span>
 
         <span class="p">(</span>
             <span class="n">task_arn</span><span class="p">,</span>
@@ -3558,15 +3568,15 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
     <span class="k">async</span> <span class="k">def</span> <span class="nf">kill_infrastructure</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">configuration</span><span class="p">:</span> <span class="n">ECSJobConfiguration</span><span class="p">,</span>
-        <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">infrastructure_pid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">grace_seconds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Kill a task running on ECS.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            identifier: A cluster and task arn combination. This should match a value</span>
-<span class="sd">                yielded by `ECSTask.run`.</span>
+<span class="sd">            infrastructure_pid: A cluster and task arn combination. This should match a</span>
+<span class="sd">                value yielded by `ECSWorker.run`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">grace_seconds</span> <span class="o">!=</span> <span class="mi">30</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -3574,7 +3584,7 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
                 <span class="s2">&quot;support dynamic grace period configuration so 30s will be used. &quot;</span>
                 <span class="s2">&quot;See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html for configuration of grace periods.&quot;</span>  <span class="c1"># noqa</span>
             <span class="p">)</span>
-        <span class="n">cluster</span><span class="p">,</span> <span class="n">task</span> <span class="o">=</span> <span class="n">parse_identifier</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+        <span class="n">cluster</span><span class="p">,</span> <span class="n">task</span> <span class="o">=</span> <span class="n">parse_identifier</span><span class="p">(</span><span class="n">infrastructure_pid</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stop_task</span><span class="p">,</span> <span class="n">configuration</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_stop_task</span><span class="p">(</span>
@@ -4030,10 +4040,15 @@ job_configuration_variables            (<span title="prefect.workers.base.BaseVa
 
     <div class="doc doc-contents ">
 
+      <p>Variables for templating an ECS job.</p>
 
         <details class="quote">
           <summary>Source code in <code>prefect_aws/workers/ecs_worker.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ECSVariables</span><span class="p">(</span><span class="n">BaseVariables</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Variables for templating an ECS job.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">task_definition_arn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="p">(</span>
@@ -4632,37 +4647,6 @@ job_configuration_variables            (<span title="prefect.workers.base.BaseVa
 
 
 
-<h5 id="prefect_aws.workers.ecs_worker.ECSWorker.get_logger" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_logger</span></code>
-
-
-</h5>
-
-    <div class="doc doc-contents ">
-
-      <p>Get a logger for the given flow run.</p>
-
-        <details class="quote">
-          <summary>Source code in <code>prefect_aws/workers/ecs_worker.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow_run</span><span class="p">:</span> <span class="n">FlowRun</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Get a logger for the given flow run.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># This could stream to the API in the future; should be implemented on the base</span>
-    <span class="c1"># worker class</span>
-    <span class="k">return</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;prefect.workers.ecs&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getChild</span><span class="p">(</span><span class="n">slugify</span><span class="p">(</span><span class="n">flow_run</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
-
-  <div class="doc doc-object doc-method">
-
-
-
 <h5 id="prefect_aws.workers.ecs_worker.ECSWorker.kill_infrastructure" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">kill_infrastructure</span></code>
 
@@ -4688,10 +4672,10 @@ job_configuration_variables            (<span title="prefect.workers.base.BaseVa
   </thead>
   <tbody>
       <tr>
-        <td><code>identifier</code></td>
+        <td><code>infrastructure_pid</code></td>
         <td><code>str</code></td>
-        <td><p>A cluster and task arn combination. This should match a value
-yielded by <code>ECSTask.run</code>.</p></td>
+        <td><p>A cluster and task arn combination. This should match a
+value yielded by <code>ECSWorker.run</code>.</p></td>
         <td><em>required</em></td>
       </tr>
   </tbody>
@@ -4701,15 +4685,15 @@ yielded by <code>ECSTask.run</code>.</p></td>
           <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">kill_infrastructure</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">configuration</span><span class="p">:</span> <span class="n">ECSJobConfiguration</span><span class="p">,</span>
-    <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">infrastructure_pid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">grace_seconds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Kill a task running on ECS.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        identifier: A cluster and task arn combination. This should match a value</span>
-<span class="sd">            yielded by `ECSTask.run`.</span>
+<span class="sd">        infrastructure_pid: A cluster and task arn combination. This should match a</span>
+<span class="sd">            value yielded by `ECSWorker.run`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">grace_seconds</span> <span class="o">!=</span> <span class="mi">30</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -4717,7 +4701,7 @@ yielded by <code>ECSTask.run</code>.</p></td>
             <span class="s2">&quot;support dynamic grace period configuration so 30s will be used. &quot;</span>
             <span class="s2">&quot;See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html for configuration of grace periods.&quot;</span>  <span class="c1"># noqa</span>
         <span class="p">)</span>
-    <span class="n">cluster</span><span class="p">,</span> <span class="n">task</span> <span class="o">=</span> <span class="n">parse_identifier</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+    <span class="n">cluster</span><span class="p">,</span> <span class="n">task</span> <span class="o">=</span> <span class="n">parse_identifier</span><span class="p">(</span><span class="n">infrastructure_pid</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stop_task</span><span class="p">,</span> <span class="n">configuration</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
 </code></pre></div>
         </details>
@@ -4759,7 +4743,7 @@ yielded by <code>ECSTask.run</code>.</p></td>
         <span class="bp">self</span><span class="o">.</span><span class="n">_get_session_and_client</span><span class="p">,</span> <span class="n">configuration</span>
     <span class="p">)</span>
 
-    <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">flow_run</span><span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flow_run_logger</span><span class="p">(</span><span class="n">flow_run</span><span class="p">)</span>
 
     <span class="p">(</span>
         <span class="n">task_arn</span><span class="p">,</span>
@@ -4822,6 +4806,59 @@ yielded by <code>ECSTask.run</code>.</p></td>
 
   </div>
 
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h3 id="prefect_aws.workers.ecs_worker.ECSWorkerResult" class="doc doc-heading">
+        <code>
+ECSWorkerResult            (<span title="prefect.workers.base.BaseWorkerResult">BaseWorkerResult</span>)
+        </code>
+
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The result of an ECS job.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/workers/ecs_worker.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ECSWorkerResult</span><span class="p">(</span><span class="n">BaseWorkerResult</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The result of an ECS job.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div>
+        </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
 
 
 <h2 id="prefect_aws.workers.ecs_worker-functions">Functions</h2>
@@ -5011,7 +5048,7 @@ input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fac441b0.min.js"></script>
+      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
       
     
   </body>
