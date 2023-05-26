@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
-
+- Change prefect.docker import to prefect.utilities.dockerutils to fix a crash when using custom blocks based on S3Bucket  - [#273](https://github.com/PrefectHQ/prefect-aws/pull/273)
 ## 0.3.2
 
 Released on May 25th, 2023.
