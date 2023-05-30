@@ -1,29 +1,3 @@
-# Deploy an ECS Worker in AWS
-
-```mermaid
-graph TB
-
-  subgraph ecs_cluster[ECS cluster]
-    subgraph ecs_service[ECS service]
-      td_worker[Worker task definition] --> |restarts| prefect_worker((Prefect worker))
-    end
-    prefect_worker -->|kicks off| ecs_task
-    
-    subgraph ecs_task[ECS task for each flow run]
-      fr_task_definition[Flow run task definition]
-    end
-  end
-
-  subgraph prefect_cloud[Prefect Cloud]
-    subgraph prefect_workpool[ECS work pool]
-      default_workqueue[Default work queue]
-    end
-  end
-
-  flow_code[Flow Code] --> |prefect project pull step| ecs_task
-  prefect_worker -->|polls| default_workqueue
-  prefect_workpool -->|configures| fr_task_definition
-```
 ## Why use ECS for flow execution?
 
 ECS (Elastic Container Service) tasks are a good option for executing Prefect 2 flow runs for several reasons:
@@ -56,6 +30,33 @@ You can use either EC2 or Fargate as the capacity provider. Fargate simplifies i
 
 !!! tip
     If you prefer infrastructure as code check out this [Terraform module](https://github.com/PrefectHQ/prefect-recipes/tree/main/devops/infrastructure-as-code/aws/tf-prefect2-ecs-worker) to provision an ECS cluster with a worker.
+
+# Architectural Diagram
+
+```mermaid
+graph TB
+
+  subgraph ecs_cluster[ECS cluster]
+    subgraph ecs_service[ECS service]
+      td_worker[Worker task definition] --> |restarts| prefect_worker((Prefect worker))
+    end
+    prefect_worker -->|kicks off| ecs_task
+    
+    subgraph ecs_task[ECS task for each flow run]
+      fr_task_definition[Flow run task definition]
+    end
+  end
+
+  subgraph prefect_cloud[Prefect Cloud]
+    subgraph prefect_workpool[ECS work pool]
+      default_workqueue[Default work queue]
+    end
+  end
+
+  flow_code[Flow Code] --> |prefect project pull step| ecs_task
+  prefect_worker -->|polls| default_workqueue
+  prefect_workpool -->|configures| fr_task_definition
+```
 
 ## Prerequisites
 Before you begin, make sure you have:
