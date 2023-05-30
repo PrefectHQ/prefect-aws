@@ -71,7 +71,7 @@ Before setting up the worker, create a simple [work pool](https://docs.prefect.i
 
 Create a work pool from the Prefect UI or CLI:
 
-`prefect work-pool create --type ecs my-ecs-pool`
+```prefect work-pool create --type ecs my-ecs-pool```
 
 Configure the VPC and ECS Cluster for your Work Pool via the UI:
 ![VPC](img/VPC_UI.png)
