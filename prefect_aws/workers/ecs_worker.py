@@ -58,10 +58,10 @@ import anyio
 import anyio.abc
 import boto3
 import yaml
-from prefect.docker import get_prefect_image_name
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
+from prefect.utilities.dockerutils import get_prefect_image_name
 from prefect.workers.base import (
     BaseJobConfiguration,
     BaseVariables,
