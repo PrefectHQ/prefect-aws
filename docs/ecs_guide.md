@@ -3,9 +3,9 @@
 ECS (Elastic Container Service) tasks are a good option for executing Prefect 2 flow runs for several reasons:
 
 1. **Scalability**: ECS scales your infrastructure in response to demand, effectively managing Prefect flow runs. ECS automatically administers container distribution across multiple instances based on demand.
-1. **Flexibility**: ECS lets you choose between AWS Fargate and Amazon EC2 for container operation. Fargate abstracts the underlying infrastructure, while EC2 has faster job start times and offers additional control over instance management and configuration.
-1. **AWS Integration**: Easily connect with other AWS services, such as AWS IAM and CloudWatch.
-1. **Containerization**: ECS supports Docker containers and offers managed execution. Containerization encourages reproducable deployments.
+2. **Flexibility**: ECS lets you choose between AWS Fargate and Amazon EC2 for container operation. Fargate abstracts the underlying infrastructure, while EC2 has faster job start times and offers additional control over instance management and configuration.
+3. **AWS Integration**: Easily connect with other AWS services, such as AWS IAM and CloudWatch.
+4. **Containerization**: ECS supports Docker containers and offers managed execution. Containerization encourages reproducable deployments.
 
 ## ECS in Prefect
 
@@ -221,11 +221,9 @@ Here are the steps:
 
 ### Step 4: Create an ECS service to host your worker
 
-Finally, create a service that will manage your Prefect worker.
+Finally, create a service that will manage your Prefect worker:
 
-Here are the steps:
-
-1. Open a terminal window and run the following command to create an ECS Fargate service:
+Open a terminal window and run the following command to create an ECS Fargate service:
 
 ```bash
 aws ecs create-service \
@@ -244,50 +242,88 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
 
 ### Step 5: Pick up a flow run with your new worker!
 
-1. Write a simple test flow:
+1. Write a simple test flow in a repo of your choice:
 
-   `my_flow.py`
+    `my_flow.py`
 
-   ```python
-   from prefect import flow, get_run_logger
+    ```python
+    from prefect import flow, get_run_logger
 
-   @flow
-   def my_flow():
-       logger = get_run_logger()
-       logger.info("Hello from ECS!!")
-   ```
+    @flow
+    def my_flow():
+        logger = get_run_logger()
+        logger.info("Hello from ECS!!")
 
-1. [Create a Prefect project](https://docs.prefect.io/latest/tutorials/projects/#initializing-a-project).  In the `prefect.yaml` file, specify the code in the [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code.
+    if __name__ == "__main__":
+        my_flow()
+    ```
 
-TK good to show the code in text - copy-able flow code
+2. Configure a project [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code at runtime.
+
+    !!! Tip "Create a [Prefect Project](https://docs.prefect.io/latest/tutorials/projects/#initializing-a-project)."
+        Run the following command at the base of whichever repo contains your flow. (See our [Projects Tutorial](https://docs.prefect.io/2.10.12/tutorial/projects/#initializing-a-project) for other recipes with other pull step options.)  
+        ```bash
+        prefect project init --recipe git
+        ```
+
+        In the `prefect.yaml` file, specify the code in the [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code.
+        `prefect.yaml`
+        ```yaml
+        # File for configuring project / deployment build, push and pull steps
+
+        # Generic metadata about this project
+        name: my-repo-name
+        prefect-version: 2.10.12
+
+        # build section allows you to manage and build docker images
+        build: null
+
+        # push section allows you to manage if and how this project is uploaded to remote locations
+        push: null
+
+        # pull section allows you to provide instructions for cloning this project in remote locations
+        pull:
+        - prefect.projects.steps.git_clone_project:
+            repository: https://github.com/git-user/my-repo-name.git
+            branch: main
+            access_token: null
+        ```
 
 3. Deploy the flow to the server, specifying the ECS work pool
 
-   ```bash
-   prefect deploy my_flow.py:my_flow --name ecs-test-deployment --pool my-ecs-pool
-   ```
+    ```bash
+    prefect deploy my_flow.py:my_flow --name ecs-test-deployment --pool my-ecs-pool
+    ```
 
-1. Find the deployment in the UI and click the **Quick Run** button!
-
-TK maybe good to show an image here, the interface my change, but finding a deployment isn't super easy ATM
-
-## Next steps
-
-Now that you are confident your ECS worker is healthy, you can experiment with different work pool configurations.
-
-- Do your flow runs require higher `CPU`?
-- Would an EC2 `Launch Type` speed up your flow run execution?
-
-These infrastructure configuration values can be set on your ECS work pool or they can be [overriden on the deployment level](https://docs.prefect.io/latest/concepts/infrastructure/#kubernetesjob-overrides-and-customizations) if desired.
+4. Find the deployment in the UI and click the **Quick Run** button!
 
 
+## Optional Next Steps
+
+1. Now that you are confident your ECS worker is healthy, you can experiment with different work pool configurations.
+
+    - Do your flow runs require higher `CPU`?
+    - Would an EC2 `Launch Type` speed up your flow run execution?
+
+    These infrastructure configuration values can be set on your ECS work pool or they can be [overriden on the deployment level](https://docs.prefect.io/latest/concepts/infrastructure/#kubernetesjob-overrides-and-customizations) if desired.
 
 
-Create a Docker image for your Prefect worker, which you can build and push to the Amazon ECR registry. TK do you have to?
+2. Create a custom image for your flow executions, which you can build and push to the Amazon ECR registry.
 
-For example, a minimal Dockerfile for an ECS worker could look like:
+    For example, a minimal base Dockerfile for a flow run in ECS could look like:
 
-```Dockerfile
-FROM prefecthq/prefect:2-python3.10
-RUN pip install s3fs prefect-aws
-```
+    ```Dockerfile
+    FROM prefecthq/prefect:2-python3.10
+    RUN pip install s3fs prefect-aws
+    ```
+
+3. Consider adding a [build step](https://docs.prefect.io/2.10.12/concepts/projects/#the-build-section) to your Prefect Project `prefect.yaml` if you want to automatically build a Docker image push it to the repository referenced by the image name each time `prefect deploy` is run.
+    ```yaml
+    build:
+    - prefect_docker.projects.steps.build_docker_image:
+    requires: prefect-docker>=0.2.0
+    image_name: my-repo/my-image
+    tag: my-tag
+    dockerfile: auto
+    push: true
+    ```
