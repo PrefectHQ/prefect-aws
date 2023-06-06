@@ -319,10 +319,10 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
 3. Consider adding a [build step](https://docs.prefect.io/2.10.12/concepts/projects/#the-build-section) to your Prefect Project `prefect.yaml` if you want to automatically build a Docker image and push it to the repository referenced by the image name each time `prefect deploy` is run.
     ```yaml
     build:
-    - prefect_docker.projects.steps.build_docker_image:
-    requires: prefect-docker>=0.2.0
-    image_name: my-repo/my-image
-    tag: my-tag
-    dockerfile: auto
-    push: true
+        - prefect_docker.projects.steps.build_docker_image:
+            requires: prefect-docker>=0.2.0
+            image_name: my-repo/my-image
+            tag: my-tag
+            dockerfile: auto
+            push: true
     ```
