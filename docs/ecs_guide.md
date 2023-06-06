@@ -51,7 +51,7 @@ graph TB
 !!! tip "ECS tasks != Prefect tasks"
     An ECS Task is **not** the same thing as a [Prefect task](https://docs.prefect.io/latest/concepts/tasks/#tasks-overview). 
     
-    ECS tasks are run as part of an ECS Cluster, they launch containers as defined in the ECS Task definition. 
+    ECS tasks are groupings of containers that run within an ECS Cluster. An ECS task's behavior is determined by its task definition. 
     
     An [*ECS task definition*](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) is the blueprint for the ECS task. It describes which Docker containers to run and what you want to have happen inside these containers.
 
