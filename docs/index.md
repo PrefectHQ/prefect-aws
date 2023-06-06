@@ -151,7 +151,7 @@ Start an [agent](https://docs.prefect.io/latest/concepts/work-pools/) in a separ
 prefect agent start -q 'default'
 ```
 
-Run the deployment once to test it.
+Run the deployment once to test it:
 
 ```bash
 prefect deployment run ecs-task-flow/ecs-task-deployment
