@@ -18,10 +18,9 @@ To set up Prefect flow execution in your cloud infrastructure, you need to under
 ```mermaid
 graph TB
 
-
   subgraph ecs_cluster[ECS cluster]
     subgraph ecs_service[ECS service]
-      td_worker[worker task definition] --> |restarts| prefect_worker((Prefect worker))
+      td_worker[worker task definition] --> |defines| prefect_worker((Prefect worker))
     end
     prefect_worker -->|kicks off| ecs_task
     fr_task_definition[flow run task definition]
