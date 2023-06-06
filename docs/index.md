@@ -168,7 +168,7 @@ Another tutorial on `ECSTask` can be found [here](https://towardsdatascience.com
 
 #### Within Flow
 
-You can also execute commands with ECSTask directly within a Prefect flow. Running containers via ECS in your flows is useful for executing non-Python code in a distributed manner while using Prefect.
+You can also execute commands with an `ECSTask` block directly within a Prefect flow. Running containers via ECS in your flows is useful for executing non-Python code in a distributed manner while using Prefect.
 
 ```python
 from prefect import flow
