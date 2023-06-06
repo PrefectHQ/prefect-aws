@@ -39,7 +39,7 @@ graph TB
 
   subgraph prefect_cloud[Prefect Cloud]
     subgraph prefect_workpool[ECS work pool]
-      default_workqueue[Default work queue]
+      workqueue[Work queue]
     end
   end
 
