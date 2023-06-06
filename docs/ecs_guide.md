@@ -14,7 +14,7 @@ To set up Prefect flow execution in your cloud infrastructure, you need to under
 - a [worker](https://docs.prefect.io/2.10.11/concepts/work-pools/#worker-overview) to poll Prefect's API (specifically that worker's [work queue](https://docs.prefect.io/2.10.11/concepts/work-pools/#work-queues)) 
 - and the emphemeral [infrastructure](https://docs.prefect.io/2.10.11/concepts/infrastructure/) that this worker will spin up for each scheduled [flow run](https://docs.prefect.io/2.10.11/concepts/flows/#flow-runs). 
 
-#### Archetecture Diagram
+#### Architecture Diagram
 ```mermaid
 graph TB
 
