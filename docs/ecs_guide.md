@@ -59,7 +59,7 @@ The ECS task running the Prefect [worker](https://docs.prefect.io/2.10.11/concep
 
 When a Prefect [flow](https://docs.prefect.io/latest/concepts/flows/) is scheduled to run, that information is sent to the Prefect work pool specified in the flow's [deployment](https://docs.prefect.io/latest/concepts/deployments). [Work pools](https://docs.prefect.io/latest/concepts/work-pools/?h=work#work-pool-overview) are typed according to the infrastructure the flow will run on. The ECS work pool type is used flows executed as ECS tasks. The Prefect [worker](https://docs.prefect.io/latest/concepts/work-pools/#worker-types) polling the work pool for work will have a matching ECS type.
 
-When the ECS worker finds a scheduled flow run in the ECS work pool it is polling, it spins up the specified infrastructure on AWS ECS. The worker knows to build an ECS task definition for each flow run based on the configuration specified in the work pool.
+When the ECS worker receives a scheduled flow run from the ECS work pool it is polling, it spins up the specified infrastructure on AWS ECS. The worker knows to build an ECS task definition for each flow run based on the configuration specified in the work pool.
 
 Once the flow run completes, the ECS containers of the cluster are spun down to a single container that continues to run the Prefect worker. This worker continues polling for work from the Prefect work pool.
 
