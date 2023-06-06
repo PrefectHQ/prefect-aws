@@ -220,7 +220,7 @@ Here are the steps:
 !!! tip
     To avoid hardcoding your API key into the task definition JSON see [how to add environment variables to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition).
 
-### Step 4: Create an ECS service to host your worker
+### Step 3: Create an ECS service to host your worker
 
 Finally, create a service that will manage your Prefect worker:
 
@@ -241,7 +241,7 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
 !!! tip "Sanity check"
     The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is live!
 
-### Step 5: Pick up a flow run with your new worker!
+### Step 4: Pick up a flow run with your new worker!
 
 1. Write a simple test flow in a repo of your choice:
 
