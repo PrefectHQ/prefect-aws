@@ -43,11 +43,11 @@ graph TB
     end
   end
 
-  subgraph github["Prefect Project Pull Step (e.g. GitHub)"]
-    flow_code["Flow Code"]
+  subgraph github["GitHub"]
+    flow_code{{"Flow Code"}}
   end
   flow_code --> |pulls| ecs_task
-  prefect_worker -->|polls| default_workqueue
+  prefect_worker -->|polls| workqueue
   prefect_workpool -->|configures| fr_task_definition
 ```
 ### ECS in Prefect Terms
