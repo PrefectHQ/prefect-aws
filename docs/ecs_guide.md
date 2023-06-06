@@ -5,7 +5,7 @@ ECS (Elastic Container Service) tasks are a good option for executing Prefect 2 
 1. **Scalability**: ECS scales your infrastructure in response to demand, effectively managing Prefect flow runs. ECS automatically administers container distribution across multiple instances based on demand.
 2. **Flexibility**: ECS lets you choose between AWS Fargate and Amazon EC2 for container operation. Fargate abstracts the underlying infrastructure, while EC2 has faster job start times and offers additional control over instance management and configuration.
 3. **AWS Integration**: Easily connect with other AWS services, such as AWS IAM and CloudWatch.
-4. **Containerization**: ECS supports Docker containers and offers managed execution. Containerization encourages reproducable deployments.
+4. **Containerization**: ECS supports Docker containers and offers managed execution. Containerization encourages reproducible deployments.
 
 ## ECS Flow Run Execution
 
