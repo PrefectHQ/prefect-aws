@@ -145,7 +145,7 @@ prefect deployment apply ecs_task_flow-deployment.yaml
 
 ##### Test the deployment
 
-Start an [agent](https://docs.prefect.io/latest/concepts/work-pools/) (or worker) in a separate terminal. The agent will poll the Prefect API's work pool for scheduled flow runs.
+Start an [agent](https://docs.prefect.io/latest/concepts/work-pools/) in a separate terminal. The agent will poll the Prefect API's work pool for scheduled flow runs.
 
 ```bash
 prefect agent start -q 'default'
