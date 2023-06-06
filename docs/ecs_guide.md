@@ -207,7 +207,7 @@ Here are the steps:
 }
 ```
 
-- Use `prefect config view` to see the values for `PREFECT_API_URL`.
+- Use `prefect config view` to view the `PREFECT_API_URL` for your current Prefect profile.
 
 - For the `PREFECT_API_KEY`, individuals on the organization tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
 
