@@ -1,4 +1,6 @@
-## Why use ECS for flow execution?
+# ECS Worker Guide
+
+## Why use ECS for flow run execution?
 
 ECS (Elastic Container Service) tasks are a good option for executing Prefect 2 flow runs for several reasons:
 
