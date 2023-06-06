@@ -49,7 +49,7 @@ graph TB
 ```
 ### ECS in Prefect Terms
 !!! tip "ECS tasks != Prefect tasks"
-    An ECS Task is **not** the same thing as a [Prefect task](https://docs.prefect.io/2.10.11/concepts/tasks/#tasks-overview). 
+    An ECS Task is **not** the same thing as a [Prefect task](https://docs.prefect.io/latest/concepts/tasks/#tasks-overview). 
     
     ECS tasks are run as part of an ECS Cluster, they launch containers as defined in the ECS Task definition. 
     
