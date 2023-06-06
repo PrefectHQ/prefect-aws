@@ -262,7 +262,7 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
 2. Configure a project [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code at runtime.
 
     !!! Tip "Create a [Prefect Project](https://docs.prefect.io/latest/tutorials/projects/#initializing-a-project)."
-        Run the following command at the base of whichever repo contains your flow. (See our [Projects Tutorial](https://docs.prefect.io/2.10.12/tutorial/projects/#initializing-a-project) for other recipes with other pull step options.)  
+        Run the following command at the base of whichever repo contains your flow. (See our [Projects Tutorial](https://docs.prefect.io/latest/tutorial/projects/#initializing-a-project) for other recipes with other pull step options.)  
         ```bash
         prefect project init --recipe git
         ```
