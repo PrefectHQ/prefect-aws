@@ -44,7 +44,7 @@ graph TB
   end
 
   flow_code["Flow Code (e.g. GitHub)"] --> |prefect project pull step| ecs_task
-  prefect_worker -->|polls| default_workqueue
+  prefect_worker -->|polls| prefect_workpool
   prefect_workpool -->|configures| fr_task_definition
 ```
 ### ECS in Prefect Terms
