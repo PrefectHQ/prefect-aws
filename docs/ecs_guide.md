@@ -162,7 +162,7 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
 
 4. **Create a task definition**
 
-Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example our command to run is `prefect worker start --pool my-ecs-pool`.
+Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example, the command to start our worker is `prefect worker start --pool my-ecs-pool`.
 
 Here are the steps:
 
