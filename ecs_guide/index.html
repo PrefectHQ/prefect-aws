@@ -8,25 +8,27 @@
       
       
       
-        <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/">
+        <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/ecs_guide/">
       
       
+        <link rel="prev" href="..">
       
-        <link rel="next" href="ecs_guide/">
       
-      <link rel="icon" href="img/favicon.ico">
+        <link rel="next" href="../blocks_catalog/">
+      
+      <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
-        <title>prefect-aws</title>
+        <title>ECS Worker Guide - prefect-aws</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ecc896b0.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -42,11 +44,11 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
@@ -97,7 +99,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#coordinate-and-incorporate-aws-in-your-dataflow-with-prefect-aws" class="md-skip">
+        <a href="#ecs-worker-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -113,9 +115,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="prefect-aws" class="md-header__button md-logo" aria-label="prefect-aws" data-md-component="logo">
+    <a href=".." title="prefect-aws" class="md-header__button md-logo" aria-label="prefect-aws" data-md-component="logo">
       
-  <img src="img/prefect-logo-mark-solid-white-500.png" alt="logo">
+  <img src="../img/prefect-logo-mark-solid-white-500.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -131,7 +133,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              ECS Worker Guide
             
           </span>
         </div>
@@ -246,9 +248,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="prefect-aws" class="md-nav__button md-logo" aria-label="prefect-aws" data-md-component="logo">
+    <a href=".." title="prefect-aws" class="md-nav__button md-logo" aria-label="prefect-aws" data-md-component="logo">
       
-  <img src="img/prefect-logo-mark-solid-white-500.png" alt="logo">
+  <img src="../img/prefect-logo-mark-solid-white-500.png" alt="logo">
 
     </a>
     prefect-aws
@@ -274,6 +276,21 @@
 
   
   
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
     
   
   
@@ -286,12 +303,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Home
+          ECS Worker Guide
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="." class="md-nav__link md-nav__link--active">
-        Home
+      <a href="./" class="md-nav__link md-nav__link--active">
+        ECS Worker Guide
       </a>
       
         
@@ -310,139 +327,30 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#welcome" class="md-nav__link">
-    Welcome!
+  <a href="#why-use-ecs-for-flow-run-execution" class="md-nav__link">
+    Why use ECS for flow run execution?
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
-    Getting Started
+  <a href="#ecs-flow-run-execution" class="md-nav__link">
+    ECS Flow Run Execution
   </a>
   
-    <nav class="md-nav" aria-label="Getting Started">
+    <nav class="md-nav" aria-label="ECS Flow Run Execution">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#saving-credentials-to-a-block" class="md-nav__link">
-    Saving credentials to a block
+  <a href="#architecture-diagram" class="md-nav__link">
+    Architecture Diagram
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#using-prefect-with-aws-ecs" class="md-nav__link">
-    Using Prefect with AWS ECS
-  </a>
-  
-    <nav class="md-nav" aria-label="Using Prefect with AWS ECS">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#as-deployment-infrastructure" class="md-nav__link">
-    As deployment Infrastructure
-  </a>
-  
-    <nav class="md-nav" aria-label="As deployment Infrastructure">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#set-variables" class="md-nav__link">
-    Set variables
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#save-an-infrastructure-and-storage-block" class="md-nav__link">
-    Save an infrastructure and storage block
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#write-a-flow" class="md-nav__link">
-    Write a flow
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#create-a-deployment" class="md-nav__link">
-    Create a deployment
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#test-the-deployment" class="md-nav__link">
-    Test the deployment
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#within-flow" class="md-nav__link">
-    Within Flow
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#using-prefect-with-aws-s3" class="md-nav__link">
-    Using Prefect with AWS S3
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#using-prefect-with-aws-secrets-manager" class="md-nav__link">
-    Using Prefect with AWS Secrets Manager
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resources" class="md-nav__link">
-    Resources
-  </a>
-  
-    <nav class="md-nav" aria-label="Resources">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#recipes" class="md-nav__link">
-    Recipes
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    Installation
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#feedback" class="md-nav__link">
-    Feedback
+  <a href="#ecs-in-prefect-terms" class="md-nav__link">
+    ECS in Prefect Terms
   </a>
   
 </li>
@@ -468,22 +376,7 @@
   
   
     <li class="md-nav__item">
-      <a href="ecs_guide/" class="md-nav__link">
-        ECS Worker Guide
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="blocks_catalog/" class="md-nav__link">
+      <a href="../blocks_catalog/" class="md-nav__link">
         Blocks Catalog
       </a>
     </li>
@@ -498,7 +391,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples_catalog/" class="md-nav__link">
+      <a href="../examples_catalog/" class="md-nav__link">
         Examples Catalog
       </a>
     </li>
@@ -513,7 +406,7 @@
   
   
     <li class="md-nav__item">
-      <a href="contributing/" class="md-nav__link">
+      <a href="../contributing/" class="md-nav__link">
         Contributing
       </a>
     </li>
@@ -555,7 +448,7 @@
   
   
     <li class="md-nav__item">
-      <a href="batch/" class="md-nav__link">
+      <a href="../batch/" class="md-nav__link">
         Batch
       </a>
     </li>
@@ -569,7 +462,7 @@
   
   
     <li class="md-nav__item">
-      <a href="client_waiter/" class="md-nav__link">
+      <a href="../client_waiter/" class="md-nav__link">
         Client Waiter
       </a>
     </li>
@@ -583,7 +476,7 @@
   
   
     <li class="md-nav__item">
-      <a href="credentials/" class="md-nav__link">
+      <a href="../credentials/" class="md-nav__link">
         Credentials
       </a>
     </li>
@@ -597,7 +490,7 @@
   
   
     <li class="md-nav__item">
-      <a href="ecs_worker/" class="md-nav__link">
+      <a href="../ecs_worker/" class="md-nav__link">
         ECS Worker
       </a>
     </li>
@@ -611,7 +504,7 @@
   
   
     <li class="md-nav__item">
-      <a href="ecs/" class="md-nav__link">
+      <a href="../ecs/" class="md-nav__link">
         ECS
       </a>
     </li>
@@ -652,7 +545,7 @@
   
   
     <li class="md-nav__item">
-      <a href="projects/steps/" class="md-nav__link">
+      <a href="../projects/steps/" class="md-nav__link">
         Steps
       </a>
     </li>
@@ -673,7 +566,7 @@
   
   
     <li class="md-nav__item">
-      <a href="s3/" class="md-nav__link">
+      <a href="../s3/" class="md-nav__link">
         S3
       </a>
     </li>
@@ -687,7 +580,7 @@
   
   
     <li class="md-nav__item">
-      <a href="secrets_manager/" class="md-nav__link">
+      <a href="../secrets_manager/" class="md-nav__link">
         Secrets Manager
       </a>
     </li>
@@ -728,139 +621,30 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#welcome" class="md-nav__link">
-    Welcome!
+  <a href="#why-use-ecs-for-flow-run-execution" class="md-nav__link">
+    Why use ECS for flow run execution?
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
-    Getting Started
+  <a href="#ecs-flow-run-execution" class="md-nav__link">
+    ECS Flow Run Execution
   </a>
   
-    <nav class="md-nav" aria-label="Getting Started">
+    <nav class="md-nav" aria-label="ECS Flow Run Execution">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#saving-credentials-to-a-block" class="md-nav__link">
-    Saving credentials to a block
+  <a href="#architecture-diagram" class="md-nav__link">
+    Architecture Diagram
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#using-prefect-with-aws-ecs" class="md-nav__link">
-    Using Prefect with AWS ECS
-  </a>
-  
-    <nav class="md-nav" aria-label="Using Prefect with AWS ECS">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#as-deployment-infrastructure" class="md-nav__link">
-    As deployment Infrastructure
-  </a>
-  
-    <nav class="md-nav" aria-label="As deployment Infrastructure">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#set-variables" class="md-nav__link">
-    Set variables
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#save-an-infrastructure-and-storage-block" class="md-nav__link">
-    Save an infrastructure and storage block
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#write-a-flow" class="md-nav__link">
-    Write a flow
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#create-a-deployment" class="md-nav__link">
-    Create a deployment
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#test-the-deployment" class="md-nav__link">
-    Test the deployment
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#within-flow" class="md-nav__link">
-    Within Flow
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#using-prefect-with-aws-s3" class="md-nav__link">
-    Using Prefect with AWS S3
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#using-prefect-with-aws-secrets-manager" class="md-nav__link">
-    Using Prefect with AWS Secrets Manager
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resources" class="md-nav__link">
-    Resources
-  </a>
-  
-    <nav class="md-nav" aria-label="Resources">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#recipes" class="md-nav__link">
-    Recipes
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    Installation
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#feedback" class="md-nav__link">
-    Feedback
+  <a href="#ecs-in-prefect-terms" class="md-nav__link">
+    ECS in Prefect Terms
   </a>
   
 </li>
@@ -888,207 +672,301 @@
   
 
 
-<h1 id="coordinate-and-incorporate-aws-in-your-dataflow-with-prefect-aws">Coordinate and incorporate AWS in your dataflow with <code>prefect-aws</code></h1>
-<p align="center">
-    <img src="https://user-images.githubusercontent.com/15331990/214123296-4cfa69ed-d105-4ca2-a351-4c21917086c7.png">
-    <br>
-    <a href="https://pypi.python.org/pypi/prefect-aws/" alt="PyPI version">
-        <img alt="PyPI" src="https://img.shields.io/pypi/v/prefect-aws?color=0052FF&labelColor=090422"></a>
-    <a href="https://github.com/prefecthq/prefect-aws/" alt="Stars">
-        <img src="https://img.shields.io/github/stars/prefecthq/prefect-aws?color=0052FF&labelColor=090422" /></a>
-    <a href="https://pepy.tech/badge/prefect-aws/" alt="Downloads">
-        <img src="https://img.shields.io/pypi/dm/prefect-aws?color=0052FF&labelColor=090422" /></a>
-    <a href="https://github.com/prefecthq/prefect-aws/pulse" alt="Activity">
-        <img src="https://img.shields.io/github/commit-activity/m/prefecthq/prefect-aws?color=0052FF&labelColor=090422" /></a>
-    <br>
-    <a href="https://prefect-community.slack.com" alt="Slack">
-        <img src="https://img.shields.io/badge/slack-join_community-red.svg?color=0052FF&labelColor=090422&logo=slack" /></a>
-    <a href="https://discourse.prefect.io/" alt="Discourse">
-        <img src="https://img.shields.io/badge/discourse-browse_forum-red.svg?color=0052FF&labelColor=090422&logo=discourse" /></a>
-</p>
-
-<h2 id="welcome">Welcome!</h2>
-<p>The <code>prefect-aws</code> collection makes it easy to leverage the capabilities of AWS in your flows, featuring support for ECSTask, S3, Secrets Manager, Batch Job, and Client Waiter.</p>
-<h2 id="getting-started">Getting Started</h2>
-<h3 id="saving-credentials-to-a-block">Saving credentials to a block</h3>
-<p>You will need an AWS account and credentials in order to use <code>prefect-aws</code>.</p>
+<h1 id="ecs-worker-guide">ECS Worker Guide</h1>
+<h2 id="why-use-ecs-for-flow-run-execution">Why use ECS for flow run execution?</h2>
+<p>ECS (Elastic Container Service) tasks are a good option for executing Prefect 2 flow runs for several reasons:</p>
 <ol>
-<li>Refer to the <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds">AWS Configuration documentation</a> on how to retrieve your access key ID and secret access key</li>
-<li>Copy the access key ID and secret access key</li>
-<li>Create a short script and replace the placeholders with your credential information and desired block name:</li>
+<li><strong>Scalability</strong>: ECS scales your infrastructure in response to demand, effectively managing Prefect flow runs. ECS automatically administers container distribution across multiple instances based on demand.</li>
+<li><strong>Flexibility</strong>: ECS lets you choose between AWS Fargate and Amazon EC2 for container operation. Fargate abstracts the underlying infrastructure, while EC2 has faster job start times and offers additional control over instance management and configuration.</li>
+<li><strong>AWS Integration</strong>: Easily connect with other AWS services, such as AWS IAM and CloudWatch.</li>
+<li><strong>Containerization</strong>: ECS supports Docker containers and offers managed execution. Containerization encourages reproducible deployments.</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
-<span class="n">AwsCredentials</span><span class="p">(</span>
-    <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;PLACEHOLDER&quot;</span><span class="p">,</span>
-    <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;PLACEHOLDER&quot;</span><span class="p">,</span>
-    <span class="n">aws_session_token</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># replace this with token if necessary</span>
-    <span class="n">region_name</span><span class="o">=</span><span class="s2">&quot;us-east-2&quot;</span>
-<span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">)</span>
-</code></pre></div>
-<p>Congrats! You can now load the saved block to use your credentials in your Python code:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
-<span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">)</span>
-</code></pre></div>
-<div class="admonition info">
-<p class="admonition-title">Registering blocks</p>
-<p>Register blocks in this module to
-<a href="https://docs.prefect.io/ui/blocks/">view and edit them</a>
-on Prefect Cloud:</p>
-<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>block<span class="w"> </span>register<span class="w"> </span>-m<span class="w"> </span>prefect_aws
-</code></pre></div>
+<h2 id="ecs-flow-run-execution">ECS Flow Run Execution</h2>
+<p>To set up Prefect flow execution in your cloud infrastructure, you need to understand two key Prefect concepts: </p>
+<ul>
+<li>a <a href="https://docs.prefect.io/latest/concepts/work-pools/#worker-overview">worker</a> to poll Prefect's API (specifically that worker's <a href="https://docs.prefect.io/latest/concepts/work-pools/#work-queues">work queue</a>) </li>
+<li>and the emphemeral <a href="https://docs.prefect.io/2.10.11/concepts/infrastructure/">infrastructure</a> that this worker will spin up for each scheduled <a href="https://docs.prefect.io/2.10.11/concepts/flows/#flow-runs">flow run</a>. </li>
+</ul>
+<h4 id="architecture-diagram">Architecture Diagram</h4>
+<pre class="mermaid"><code>graph TB
+
+  subgraph ecs_cluster[ECS cluster]
+    subgraph ecs_service[ECS service]
+      td_worker[worker task definition] --&gt; |defines| prefect_worker((Prefect worker))
+    end
+    prefect_worker --&gt;|kicks off| ecs_task
+    fr_task_definition[flow run task definition]
+
+
+    subgraph ecs_task["ECS Task Execution &lt;br&gt;  (flow run infrastructure)"]
+    style ecs_task text-align:center
+
+      flow_run((Flow Run))
+
+    end
+    fr_task_definition --&gt;|blueprint for| ecs_task
+  end
+
+  subgraph prefect_cloud[Prefect Cloud]
+    subgraph prefect_workpool[ECS work pool]
+      workqueue[Work queue]
+    end
+  end
+
+  subgraph github["GitHub"]
+    flow_code{{"Flow Code"}}
+  end
+  flow_code --&gt; |pulls| ecs_task
+  prefect_worker --&gt;|polls| workqueue
+  prefect_workpool --&gt;|configures| fr_task_definition</code></pre>
+<h3 id="ecs-in-prefect-terms">ECS in Prefect Terms</h3>
+<div class="admonition tip">
+<p class="admonition-title">ECS tasks != Prefect tasks</p>
+<p>An ECS Task is <strong>not</strong> the same thing as a <a href="https://docs.prefect.io/latest/concepts/tasks/#tasks-overview">Prefect task</a>. </p>
+<p>ECS tasks are groupings of containers that run within an ECS Cluster. An ECS task's behavior is determined by its task definition. </p>
+<p>An <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html"><em>ECS task definition</em></a> is the blueprint for the ECS task. It describes which Docker containers to run and what you want to have happen inside these containers.</p>
 </div>
-<h3 id="using-prefect-with-aws-ecs">Using Prefect with AWS ECS</h3>
-<p><code>prefect_aws</code> allows you to use <a href="https://aws.amazon.com/ecs/">AWS ECS</a> as infrastructure for your deployments. Using ECS for scheduled flow runs enables the dynamic provisioning of infrastructure for containers and unlocks greater scalability.</p>
-<p>The snippets below show how you can use <code>prefect_aws</code> to run a task on ECS. The first example uses the <code>ECSTask</code> block as <a href="https://docs.prefect.io/concepts/infrastructure/">infrastructure</a> and the second example shows using ECS within a flow.</p>
-<h4 id="as-deployment-infrastructure">As deployment Infrastructure</h4>
-<h5 id="set-variables">Set variables</h5>
-<p>To expedite copy/paste without the needing to update placeholders manually, update and execute the following.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">CREDENTIALS_BLOCK_NAME</span><span class="o">=</span><span class="s2">&quot;aws-credentials&quot;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">VPC_ID</span><span class="o">=</span><span class="s2">&quot;vpc-id&quot;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">ECS_TASK_BLOCK_NAME</span><span class="o">=</span><span class="s2">&quot;ecs-task-example&quot;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">S3_BUCKET_BLOCK_NAME</span><span class="o">=</span><span class="s2">&quot;ecs-task-bucket-example&quot;</span>
+<p>ECS Tasks are instances of a task definition. A Task Execution launches container(s) as defined in the task definition <strong>until they are stopped or exit on their own</strong>. This setup is ideal for ephemeral processes such as a Prefect flow run.</p>
+<p>The ECS task running the Prefect <a href="https://docs.prefect.io/latest/concepts/work-pools/#worker-overview">worker</a> should be an <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html"><strong>ECS Service</strong></a>, given its long-running nature and need for <strong>auto-recovery in case of failure</strong>. An ECS service automatically replaces any task that fails, which is ideal for managing a long-running process such as a Prefect worker.</p>
+<p>When a Prefect <a href="https://docs.prefect.io/latest/concepts/flows/">flow</a> is scheduled to run, the run scheduled in the Prefect work pool specified in the flow's <a href="https://docs.prefect.io/latest/concepts/deployments">deployment</a>. <a href="https://docs.prefect.io/latest/concepts/work-pools/?h=work#work-pool-overview">Work pools</a> are typed according to the infrastructure the flow will run on. Flow runs scheduled in an <code>ecs</code> typed work pool are executed as ECS tasks. Only Prefect ECS <a href="https://docs.prefect.io/latest/concepts/work-pools/#worker-types">workers</a> can poll an <code>ecs</code> typed work pool.</p>
+<p>When the ECS worker receives a scheduled flow run from the ECS work pool it is polling, it spins up the specified infrastructure on AWS ECS. The worker knows to build an ECS task definition for each flow run based on the configuration specified in the work pool.</p>
+<p>Once the flow run completes, the ECS containers of the cluster are spun down to a single container that continues to run the Prefect worker. This worker continues polling for work from the Prefect work pool.</p>
+<p>If you specify a task definition <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html">ARN (Amazon Resource Name)</a> in the work pool, the worker will use that ARN when spinning up the ECS Task, rather than creating a task definition from the fields supplied in the Work Pool configuration.</p>
+<p>You can use either EC2 or Fargate as the capacity provider. Fargate simplifies initiation, but lengthens infrastructure setup time for each flow run. Using EC2 for the ECS cluster can reduce setup time. In this example, we will show how to use Fargate.</p>
+<hr>
+
+<h1 id="aws-cli-guide">AWS CLI Guide</h1>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If you prefer infrastructure as code check out this <a href="https://github.com/PrefectHQ/prefect-recipes/tree/main/devops/infrastructure-as-code/aws/tf-prefect2-ecs-worker">Terraform module</a> to provision an ECS cluster with a worker.</p>
+</div>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Before you begin, make sure you have:</p>
+<ul>
+<li>An AWS account with permissions to create ECS services and IAM roles.</li>
+<li>The AWS CLI installed on your local machine. You can <a href="https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html">download it from the AWS website</a>.</li>
+<li>An <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html">ECS Cluster</a> to host both the worker and the flow runs it submits.</li>
+<li>A <a href="https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html">VPC</a> configured for your ECS tasks. A VPC is a good idea if using EC2 and required if using Fargate.</li>
+</ul>
+<h3 id="step-1-set-up-an-ecs-work-pool">Step 1: Set Up an ECS work pool</h3>
+<p>Before setting up the worker, create a simple <a href="https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration">work pool</a> of type ECS for the worker to pull work from.</p>
+<p>Create a work pool from the Prefect UI or CLI:</p>
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>work-pool<span class="w"> </span>create<span class="w"> </span>--type<span class="w"> </span>ecs<span class="w"> </span>my-ecs-pool
 </code></pre></div>
-<h5 id="save-an-infrastructure-and-storage-block">Save an infrastructure and storage block</h5>
-<p>Save a custom infrastructure and storage block by executing the following snippet.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span><span class="p">,</span> <span class="n">ECSTask</span><span class="p">,</span> <span class="n">S3Bucket</span>
-
-<span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;CREDENTIALS_BLOCK_NAME&quot;</span><span class="p">])</span>
-
-<span class="n">ecs_task</span> <span class="o">=</span> <span class="n">ECSTask</span><span class="p">(</span>
-    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;prefecthq/prefect:2-python3.10&quot;</span><span class="p">,</span>
-    <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span><span class="p">,</span>
-    <span class="n">vpc_id</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;VPC_ID&quot;</span><span class="p">],</span>
-<span class="p">)</span>
-<span class="n">ecs_task</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ECS_TASK_BLOCK_NAME&quot;</span><span class="p">],</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="n">bucket_name</span> <span class="o">=</span> <span class="s2">&quot;ecs-task-bucket-example&quot;</span>
-<span class="n">s3_client</span> <span class="o">=</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_s3_client</span><span class="p">()</span>
-<span class="n">s3_client</span><span class="o">.</span><span class="n">create_bucket</span><span class="p">(</span>
-    <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
-    <span class="n">CreateBucketConfiguration</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;LocationConstraint&quot;</span><span class="p">:</span> <span class="n">aws_credentials</span><span class="o">.</span><span class="n">region_name</span><span class="p">}</span>
-<span class="p">)</span>
-<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="p">(</span>
-    <span class="n">bucket_name</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
-    <span class="n">credentials</span><span class="o">=</span><span class="n">aws_credentials</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">s3_bucket</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;S3_BUCKET_BLOCK_NAME&quot;</span><span class="p">],</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<p>Configure the VPC and ECS Cluster for your Work Pool via the UI:
+<img alt="VPC" src="../img/VPC_UI.png" /></p>
+<p>Configuring custom fields is easiest from the UI.</p>
+<p><img alt="ECSCluster" src="../img/ECSCluster_UI.png" /></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>You need to have a VPC specified for your work pool if you are using AWS Fargate.</p>
+</div>
+<p><img alt="Launch" src="../img/LaunchType_UI.png" />
+<sub>Pictures of UI Cropped</p>
+<p>Next, set up an Prefect ECS worker that will discover and pull work from this work pool.</p>
+<h3 id="step-2-start-a-prefect-worker-in-your-ecs-cluster">Step 2: Start a Prefect worker in your ECS cluster.</h3>
+<p>To create an <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-custom.html#roles-creatingrole-custom-trust-policy-console">IAM role</a> for the ECS task using the AWS CLI, follow these steps:</p>
+<ol>
+<li>
+<p><strong>Create a Trust Policy</strong></p>
+<p>The Trust Policy will specify that ECS can assume the role.</p>
+<p>Save this policy to a file, such as <code>ecs-trust-policy.json</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;Version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;Statement&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;Principal&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;Service&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ecs-tasks.amazonaws.com&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;Action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sts:AssumeRole&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
 </code></pre></div>
-<h5 id="write-a-flow">Write a flow</h5>
-<p>Then, use an existing flow to create a deployment with, or use the flow below if you don't have an existing flow handy.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+</li>
+<li>
+<p><strong>Create the IAM Role</strong></p>
+<p>Use the <code>aws iam create-role</code> command to create the role:</p>
+<div class="highlight"><pre><span></span><code>aws<span class="w"> </span>iam<span class="w"> </span>create-role<span class="w"> </span><span class="se">\ </span>
+--role-name<span class="w"> </span>ecsTaskExecutionRole<span class="w"> </span><span class="se">\</span>
+--assume-role-policy-document<span class="w"> </span>file://ecs-trust-policy.json
+</code></pre></div>
+</li>
+<li>
+<p><strong>Attach the Policy to the Role</strong></p>
+<p>Amazon has a managed policy named <code>AmazonECSTaskExecutionRolePolicy</code> that grants the permissions necessary for ECS tasks. Attach this policy to your role:</p>
+<div class="highlight"><pre><span></span><code>aws<span class="w"> </span>iam<span class="w"> </span>attach-role-policy<span class="w"> </span><span class="se">\</span>
+--role-name<span class="w"> </span>ecsTaskExecutionRole<span class="w"> </span><span class="se">\ </span>
+--policy-arn<span class="w"> </span>arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+</code></pre></div>
+<p>Remember to replace the <code>--role-name</code> and <code>--policy-arn</code> with the actual role name and policy Amazon Resource Name (ARN) you want to use.</p>
+<p>Now, you have a role named <code>ecsTaskExecutionRole</code> that you can assign to your ECS tasks. This role has the necessary permissions to pull container images and publish logs to CloudWatch.</p>
+</li>
+<li>
+<p><strong>Create a task definition</strong></p>
+</li>
+</ol>
+<p>Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example, the command to start our worker is <code>prefect worker start --pool my-ecs-pool</code>.</p>
+<p>Here are the steps:</p>
+<ol>
+<li>Create a JSON file with the following contents:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;family&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prefect-worker-task&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;networkMode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;awsvpc&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;taskRoleArn&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;your-ecs-task-role-arn&gt;&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;executionRoleArn&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;your-ecs-task-role-arn&gt;&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;containerDefinitions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prefect-worker&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prefecthq/prefect:2-latest&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;cpu&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;memory&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;essential&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">&quot;pip&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;install&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;prefect-aws&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;&amp;&amp;&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;prefect&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;worker&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;start&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;--pool&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;my-ecs-pool&quot;</span>
+<span class="w">      </span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PREFECT_API_URL&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://api.prefect.cloud/api/accounts/&lt;your-account-id&gt;/workspaces/&lt;your-workspace-id&gt;&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PREFECT_API_KEY&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;your-api-key&gt;&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>
+<p>Use <code>prefect config view</code> to view the <code>PREFECT_API_URL</code> for your current Prefect profile.</p>
+</li>
+<li>
+<p>For the <code>PREFECT_API_KEY</code>, individuals on the organization tier can create a <a href="https://docs.prefect.io/latest/cloud/users/service-accounts/">service account</a> for the worker. If on a personal tier, you can pass a user’s API key.</p>
+</li>
+<li>
+<p>Replace <code>&lt;your-ecs-task-role-arn&gt;</code> with the ARN of the IAM role you created in Step 1, and <code>&lt;your-ecr-image&gt;</code> with the URI of the Docker image you pushed to Amazon ECR.</p>
+</li>
+<li>
+<p>Notice that the CPU and Memory allocations are relatively small. The worker's main responsibility is to submit work, <em>not</em> to execute your Prefect flow code.</p>
+</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>To avoid hardcoding your API key into the task definition JSON see <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition">how to add environment variables to the container definition</a>.</p>
+</div>
+<h3 id="step-3-create-an-ecs-service-to-host-your-worker">Step 3: Create an ECS service to host your worker</h3>
+<p>Finally, create a service that will manage your Prefect worker:</p>
+<p>Open a terminal window and run the following command to create an ECS Fargate service:</p>
+<div class="highlight"><pre><span></span><code>aws<span class="w"> </span>ecs<span class="w"> </span>create-service<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--service-name<span class="w"> </span>prefect-worker-service<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cluster<span class="w"> </span>&lt;your-ecs-cluster&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--task-definition<span class="w"> </span>file://&lt;path-to-task-definition-file&gt;.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--launch-type<span class="w"> </span>FARGATE<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--desired-count<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--network-configuration<span class="w"> </span><span class="s2">&quot;awsvpcConfiguration={subnets=[&lt;your-subnet-ids&gt;],securityGroups=[&lt;your-security-group-ids&gt;]}&quot;</span>
+</code></pre></div>
+<p>Replace <code>&lt;your-ecs-cluster&gt;</code> with the name of your ECS cluster, <code>&lt;path-to-task-definition-file&gt;</code> with the path to the JSON file you created in Step 2, <code>&lt;your-subnet-ids&gt;</code> with a comma-separated list of your VPC subnet IDs, and <code>&lt;your-security-group-ids&gt;</code> with a comma-separated list of your VPC security group IDs.</p>
+<div class="admonition tip">
+<p class="admonition-title">Sanity check</p>
+<p>The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is live!</p>
+</div>
+<h3 id="step-4-pick-up-a-flow-run-with-your-new-worker">Step 4: Pick up a flow run with your new worker!</h3>
+<ol>
+<li>
+<p>Write a simple test flow in a repo of your choice:</p>
+<p><code>my_flow.py</code></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span><span class="p">,</span> <span class="n">get_run_logger</span>
 
-<span class="nd">@flow</span><span class="p">(</span><span class="n">log_prints</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">ecs_task_flow</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello, Prefect!&quot;</span><span class="p">)</span>
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Hello from ECS!!&quot;</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">ecs_task_flow</span><span class="p">()</span>
+    <span class="n">my_flow</span><span class="p">()</span>
 </code></pre></div>
-<h5 id="create-a-deployment">Create a deployment</h5>
-<p>If the script was named "ecs_task_script.py", build a deployment manifest with the following command.</p>
-<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>deployment<span class="w"> </span>build<span class="w"> </span>ecs_task_script.py:ecs_task_flow<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-n<span class="w"> </span>ecs-task-deployment<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-ib<span class="w"> </span>ecs-task/<span class="si">${</span><span class="nv">ECS_TASK_BLOCK_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-sb<span class="w"> </span>s3-bucket/<span class="si">${</span><span class="nv">S3_BUCKET_BLOCK_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--override<span class="w"> </span>env.EXTRA_PIP_PACKAGES<span class="o">=</span>prefect-aws
-</code></pre></div>
-<p>Now apply the deployment!</p>
-<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>deployment<span class="w"> </span>apply<span class="w"> </span>ecs_task_flow-deployment.yaml
-</code></pre></div>
-<h5 id="test-the-deployment">Test the deployment</h5>
-<p>Start an <a href="https://docs.prefect.io/latest/concepts/work-pools/">agent</a> in a separate terminal. The agent will poll the Prefect API's work pool for scheduled flow runs.</p>
-<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>agent<span class="w"> </span>start<span class="w"> </span>-q<span class="w"> </span><span class="s1">&#39;default&#39;</span>
-</code></pre></div>
-<p>Run the deployment once to test it:</p>
-<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>deployment<span class="w"> </span>run<span class="w"> </span>ecs-task-flow/ecs-task-deployment
-</code></pre></div>
-<p>Once the flow run has completed, you will see <code>Hello, Prefect!</code> logged in the CLI and the Prefect UI.</p>
-<div class="admonition info">
-<p class="admonition-title">No class found for dispatch key</p>
-<p>If you encounter an error message like <code>KeyError: "No class found for dispatch key 'ecs-task' in registry for type 'Block'."</code>,
-ensure <code>prefect-aws</code> is installed in the environment in which your agent is running!</p>
+</li>
+<li>
+<p>Configure a project <a href="https://docs.prefect.io/latest/concepts/projects/#the-pull-section">pull step</a> to allow the worker to access your flow code at runtime.</p>
+<div class="admonition tip">
+<p class="admonition-title">Create a <a href="https://docs.prefect.io/latest/tutorials/projects/#initializing-a-project">Prefect Project</a>.</p>
+<p>Run the following command at the base of whichever repo contains your flow. (See our <a href="https://docs.prefect.io/latest/tutorial/projects/#initializing-a-project">Projects Tutorial</a> for other recipes with other pull step options.)<br />
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>project<span class="w"> </span>init<span class="w"> </span>--recipe<span class="w"> </span>git
+</code></pre></div></p>
+<p>In the <code>prefect.yaml</code> file, specify the code in the <a href="https://docs.prefect.io/latest/concepts/projects/#the-pull-section">pull step</a> to allow the worker to access your flow code.
+<code>prefect.yaml</code>
+<div class="highlight"><pre><span></span><code><span class="c1"># File for configuring project / deployment build, push and pull steps</span>
+
+<span class="c1"># Generic metadata about this project</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-repo-name</span>
+<span class="nt">prefect-version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.10.12</span>
+
+<span class="c1"># build section allows you to manage and build docker images</span>
+<span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+
+<span class="c1"># push section allows you to manage if and how this project is uploaded to remote locations</span>
+<span class="nt">push</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+
+<span class="c1"># pull section allows you to provide instructions for cloning this project in remote locations</span>
+<span class="nt">pull</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect.projects.steps.git_clone_project</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">repository</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/git-user/my-repo-name.git</span>
+<span class="w">    </span><span class="nt">branch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+<span class="w">    </span><span class="nt">access_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+</code></pre></div></p>
 </div>
-<p>Another tutorial on <code>ECSTask</code> can be found <a href="https://towardsdatascience.com/prefect-aws-ecs-fargate-github-actions-make-serverless-dataflows-as-easy-as-py-f6025335effc">here</a>.</p>
-<h4 id="within-flow">Within Flow</h4>
-<p>You can also execute commands with an <code>ECSTask</code> block directly within a Prefect flow. Running containers via ECS in your flows is useful for executing non-Python code in a distributed manner while using Prefect.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
-<span class="kn">from</span> <span class="nn">prefect_aws.ecs</span> <span class="kn">import</span> <span class="n">ECSTask</span>
-
-<span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">ecs_task_flow</span><span class="p">():</span>
-    <span class="n">ecs_task</span> <span class="o">=</span> <span class="n">ECSTask</span><span class="p">(</span>
-        <span class="n">image</span><span class="o">=</span><span class="s2">&quot;prefecthq/prefect:2-python3.10&quot;</span><span class="p">,</span>
-        <span class="n">credentials</span><span class="o">=</span><span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">),</span>
-        <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-2&quot;</span><span class="p">,</span>
-        <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;echo&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello, Prefect!&quot;</span><span class="p">],</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">ecs_task</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</li>
+<li>
+<p>Deploy the flow to the server, specifying the ECS work pool</p>
+<div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>deploy<span class="w"> </span>my_flow.py:my_flow<span class="w"> </span>--name<span class="w"> </span>ecs-test-deployment<span class="w"> </span>--pool<span class="w"> </span>my-ecs-pool
 </code></pre></div>
-<p>This setup gives you all of the observation and orchestration benefits of Prefect, while also providing you the scalability of ECS.</p>
-<h3 id="using-prefect-with-aws-s3">Using Prefect with AWS S3</h3>
-<p><code>prefect_aws</code> allows you to read and write objects with AWS S3 within your Prefect flows.</p>
-<p>The provided code snippet shows how you can use <code>prefect_aws</code> to upload a file to a AWS S3 bucket and download the same file under a different file name.</p>
-<p>Note, the following code assumes that the bucket already exists.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span><span class="p">,</span> <span class="n">S3Bucket</span>
-
-<span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">s3_flow</span><span class="p">():</span>
-    <span class="c1"># create a dummy file to upload</span>
-    <span class="n">file_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;test-example.txt&quot;</span><span class="p">)</span>
-    <span class="n">file_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">&quot;Hello, Prefect!&quot;</span><span class="p">)</span>
-
-    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">)</span>
-    <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="p">(</span>
-        <span class="n">bucket_name</span><span class="o">=</span><span class="s2">&quot;BUCKET-NAME-PLACEHOLDER&quot;</span><span class="p">,</span>
-        <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span>
-    <span class="p">)</span>
-
-    <span class="n">s3_bucket_path</span> <span class="o">=</span> <span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
-    <span class="n">downloaded_file_path</span> <span class="o">=</span> <span class="n">s3_bucket</span><span class="o">.</span><span class="n">download_object_to_path</span><span class="p">(</span>
-        <span class="n">s3_bucket_path</span><span class="p">,</span> <span class="s2">&quot;downloaded-test-example.txt&quot;</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">downloaded_file_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
-
-<span class="n">s3_flow</span><span class="p">()</span>
+</li>
+<li>
+<p>Find the deployment in the UI and click the <strong>Quick Run</strong> button!</p>
+</li>
+</ol>
+<h2 id="optional-next-steps">Optional Next Steps</h2>
+<ol>
+<li>
+<p>Now that you are confident your ECS worker is healthy, you can experiment with different work pool configurations.</p>
+<ul>
+<li>Do your flow runs require higher <code>CPU</code>?</li>
+<li>Would an EC2 <code>Launch Type</code> speed up your flow run execution?</li>
+</ul>
+<p>These infrastructure configuration values can be set on your ECS work pool or they can be <a href="https://docs.prefect.io/latest/concepts/infrastructure/#kubernetesjob-overrides-and-customizations">overriden on the deployment level</a> if desired.</p>
+</li>
+<li>
+<p>Create a custom image for your flow executions, which you can build and push to the Amazon ECR registry.</p>
+<p>For example, a minimal base Dockerfile for a flow run in ECS could look like:</p>
+<div class="highlight"><pre><span></span><code><span class="k">FROM</span><span class="w"> </span><span class="s">prefecthq/prefect:2-python3.10</span>
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>s3fs<span class="w"> </span>prefect-aws
 </code></pre></div>
-<h3 id="using-prefect-with-aws-secrets-manager">Using Prefect with AWS Secrets Manager</h3>
-<p><code>prefect_aws</code> allows you to read and write secrets with AWS Secrets Manager within your Prefect flows.</p>
-<p>The provided code snippet shows how you can use <code>prefect_aws</code> to write a secret to the Secret Manager, read the secret data, delete the secret, and finally return the secret data.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span><span class="p">,</span> <span class="n">AwsSecret</span>
-
-<span class="nd">@flow</span>
-<span class="k">def</span> <span class="nf">secrets_manager_flow</span><span class="p">():</span>
-    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;BLOCK-NAME-PLACEHOLDER&quot;</span><span class="p">)</span>
-    <span class="n">aws_secret</span> <span class="o">=</span> <span class="n">AwsSecret</span><span class="p">(</span><span class="n">secret_name</span><span class="o">=</span><span class="s2">&quot;test-example&quot;</span><span class="p">,</span> <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span><span class="p">)</span>
-    <span class="n">aws_secret</span><span class="o">.</span><span class="n">write_secret</span><span class="p">(</span><span class="n">secret_data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;Hello, Prefect!&quot;</span><span class="p">)</span>
-    <span class="n">secret_data</span> <span class="o">=</span> <span class="n">aws_secret</span><span class="o">.</span><span class="n">read_secret</span><span class="p">()</span>
-    <span class="n">aws_secret</span><span class="o">.</span><span class="n">delete_secret</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">secret_data</span>
-
-<span class="n">secrets_manager_flow</span><span class="p">()</span>
-</code></pre></div>
-<h2 id="resources">Resources</h2>
-<p>Refer to the API documentation on the sidebar to explore all the capabilities of Prefect AWS!</p>
-<p>For more tips on how to use tasks and flows in a Collection, check out <a href="https://docs.prefect.io/collections/usage/">Using Collections</a>!</p>
-<h3 id="recipes">Recipes</h3>
-<p>For additional recipes and examples, check out <a href="https://github.com/PrefectHQ/prefect-recipes"><code>prefect-recipes</code></a>.</p>
-<h3 id="installation">Installation</h3>
-<p>Install <code>prefect-aws</code></p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>prefect-aws
-</code></pre></div>
-<p>A list of available blocks in <code>prefect-aws</code> and their setup instructions can be found <a href="https://PrefectHQ.github.io/prefect-aws/#blocks-catalog">here</a>.</p>
-<p>Requires an installation of Python 3.7+</p>
-<p>We recommend using a Python virtual environment manager such as pipenv, conda or virtualenv.</p>
-<p>These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the <a href="https://docs.prefect.io/">Prefect documentation</a>.</p>
-<h3 id="feedback">Feedback</h3>
-<p>If you encounter any bugs while using <code>prefect-aws</code>, feel free to open an issue in the <a href="https://github.com/PrefectHQ/prefect-aws"><code>prefect-aws</code></a> repository.</p>
-<p>If you have any questions or issues while using <code>prefect-aws</code>, you can find help in either the <a href="https://discourse.prefect.io/">Prefect Discourse forum</a> or the <a href="https://prefect.io/slack">Prefect Slack community</a>.</p>
-<p>Feel free to star or watch <a href="https://github.com/PrefectHQ/prefect-aws"><code>prefect-aws</code></a> for updates too!</p>
+</li>
+<li>
+<p>Consider adding a <a href="https://docs.prefect.io/latest/concepts/projects/#the-build-section">build step</a> to your Prefect Project <code>prefect.yaml</code> if you want to automatically build a Docker image and push it to the repository referenced by the image name each time <code>prefect deploy</code> is run.
+    <div class="highlight"><pre><span></span><code><span class="nt">build</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect_docker.projects.steps.build_docker_image</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">requires</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefect-docker&gt;=0.2.0</span>
+<span class="w">        </span><span class="nt">image_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-repo/my-image</span>
+<span class="w">        </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-tag</span>
+<span class="w">        </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span>
+<span class="w">        </span><span class="nt">push</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div></p>
+</li>
+</ol>
 
 
   
@@ -1231,10 +1109,10 @@ ensure <code>prefect-aws</code> is installed in the environment in which your ag
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
       
     
   </body>
