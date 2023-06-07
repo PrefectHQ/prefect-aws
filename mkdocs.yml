@@ -37,6 +37,7 @@ theme:
     - content.code.annotate
 extra_css:
     - stylesheets/extra.css
+
 markdown_extensions:
     - admonition
     - attr_list
@@ -45,7 +46,11 @@ markdown_extensions:
     - meta
     - pymdownx.highlight:
         use_pygments: true
-    - pymdownx.superfences
+    - pymdownx.superfences:
+        custom_fences:
+            - name: mermaid
+              class: mermaid
+              format: !!python/name:pymdownx.superfences.fence_code_format
     - pymdownx.tabbed
     - pymdownx.inlinehilite
     - pymdownx.snippets
@@ -72,6 +77,7 @@ watch:
 
 nav:
     - Home: index.md
+    - ECS Worker Guide: ecs_guide.md
     - Blocks Catalog: blocks_catalog.md
     - Examples Catalog: examples_catalog.md
     - Contributing: contributing.md
