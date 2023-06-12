@@ -717,10 +717,14 @@ class TestS3Bucket:
 
     @pytest.mark.parametrize("to_path", ["to_path", None])
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
-    def test_stream_from(self, s3_bucket_with_object: S3Bucket, s3_bucket_empty: S3Bucket, client_parameters, to_path):
-        path = s3_bucket_empty.stream_from(
-            s3_bucket_with_object, "object", to_path
-        )
+    def test_stream_from(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        s3_bucket_empty: S3Bucket,
+        client_parameters,
+        to_path,
+    ):
+        path = s3_bucket_empty.stream_from(s3_bucket_with_object, "object", to_path)
         data: bytes = s3_bucket_empty.read_path(path)
         assert data == b"TEST"
 

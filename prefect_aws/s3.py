@@ -793,7 +793,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         bucket: "S3Bucket",
         from_path: str,
         to_path: Optional[str] = None,
-        **upload_kwargs: Dict[str, Any]
+        **upload_kwargs: Dict[str, Any],
     ) -> str:
         """Streams an object from another bucket to this bucket.
 
@@ -830,9 +830,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         from_path: str = self._join_bucket_folder(from_path)
         from_client = bucket.credentials.get_s3_client()
         obj = await run_sync_in_worker_thread(
-            from_client.get_object,
-            Bucket=bucket.bucket_name,
-            Key=from_path
+            from_client.get_object, Bucket=bucket.bucket_name, Key=from_path
         )
         body: StreamingBody = obj["Body"]
 
