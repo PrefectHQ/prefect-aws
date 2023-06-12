@@ -801,7 +801,8 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             bucket: The bucket to stream from.
             from_path: The path of the object to stream.
             to_path: The path to stream the object to. Defaults to the object's name.
-            **upload_kwargs: Additional keyword arguments to pass to `Client.upload_fileobj`.
+            **upload_kwargs: Additional keyword arguments to pass to
+                `Client.upload_fileobj`.
 
         Returns:
             The path that the object was uploaded to.
