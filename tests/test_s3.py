@@ -715,6 +715,15 @@ class TestS3Bucket:
         to_path = Path(to_path)
         assert (to_path / "object").read_text() == "TEST OBJECT IN FOLDER"
 
+    @pytest.mark.parametrize("to_path", ["to_path", None])
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_stream_from(self, s3_bucket_with_object: S3Bucket, s3_bucket_empty: S3Bucket, client_parameters, to_path):
+        path = s3_bucket_empty.stream_from(
+            s3_bucket_with_object, "object", to_path
+        )
+        data: bytes = s3_bucket_empty.read_path(path)
+        assert data == b"TEST"
+
     @pytest.mark.parametrize("to_path", ["new_object", None])
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
     def test_upload_from_path(
