@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-- `prefect.projects` module. Use `prefect.deployments` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
+- `prefect_aws.projects` module. Use `prefect_aws.deployments` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
 - `pull_project_from_s3` step. Use `pull_from_s3` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
 - `push_project_to_s3` step. Use `push_to_s3` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
 - `PullProjectFromS3Output` step output. Use `PullFromS3Output` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
