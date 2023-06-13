@@ -21,6 +21,11 @@ class PushToS3Output(TypedDict):
     folder: str
 
 
+@deprecated_callable(start_date="Jun 2023", help="Use `PushToS3Output` instead.")
+class PushProjectToS3Output(PushToS3Output):
+    """Deprecated. Use `PushToS3Output` instead."""
+
+
 class PullFromS3Output(TypedDict):
     """
     The output of the `pull_from_s3` step.
@@ -31,8 +36,14 @@ class PullFromS3Output(TypedDict):
     directory: str
 
 
+@deprecated_callable(start_date="Jun 2023", help="Use `PullFromS3Output` instead.")
+class PullProjectFromS3Output(PullFromS3Output):
+    """Deprecated. Use `PullFromS3Output` instead.."""
+
+
 @deprecated_callable(start_date="Jun 2023", help="Use `push_to_s3` instead.")
 def push_project_to_s3(*args, **kwargs):
+    """Deprecated. Use `push_to_s3` instead."""
     push_to_s3(*args, **kwargs)
 
 
@@ -116,6 +127,7 @@ def push_to_s3(
 
 @deprecated_callable(start_date="Jun 2023", help="Use `pull_from_s3` instead.")
 def pull_project_from_s3(*args, **kwargs):
+    """Deprecated. Use `pull_from_s3` instead."""
     pull_from_s3(*args, **kwargs)
 
 
