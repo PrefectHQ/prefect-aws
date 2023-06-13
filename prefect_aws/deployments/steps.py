@@ -1,27 +1,29 @@
 """
-Prefect project steps for code storage and retrieval in S3 and S3 compatible services.
+Prefect deployment steps for code storage and retrieval in S3 and S3
+compatible services.
 """
 from pathlib import Path, PurePosixPath
 from typing import Dict, Optional
 
 import boto3
 from botocore.client import Config
+from prefect._internal.compatibility.deprecated import deprecated_callable
 from prefect.utilities.filesystem import filter_files, relative_path_to_current_platform
 from typing_extensions import TypedDict
 
 
-class PushProjectToS3Output(TypedDict):
+class PushToS3Output(TypedDict):
     """
-    The output of the `push_project_to_s3` step.
+    The output of the `push_to_s3` step.
     """
 
     bucket: str
     folder: str
 
 
-class PullProjectFromS3Output(TypedDict):
+class PullFromS3Output(TypedDict):
     """
-    The output of the `pull_project_from_s3` step.
+    The output of the `pull_from_s3` step.
     """
 
     bucket: str
@@ -29,20 +31,25 @@ class PullProjectFromS3Output(TypedDict):
     directory: str
 
 
-def push_project_to_s3(
+@deprecated_callable(start_date="Jun 2023", help="Use `push_to_s3` instead.")
+def push_project_to_s3(*args, **kwargs):
+    push_to_s3(*args, **kwargs)
+
+
+def push_to_s3(
     bucket: str,
     folder: str,
     credentials: Optional[Dict] = None,
     client_parameters: Optional[Dict] = None,
     ignore_file: Optional[str] = ".prefectignore",
-) -> PushProjectToS3Output:
+) -> PushToS3Output:
     """
     Pushes the contents of the current working directory to an S3 bucket,
     excluding files and folders specified in the ignore_file.
 
     Args:
-        bucket: The name of the S3 bucket where the project files will be uploaded.
-        folder: The folder in the S3 bucket where the project files will be uploaded.
+        bucket: The name of the S3 bucket where files will be uploaded.
+        folder: The folder in the S3 bucket where files will be uploaded.
         credentials: A dictionary of AWS credentials (aws_access_key_id,
             aws_secret_access_key, aws_session_token).
         client_parameters: A dictionary of additional parameters to pass to the boto3
@@ -50,22 +57,22 @@ def push_project_to_s3(
         ignore_file: The name of the file containing ignore patterns.
 
     Returns:
-        A dictionary containing the bucket and folder where the project was uploaded.
+        A dictionary containing the bucket and folder where files were uploaded.
 
     Examples:
-        Push a project to an S3 bucket:
+        Push files to an S3 bucket:
         ```yaml
         build:
-            - prefect_aws.projects.steps.push_project_to_s3:
+            - prefect_aws.deployments.steps.push_to_s3:
                 requires: prefect-aws
                 bucket: my-bucket
                 folder: my-project
         ```
 
-        Push a project to an S3 bucket using credentials stored in a block:
+        Push files to an S3 bucket using credentials stored in a block:
         ```yaml
         build:
-            - prefect_aws.projects.steps.push_project_to_s3:
+            - prefect_aws.deployments.steps.push_to_s3:
                 requires: prefect-aws
                 bucket: my-bucket
                 folder: my-project
@@ -107,41 +114,46 @@ def push_project_to_s3(
     }
 
 
-def pull_project_from_s3(
+@deprecated_callable(start_date="Jun 2023", help="Use `pull_from_s3` instead.")
+def pull_project_from_s3(*args, **kwargs):
+    pull_from_s3(*args, **kwargs)
+
+
+def pull_from_s3(
     bucket: str,
     folder: str,
     credentials: Optional[Dict] = None,
     client_parameters: Optional[Dict] = None,
-) -> PullProjectFromS3Output:
+) -> PullFromS3Output:
     """
-    Pulls the contents of a project from an S3 bucket to the current working directory.
+    Pulls the contents of an S3 bucket folder to the current working directory.
 
     Args:
-        bucket: The name of the S3 bucket where the project files are stored.
-        folder: The folder in the S3 bucket where the project files are stored.
+        bucket: The name of the S3 bucket where files are stored.
+        folder: The folder in the S3 bucket where files are stored.
         credentials: A dictionary of AWS credentials (aws_access_key_id,
             aws_secret_access_key, aws_session_token).
         client_parameters: A dictionary of additional parameters to pass to the
             boto3 client.
 
     Returns:
-        A dictionary containing the bucket, folder, and local directory where the
-            project files were downloaded.
+        A dictionary containing the bucket, folder, and local directory where
+            files were downloaded.
 
     Examples:
-        Pull a project from S3 using the default credentials and client parameters:
+        Pull files from S3 using the default credentials and client parameters:
         ```yaml
         build:
-            - prefect_aws.projects.steps.pull_project_from_s3:
+            - prefect_aws.deployments.steps.pull_from_s3:
                 requires: prefect-aws
                 bucket: my-bucket
                 folder: my-project
         ```
 
-        Pull a project from S3 using credentials stored in a block:
+        Pull files from S3 using credentials stored in a block:
         ```yaml
         build:
-            - prefect_aws.projects.steps.pull_project_from_s3:
+            - prefect_aws.deployments.steps.pull_from_s3:
                 requires: prefect-aws
                 bucket: my-bucket
                 folder: my-project

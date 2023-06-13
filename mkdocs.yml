@@ -87,8 +87,8 @@ nav:
         - Credentials: credentials.md
         - ECS Worker: ecs_worker.md
         - ECS: ecs.md
-        - Projects:
-          - Steps: projects/steps.md
+        - Deployments:
+          - Steps: deployments/steps.md
         - S3: s3.md
         - Secrets Manager: secrets_manager.md
 

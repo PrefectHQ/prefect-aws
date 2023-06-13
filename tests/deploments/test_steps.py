@@ -5,7 +5,7 @@ import boto3
 import pytest
 from moto import mock_s3
 
-from prefect_aws.projects.steps import pull_project_from_s3, push_project_to_s3
+from prefect_aws.deployments.steps import pull_from_s3, push_to_s3
 
 
 @pytest.fixture
@@ -56,13 +56,13 @@ def mock_aws_credentials(monkeypatch):
     monkeypatch.delenv("AWS_SESSION_TOKEN", raising=False)
 
 
-def test_push_project_to_s3(s3_setup, tmp_files, mock_aws_credentials):
+def test_push_to_s3(s3_setup, tmp_files, mock_aws_credentials):
     s3, bucket_name = s3_setup
     folder = "my-project"
 
     os.chdir(tmp_files)
 
-    push_project_to_s3(bucket_name, folder)
+    push_to_s3(bucket_name, folder)
 
     s3_objects = s3.list_objects_v2(Bucket=bucket_name)
     object_keys = [PurePath(item["Key"]).as_posix() for item in s3_objects["Contents"]]
@@ -77,7 +77,7 @@ def test_push_project_to_s3(s3_setup, tmp_files, mock_aws_credentials):
     assert set(object_keys) == set(expected_keys)
 
 
-def test_pull_project_from_s3(s3_setup, tmp_path, mock_aws_credentials):
+def test_pull_from_s3(s3_setup, tmp_path, mock_aws_credentials):
     s3, bucket_name = s3_setup
     folder = "my-project"
 
@@ -91,7 +91,7 @@ def test_pull_project_from_s3(s3_setup, tmp_path, mock_aws_credentials):
         s3.put_object(Bucket=bucket_name, Key=key, Body=content)
 
     os.chdir(tmp_path)
-    pull_project_from_s3(bucket_name, folder)
+    pull_from_s3(bucket_name, folder)
 
     for key, content in files.items():
         target = Path(tmp_path) / PurePosixPath(key).relative_to(folder)
@@ -114,7 +114,7 @@ def test_push_pull_empty_folders(s3_setup, tmp_path, mock_aws_credentials):
     os.chdir(tmp_path)
 
     # Push to S3
-    push_project_to_s3(bucket_name, folder)
+    push_to_s3(bucket_name, folder)
 
     # Check if the empty folders are not uploaded
     s3_objects = s3.list_objects_v2(Bucket=bucket_name)
@@ -124,7 +124,7 @@ def test_push_pull_empty_folders(s3_setup, tmp_path, mock_aws_credentials):
     assert f"{folder}/empty2/" not in object_keys
 
     # Pull from S3
-    pull_project_from_s3(bucket_name, folder)
+    pull_from_s3(bucket_name, folder)
 
     # Check if the empty folders are not created
     assert not (tmp_path / "empty1_copy").exists()
@@ -148,20 +148,20 @@ def test_custom_credentials_and_client_parameters(s3_setup, tmp_files):
 
     os.chdir(tmp_files)
 
-    # Test push_project_to_s3 with custom credentials and client parameters
-    push_project_to_s3(
+    # Test push_to_s3 with custom credentials and client parameters
+    push_to_s3(
         bucket_name,
         folder,
         credentials=custom_credentials,
         client_parameters=custom_client_parameters,
     )
 
-    # Test pull_project_from_s3 with custom credentials and client parameters
+    # Test pull_from_s3 with custom credentials and client parameters
     tmp_path = tmp_files / "test_pull"
     tmp_path.mkdir(parents=True, exist_ok=True)
     os.chdir(tmp_path)
 
-    pull_project_from_s3(
+    pull_from_s3(
         bucket_name,
         folder,
         credentials=custom_credentials,
@@ -182,15 +182,15 @@ def test_without_prefectignore_file(s3_setup, tmp_files: Path, mock_aws_credenti
 
     os.chdir(tmp_files)
 
-    # Test push_project_to_s3 without .prefectignore file
-    push_project_to_s3(bucket_name, folder)
+    # Test push_to_s3 without .prefectignore file
+    push_to_s3(bucket_name, folder)
 
-    # Test pull_project_from_s3 without .prefectignore file
+    # Test pull_from_s3 without .prefectignore file
     tmp_path = tmp_files / "test_pull"
     tmp_path.mkdir(parents=True, exist_ok=True)
     os.chdir(tmp_path)
 
-    pull_project_from_s3(bucket_name, folder)
+    pull_from_s3(bucket_name, folder)
 
     for file in tmp_files.iterdir():
         if file.is_file():
@@ -213,15 +213,15 @@ def test_prefectignore_with_comments_and_empty_lines(
 
     os.chdir(tmp_files)
 
-    # Test push_project_to_s3
-    push_project_to_s3(bucket_name, folder)
+    # Test push_to_s3
+    push_to_s3(bucket_name, folder)
 
-    # Test pull_project_from_s3
+    # Test pull_from_s3
     tmp_path = tmp_files / "test_pull"
     tmp_path.mkdir(parents=True, exist_ok=True)
     os.chdir(tmp_path)
 
-    pull_project_from_s3(bucket_name, folder)
+    pull_from_s3(bucket_name, folder)
 
     for file in tmp_files.iterdir():
         if file.is_file() and file.name != ".prefectignore":
