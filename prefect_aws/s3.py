@@ -8,6 +8,7 @@ from typing import Any, BinaryIO, Dict, List, Optional, Union
 
 import boto3
 from botocore.paginate import PageIterator
+from botocore.response import StreamingBody
 from prefect import get_run_logger, task
 from prefect.blocks.abstract import ObjectStorageBlock
 from prefect.filesystems import WritableDeploymentStorage, WritableFileSystem
@@ -785,6 +786,70 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         await asyncio.gather(*async_coros)
 
         return Path(to_folder)
+
+    @sync_compatible
+    async def stream_from(
+        self,
+        bucket: "S3Bucket",
+        from_path: str,
+        to_path: Optional[str] = None,
+        **upload_kwargs: Dict[str, Any],
+    ) -> str:
+        """Streams an object from another bucket to this bucket.
+
+        Args:
+            bucket: The bucket to stream from.
+            from_path: The path of the object to stream.
+            to_path: The path to stream the object to. Defaults to the object's name.
+            **upload_kwargs: Additional keyword arguments to pass to
+                `Client.upload_fileobj`.
+
+        Returns:
+            The path that the object was uploaded to.
+
+        Examples:
+            Stream notes.txt from your-bucket/notes.txt to my-bucket/landed/notes.txt.
+
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            your_s3_bucket = S3Bucket.load("your-bucket")
+            my_s3_bucket = S3Bucket.load("my-bucket")
+
+            my_s3_bucket.stream_from(
+                your_s3_bucket,
+                "notes.txt",
+                to_path="landed/notes.txt"
+            )
+            ```
+
+        """
+        if to_path is None:
+            to_path = Path(from_path).name
+
+        # Get the source object's StreamingBody
+        from_path: str = self._join_bucket_folder(from_path)
+        from_client = bucket.credentials.get_s3_client()
+        obj = await run_sync_in_worker_thread(
+            from_client.get_object, Bucket=bucket.bucket_name, Key=from_path
+        )
+        body: StreamingBody = obj["Body"]
+
+        # Upload the StreamingBody to this bucket
+        bucket_path = str(self._join_bucket_folder(to_path))
+        to_client = self.credentials.get_s3_client()
+        await run_sync_in_worker_thread(
+            to_client.upload_fileobj,
+            Fileobj=body,
+            Bucket=self.bucket_name,
+            Key=bucket_path,
+            **upload_kwargs,
+        )
+        self.logger.info(
+            f"Streamed s3://{bucket.bucket_name}/{from_path} to the bucket "
+            f"{self.bucket_name!r} path {bucket_path!r}."
+        )
+        return bucket_path
 
     @sync_compatible
     async def upload_from_path(
