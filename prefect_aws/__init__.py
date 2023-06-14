@@ -6,6 +6,14 @@ from .ecs import ECSTask
 from .secrets_manager import AwsSecret
 from .workers import ECSWorker
 
+from prefect._internal.compatibility.deprecated import (
+    register_renamed_module,
+)
+
+register_renamed_module(
+    "prefect_aws.projects", "prefect_aws.deployments", start_date="Jun 2023"
+)
+
 __all__ = [
     "AwsCredentials",
     "AwsClientParameters",
