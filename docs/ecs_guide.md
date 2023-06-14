@@ -25,16 +25,16 @@ graph TB
       td_worker[worker task definition] --> |defines| prefect_worker((Prefect worker))
     end
     prefect_worker -->|kicks off| ecs_task
-    fr_task_definition[flow run task definition]
+    fr_task_definition[Flow run task definition]
 
 
-    subgraph ecs_task["ECS Task Execution <br>  (flow run infrastructure)"]
+    subgraph ecs_task["ECS Task Execution <br>  (Flow run infrastructure)"]
     style ecs_task text-align:center
       
-      flow_run((Flow Run))
+      flow_run((Flow run))
 
     end
-    fr_task_definition -->|blueprint for| ecs_task
+    fr_task_definition -->|defines| ecs_task
   end
 
   subgraph prefect_cloud[Prefect Cloud]
@@ -44,7 +44,7 @@ graph TB
   end
 
   subgraph github["GitHub"]
-    flow_code{{"Flow Code"}}
+    flow_code{{"Flow code"}}
   end
   flow_code --> |pulls| ecs_task
   prefect_worker -->|polls| workqueue
@@ -52,7 +52,7 @@ graph TB
 ```
 ### ECS in Prefect Terms
 !!! tip "ECS tasks != Prefect tasks"
-    An ECS Task is **not** the same thing as a [Prefect task](https://docs.prefect.io/latest/concepts/tasks/#tasks-overview). 
+    An ECS task is **not** the same thing as a [Prefect task](https://docs.prefect.io/latest/concepts/tasks/#tasks-overview). 
     
     ECS tasks are groupings of containers that run within an ECS Cluster. An ECS task's behavior is determined by its task definition. 
     
