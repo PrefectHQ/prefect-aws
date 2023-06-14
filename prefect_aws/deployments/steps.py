@@ -73,7 +73,7 @@ def push_to_s3(
     Examples:
         Push files to an S3 bucket:
         ```yaml
-        build:
+        push:
             - prefect_aws.deployments.steps.push_to_s3:
                 requires: prefect-aws
                 bucket: my-bucket
@@ -82,7 +82,7 @@ def push_to_s3(
 
         Push files to an S3 bucket using credentials stored in a block:
         ```yaml
-        build:
+        push:
             - prefect_aws.deployments.steps.push_to_s3:
                 requires: prefect-aws
                 bucket: my-bucket
@@ -155,7 +155,7 @@ def pull_from_s3(
     Examples:
         Pull files from S3 using the default credentials and client parameters:
         ```yaml
-        build:
+        pull:
             - prefect_aws.deployments.steps.pull_from_s3:
                 requires: prefect-aws
                 bucket: my-bucket
@@ -164,7 +164,7 @@ def pull_from_s3(
 
         Pull files from S3 using credentials stored in a block:
         ```yaml
-        build:
+        pull:
             - prefect_aws.deployments.steps.pull_from_s3:
                 requires: prefect-aws
                 bucket: my-bucket
