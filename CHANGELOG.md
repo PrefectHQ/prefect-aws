@@ -9,9 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added `S3Bucket.stream_from` to copy objects between buckets - [#276](https://github.com/PrefectHQ/prefect-aws/pull/276)
-
 ### Changed
+
+### Deprecated
+
+### Removed
+
+## 0.3.4
+
+Released on June 15th, 2023.
+
+### Added
+
+- Added `S3Bucket.stream_from` to copy objects between buckets - [#276](https://github.com/PrefectHQ/prefect-aws/pull/276)
 
 ### Deprecated
 
@@ -20,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `push_project_to_s3` step. Use `push_to_s3` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
 - `PullProjectFromS3Output` step output. Use `PullFromS3Output` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
 - `PushProjectToS3Output` step output. Use `PushToS3Output` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
-
-### Removed
 
 ## 0.3.3
 
