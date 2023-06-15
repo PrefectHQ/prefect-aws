@@ -528,14 +528,14 @@
       
       
         <label class="md-nav__link" for="__nav_6_6" id="__nav_6_6_label" tabindex="0">
-          Projects
+          Deployments
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_6_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_6_6">
           <span class="md-nav__icon md-icon"></span>
-          Projects
+          Deployments
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -545,7 +545,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../projects/steps/" class="md-nav__link">
+      <a href="../deployments/steps/" class="md-nav__link">
         Steps
       </a>
     </li>
@@ -695,16 +695,16 @@
       td_worker[worker task definition] --&gt; |defines| prefect_worker((Prefect worker))
     end
     prefect_worker --&gt;|kicks off| ecs_task
-    fr_task_definition[flow run task definition]
+    fr_task_definition[Flow run task definition]
 
 
-    subgraph ecs_task["ECS Task Execution &lt;br&gt;  (flow run infrastructure)"]
+    subgraph ecs_task["ECS Task Execution &lt;br&gt;  (Flow run infrastructure)"]
     style ecs_task text-align:center
 
-      flow_run((Flow Run))
+      flow_run((Flow run))
 
     end
-    fr_task_definition --&gt;|blueprint for| ecs_task
+    fr_task_definition --&gt;|defines| ecs_task
   end
 
   subgraph prefect_cloud[Prefect Cloud]
@@ -714,7 +714,7 @@
   end
 
   subgraph github["GitHub"]
-    flow_code{{"Flow Code"}}
+    flow_code{{"Flow code"}}
   end
   flow_code --&gt; |pulls| ecs_task
   prefect_worker --&gt;|polls| workqueue
@@ -722,7 +722,7 @@
 <h3 id="ecs-in-prefect-terms">ECS in Prefect Terms</h3>
 <div class="admonition tip">
 <p class="admonition-title">ECS tasks != Prefect tasks</p>
-<p>An ECS Task is <strong>not</strong> the same thing as a <a href="https://docs.prefect.io/latest/concepts/tasks/#tasks-overview">Prefect task</a>. </p>
+<p>An ECS task is <strong>not</strong> the same thing as a <a href="https://docs.prefect.io/latest/concepts/tasks/#tasks-overview">Prefect task</a>. </p>
 <p>ECS tasks are groupings of containers that run within an ECS Cluster. An ECS task's behavior is determined by its task definition. </p>
 <p>An <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html"><em>ECS task definition</em></a> is the blueprint for the ECS task. It describes which Docker containers to run and what you want to have happen inside these containers.</p>
 </div>

@@ -6,11 +6,11 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Prefect project steps for managing project code storage via AWS S3.">
+        <meta name="description" content="Prefect deployment steps for managing deployment code storage via AWS S3.">
       
       
       
-        <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/projects/steps/">
+        <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/deployments/steps/">
       
       
         <link rel="prev" href="../../ecs/">
@@ -101,7 +101,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#prefect_aws.projects.steps" class="md-skip">
+        <a href="#prefect_aws.deployments.steps" class="md-skip">
           Skip to content
         </a>
       
@@ -466,14 +466,14 @@
       
       
         <label class="md-nav__link" for="__nav_6_6" id="__nav_6_6_label" tabindex="0">
-          Projects
+          Deployments
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_6_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_6_6">
           <span class="md-nav__icon md-icon"></span>
-          Projects
+          Deployments
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -517,7 +517,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps-classes" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps-classes" class="md-nav__link">
     Classes
   </a>
   
@@ -525,15 +525,29 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps.PullProjectFromS3Output" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps.PullFromS3Output" class="md-nav__link">
+    PullFromS3Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.deployments.steps.PullProjectFromS3Output" class="md-nav__link">
     PullProjectFromS3Output
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps.PushProjectToS3Output" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps.PushProjectToS3Output" class="md-nav__link">
     PushProjectToS3Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.deployments.steps.PushToS3Output" class="md-nav__link">
+    PushToS3Output
   </a>
   
 </li>
@@ -544,7 +558,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps-functions" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps-functions" class="md-nav__link">
     Functions
   </a>
   
@@ -552,15 +566,29 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps.pull_project_from_s3" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps.pull_from_s3" class="md-nav__link">
+    pull_from_s3()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.deployments.steps.pull_project_from_s3" class="md-nav__link">
     pull_project_from_s3()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps.push_project_to_s3" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps.push_project_to_s3" class="md-nav__link">
     push_project_to_s3()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.deployments.steps.push_to_s3" class="md-nav__link">
+    push_to_s3()
   </a>
   
 </li>
@@ -647,7 +675,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps-classes" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps-classes" class="md-nav__link">
     Classes
   </a>
   
@@ -655,15 +683,29 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps.PullProjectFromS3Output" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps.PullFromS3Output" class="md-nav__link">
+    PullFromS3Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.deployments.steps.PullProjectFromS3Output" class="md-nav__link">
     PullProjectFromS3Output
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps.PushProjectToS3Output" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps.PushProjectToS3Output" class="md-nav__link">
     PushProjectToS3Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.deployments.steps.PushToS3Output" class="md-nav__link">
+    PushToS3Output
   </a>
   
 </li>
@@ -674,7 +716,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps-functions" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps-functions" class="md-nav__link">
     Functions
   </a>
   
@@ -682,15 +724,29 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps.pull_project_from_s3" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps.pull_from_s3" class="md-nav__link">
+    pull_from_s3()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.deployments.steps.pull_project_from_s3" class="md-nav__link">
     pull_project_from_s3()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#prefect_aws.projects.steps.push_project_to_s3" class="md-nav__link">
+  <a href="#prefect_aws.deployments.steps.push_project_to_s3" class="md-nav__link">
     push_project_to_s3()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.deployments.steps.push_to_s3" class="md-nav__link">
+    push_to_s3()
   </a>
   
 </li>
@@ -722,8 +778,8 @@
 
 
 
-<h1 id="prefect_aws.projects.steps" class="doc doc-heading">
-        <code>prefect_aws.projects.steps</code>
+<h1 id="prefect_aws.deployments.steps" class="doc doc-heading">
+        <code>prefect_aws.deployments.steps</code>
 
 
 
@@ -731,7 +787,8 @@
 
     <div class="doc doc-contents first">
 
-      <p>Prefect project steps for code storage and retrieval in S3 and S3 compatible services.</p>
+      <p>Prefect deployment steps for code storage and retrieval in S3 and S3
+compatible services.</p>
 
 
 
@@ -741,15 +798,15 @@
 
 
 
-<h2 id="prefect_aws.projects.steps-classes">Classes</h2>
+<h2 id="prefect_aws.deployments.steps-classes">Classes</h2>
 
   <div class="doc doc-object doc-class">
 
 
 
-<h3 id="prefect_aws.projects.steps.PullProjectFromS3Output" class="doc doc-heading">
+<h3 id="prefect_aws.deployments.steps.PullFromS3Output" class="doc doc-heading">
         <code>
-PullProjectFromS3Output            (<span title="dict">dict</span>)
+PullFromS3Output            (<span title="dict">dict</span>)
         </code>
 
 
@@ -758,13 +815,13 @@ PullProjectFromS3Output            (<span title="dict">dict</span>)
 
     <div class="doc doc-contents ">
 
-      <p>The output of the <code>pull_project_from_s3</code> step.</p>
+      <p>The output of the <code>pull_from_s3</code> step.</p>
 
         <details class="quote">
-          <summary>Source code in <code>prefect_aws/projects/steps.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">PullProjectFromS3Output</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+          <summary>Source code in <code>prefect_aws/deployments/steps.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">PullFromS3Output</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The output of the `pull_project_from_s3` step.</span>
+<span class="sd">    The output of the `pull_from_s3` step.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span>
@@ -800,7 +857,55 @@ PullProjectFromS3Output            (<span title="dict">dict</span>)
 
 
 
-<h3 id="prefect_aws.projects.steps.PushProjectToS3Output" class="doc doc-heading">
+<h3 id="prefect_aws.deployments.steps.PullProjectFromS3Output" class="doc doc-heading">
+        <code>
+PullProjectFromS3Output            (<span title="dict">dict</span>)
+        </code>
+
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Deprecated. Use <code>PullFromS3Output</code> instead..</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/deployments/steps.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@deprecated_callable</span><span class="p">(</span><span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;Jun 2023&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use `PullFromS3Output` instead.&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">PullProjectFromS3Output</span><span class="p">(</span><span class="n">PullFromS3Output</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deprecated. Use `PullFromS3Output` instead..&quot;&quot;&quot;</span>
+</code></pre></div>
+        </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h3 id="prefect_aws.deployments.steps.PushProjectToS3Output" class="doc doc-heading">
         <code>
 PushProjectToS3Output            (<span title="dict">dict</span>)
         </code>
@@ -811,13 +916,61 @@ PushProjectToS3Output            (<span title="dict">dict</span>)
 
     <div class="doc doc-contents ">
 
-      <p>The output of the <code>push_project_to_s3</code> step.</p>
+      <p>Deprecated. Use <code>PushToS3Output</code> instead.</p>
 
         <details class="quote">
-          <summary>Source code in <code>prefect_aws/projects/steps.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">PushProjectToS3Output</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+          <summary>Source code in <code>prefect_aws/deployments/steps.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@deprecated_callable</span><span class="p">(</span><span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;Jun 2023&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use `PushToS3Output` instead.&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">PushProjectToS3Output</span><span class="p">(</span><span class="n">PushToS3Output</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deprecated. Use `PushToS3Output` instead.&quot;&quot;&quot;</span>
+</code></pre></div>
+        </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h3 id="prefect_aws.deployments.steps.PushToS3Output" class="doc doc-heading">
+        <code>
+PushToS3Output            (<span title="dict">dict</span>)
+        </code>
+
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The output of the <code>push_to_s3</code> step.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/deployments/steps.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">PushToS3Output</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The output of the `push_project_to_s3` step.</span>
+<span class="sd">    The output of the `push_to_s3` step.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span>
@@ -847,21 +1000,21 @@ PushProjectToS3Output            (<span title="dict">dict</span>)
   </div>
 
 
-<h2 id="prefect_aws.projects.steps-functions">Functions</h2>
+<h2 id="prefect_aws.deployments.steps-functions">Functions</h2>
 
   <div class="doc doc-object doc-function">
 
 
 
-<h3 id="prefect_aws.projects.steps.pull_project_from_s3" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">pull_project_from_s3</span></code>
+<h3 id="prefect_aws.deployments.steps.pull_from_s3" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pull_from_s3</span></code>
 
 
 </h3>
 
     <div class="doc doc-contents ">
 
-      <p>Pulls the contents of a project from an S3 bucket to the current working directory.</p>
+      <p>Pulls the contents of an S3 bucket folder to the current working directory.</p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -877,13 +1030,13 @@ PushProjectToS3Output            (<span title="dict">dict</span>)
       <tr>
         <td><code>bucket</code></td>
         <td><code>str</code></td>
-        <td><p>The name of the S3 bucket where the project files are stored.</p></td>
+        <td><p>The name of the S3 bucket where files are stored.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
         <td><code>folder</code></td>
         <td><code>str</code></td>
-        <td><p>The folder in the S3 bucket where the project files are stored.</p></td>
+        <td><p>The folder in the S3 bucket where files are stored.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
@@ -912,23 +1065,23 @@ boto3 client.</p></td>
   </thead>
   <tbody>
     <tr>
-      <td><code>PullProjectFromS3Output</code></td>
-      <td><p>A dictionary containing the bucket, folder, and local directory where the
-    project files were downloaded.</p></td>
+      <td><code>PullFromS3Output</code></td>
+      <td><p>A dictionary containing the bucket, folder, and local directory where
+    files were downloaded.</p></td>
     </tr>
   </tbody>
 </table>
 <p><strong>Examples:</strong></p>
-    <p>Pull a project from S3 using the default credentials and client parameters:
-<div class="highlight"><pre><span></span><code><span class="nt">build</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect_aws.projects.steps.pull_project_from_s3</span><span class="p">:</span>
+    <p>Pull files from S3 using the default credentials and client parameters:
+<div class="highlight"><pre><span></span><code><span class="nt">pull</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect_aws.deployments.steps.pull_from_s3</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">requires</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefect-aws</span>
 <span class="w">        </span><span class="nt">bucket</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-bucket</span>
 <span class="w">        </span><span class="nt">folder</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-project</span>
 </code></pre></div></p>
-<p>Pull a project from S3 using credentials stored in a block:
-<div class="highlight"><pre><span></span><code><span class="nt">build</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect_aws.projects.steps.pull_project_from_s3</span><span class="p">:</span>
+<p>Pull files from S3 using credentials stored in a block:
+<div class="highlight"><pre><span></span><code><span class="nt">pull</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect_aws.deployments.steps.pull_from_s3</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">requires</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefect-aws</span>
 <span class="w">        </span><span class="nt">bucket</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-bucket</span>
 <span class="w">        </span><span class="nt">folder</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-project</span>
@@ -936,42 +1089,42 @@ boto3 client.</p></td>
 </code></pre></div></p>
 
         <details class="quote">
-          <summary>Source code in <code>prefect_aws/projects/steps.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">pull_project_from_s3</span><span class="p">(</span>
+          <summary>Source code in <code>prefect_aws/deployments/steps.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">pull_from_s3</span><span class="p">(</span>
     <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">client_parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PullProjectFromS3Output</span><span class="p">:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PullFromS3Output</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Pulls the contents of a project from an S3 bucket to the current working directory.</span>
+<span class="sd">    Pulls the contents of an S3 bucket folder to the current working directory.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        bucket: The name of the S3 bucket where the project files are stored.</span>
-<span class="sd">        folder: The folder in the S3 bucket where the project files are stored.</span>
+<span class="sd">        bucket: The name of the S3 bucket where files are stored.</span>
+<span class="sd">        folder: The folder in the S3 bucket where files are stored.</span>
 <span class="sd">        credentials: A dictionary of AWS credentials (aws_access_key_id,</span>
 <span class="sd">            aws_secret_access_key, aws_session_token).</span>
 <span class="sd">        client_parameters: A dictionary of additional parameters to pass to the</span>
 <span class="sd">            boto3 client.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A dictionary containing the bucket, folder, and local directory where the</span>
-<span class="sd">            project files were downloaded.</span>
+<span class="sd">        A dictionary containing the bucket, folder, and local directory where</span>
+<span class="sd">            files were downloaded.</span>
 
 <span class="sd">    Examples:</span>
-<span class="sd">        Pull a project from S3 using the default credentials and client parameters:</span>
+<span class="sd">        Pull files from S3 using the default credentials and client parameters:</span>
 <span class="sd">        ```yaml</span>
-<span class="sd">        build:</span>
-<span class="sd">            - prefect_aws.projects.steps.pull_project_from_s3:</span>
+<span class="sd">        pull:</span>
+<span class="sd">            - prefect_aws.deployments.steps.pull_from_s3:</span>
 <span class="sd">                requires: prefect-aws</span>
 <span class="sd">                bucket: my-bucket</span>
 <span class="sd">                folder: my-project</span>
 <span class="sd">        ```</span>
 
-<span class="sd">        Pull a project from S3 using credentials stored in a block:</span>
+<span class="sd">        Pull files from S3 using credentials stored in a block:</span>
 <span class="sd">        ```yaml</span>
-<span class="sd">        build:</span>
-<span class="sd">            - prefect_aws.projects.steps.pull_project_from_s3:</span>
+<span class="sd">        pull:</span>
+<span class="sd">            - prefect_aws.deployments.steps.pull_from_s3:</span>
 <span class="sd">                requires: prefect-aws</span>
 <span class="sd">                bucket: my-bucket</span>
 <span class="sd">                folder: my-project</span>
@@ -1022,8 +1175,64 @@ boto3 client.</p></td>
 
 
 
-<h3 id="prefect_aws.projects.steps.push_project_to_s3" class="doc doc-heading">
+<h3 id="prefect_aws.deployments.steps.pull_project_from_s3" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pull_project_from_s3</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Deprecated. Use <code>pull_from_s3</code> instead.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/deployments/steps.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@deprecated_callable</span><span class="p">(</span><span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;Jun 2023&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use `pull_from_s3` instead.&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">pull_project_from_s3</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deprecated. Use `pull_from_s3` instead.&quot;&quot;&quot;</span>
+    <span class="n">pull_from_s3</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="prefect_aws.deployments.steps.push_project_to_s3" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">push_project_to_s3</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Deprecated. Use <code>push_to_s3</code> instead.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/deployments/steps.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@deprecated_callable</span><span class="p">(</span><span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;Jun 2023&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use `push_to_s3` instead.&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">push_project_to_s3</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deprecated. Use `push_to_s3` instead.&quot;&quot;&quot;</span>
+    <span class="n">push_to_s3</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="prefect_aws.deployments.steps.push_to_s3" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">push_to_s3</span></code>
 
 
 </h3>
@@ -1047,13 +1256,13 @@ excluding files and folders specified in the ignore_file.</p>
       <tr>
         <td><code>bucket</code></td>
         <td><code>str</code></td>
-        <td><p>The name of the S3 bucket where the project files will be uploaded.</p></td>
+        <td><p>The name of the S3 bucket where files will be uploaded.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
         <td><code>folder</code></td>
         <td><code>str</code></td>
-        <td><p>The folder in the S3 bucket where the project files will be uploaded.</p></td>
+        <td><p>The folder in the S3 bucket where files will be uploaded.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
@@ -1088,22 +1297,22 @@ client.</p></td>
   </thead>
   <tbody>
     <tr>
-      <td><code>PushProjectToS3Output</code></td>
-      <td><p>A dictionary containing the bucket and folder where the project was uploaded.</p></td>
+      <td><code>PushToS3Output</code></td>
+      <td><p>A dictionary containing the bucket and folder where files were uploaded.</p></td>
     </tr>
   </tbody>
 </table>
 <p><strong>Examples:</strong></p>
-    <p>Push a project to an S3 bucket:
-<div class="highlight"><pre><span></span><code><span class="nt">build</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect_aws.projects.steps.push_project_to_s3</span><span class="p">:</span>
+    <p>Push files to an S3 bucket:
+<div class="highlight"><pre><span></span><code><span class="nt">push</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect_aws.deployments.steps.push_to_s3</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">requires</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefect-aws</span>
 <span class="w">        </span><span class="nt">bucket</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-bucket</span>
 <span class="w">        </span><span class="nt">folder</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-project</span>
 </code></pre></div></p>
-<p>Push a project to an S3 bucket using credentials stored in a block:
-<div class="highlight"><pre><span></span><code><span class="nt">build</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect_aws.projects.steps.push_project_to_s3</span><span class="p">:</span>
+<p>Push files to an S3 bucket using credentials stored in a block:
+<div class="highlight"><pre><span></span><code><span class="nt">push</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">prefect_aws.deployments.steps.push_to_s3</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">requires</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefect-aws</span>
 <span class="w">        </span><span class="nt">bucket</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-bucket</span>
 <span class="w">        </span><span class="nt">folder</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-project</span>
@@ -1111,21 +1320,21 @@ client.</p></td>
 </code></pre></div></p>
 
         <details class="quote">
-          <summary>Source code in <code>prefect_aws/projects/steps.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">push_project_to_s3</span><span class="p">(</span>
+          <summary>Source code in <code>prefect_aws/deployments/steps.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">push_to_s3</span><span class="p">(</span>
     <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">client_parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">ignore_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.prefectignore&quot;</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PushProjectToS3Output</span><span class="p">:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PushToS3Output</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Pushes the contents of the current working directory to an S3 bucket,</span>
 <span class="sd">    excluding files and folders specified in the ignore_file.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        bucket: The name of the S3 bucket where the project files will be uploaded.</span>
-<span class="sd">        folder: The folder in the S3 bucket where the project files will be uploaded.</span>
+<span class="sd">        bucket: The name of the S3 bucket where files will be uploaded.</span>
+<span class="sd">        folder: The folder in the S3 bucket where files will be uploaded.</span>
 <span class="sd">        credentials: A dictionary of AWS credentials (aws_access_key_id,</span>
 <span class="sd">            aws_secret_access_key, aws_session_token).</span>
 <span class="sd">        client_parameters: A dictionary of additional parameters to pass to the boto3</span>
@@ -1133,22 +1342,22 @@ client.</p></td>
 <span class="sd">        ignore_file: The name of the file containing ignore patterns.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A dictionary containing the bucket and folder where the project was uploaded.</span>
+<span class="sd">        A dictionary containing the bucket and folder where files were uploaded.</span>
 
 <span class="sd">    Examples:</span>
-<span class="sd">        Push a project to an S3 bucket:</span>
+<span class="sd">        Push files to an S3 bucket:</span>
 <span class="sd">        ```yaml</span>
-<span class="sd">        build:</span>
-<span class="sd">            - prefect_aws.projects.steps.push_project_to_s3:</span>
+<span class="sd">        push:</span>
+<span class="sd">            - prefect_aws.deployments.steps.push_to_s3:</span>
 <span class="sd">                requires: prefect-aws</span>
 <span class="sd">                bucket: my-bucket</span>
 <span class="sd">                folder: my-project</span>
 <span class="sd">        ```</span>
 
-<span class="sd">        Push a project to an S3 bucket using credentials stored in a block:</span>
+<span class="sd">        Push files to an S3 bucket using credentials stored in a block:</span>
 <span class="sd">        ```yaml</span>
-<span class="sd">        build:</span>
-<span class="sd">            - prefect_aws.projects.steps.push_project_to_s3:</span>
+<span class="sd">        push:</span>
+<span class="sd">            - prefect_aws.deployments.steps.push_to_s3:</span>
 <span class="sd">                requires: prefect-aws</span>
 <span class="sd">                bucket: my-bucket</span>
 <span class="sd">                folder: my-project</span>

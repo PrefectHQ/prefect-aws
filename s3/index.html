@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://PrefectHQ.github.io/prefect-aws/s3/">
       
       
-        <link rel="prev" href="../projects/steps/">
+        <link rel="prev" href="../deployments/steps/">
       
       
         <link rel="next" href="../secrets_manager/">
@@ -464,14 +464,14 @@
       
       
         <label class="md-nav__link" for="__nav_6_6" id="__nav_6_6_label" tabindex="0">
-          Projects
+          Deployments
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_6_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_6_6">
           <span class="md-nav__icon md-icon"></span>
-          Projects
+          Deployments
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -481,7 +481,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../projects/steps/" class="md-nav__link">
+      <a href="../deployments/steps/" class="md-nav__link">
         Steps
       </a>
     </li>
@@ -652,6 +652,13 @@
           <li class="md-nav__item">
   <a href="#prefect_aws.s3.S3Bucket.read_path" class="md-nav__link">
     read_path()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.s3.S3Bucket.stream_from" class="md-nav__link">
+    stream_from()
   </a>
   
 </li>
@@ -905,6 +912,13 @@
           <li class="md-nav__item">
   <a href="#prefect_aws.s3.S3Bucket.read_path" class="md-nav__link">
     read_path()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.s3.S3Bucket.stream_from" class="md-nav__link">
+    stream_from()
   </a>
   
 </li>
@@ -1632,6 +1646,70 @@ for reading and writing objects.</p></td>
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">async_coros</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">to_folder</span><span class="p">)</span>
+
+    <span class="nd">@sync_compatible</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">stream_from</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">bucket</span><span class="p">:</span> <span class="s2">&quot;S3Bucket&quot;</span><span class="p">,</span>
+        <span class="n">from_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">to_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">upload_kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Streams an object from another bucket to this bucket.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bucket: The bucket to stream from.</span>
+<span class="sd">            from_path: The path of the object to stream.</span>
+<span class="sd">            to_path: The path to stream the object to. Defaults to the object&#39;s name.</span>
+<span class="sd">            **upload_kwargs: Additional keyword arguments to pass to</span>
+<span class="sd">                `Client.upload_fileobj`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The path that the object was uploaded to.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            Stream notes.txt from your-bucket/notes.txt to my-bucket/landed/notes.txt.</span>
+
+<span class="sd">            ```python</span>
+<span class="sd">            from prefect_aws.s3 import S3Bucket</span>
+
+<span class="sd">            your_s3_bucket = S3Bucket.load(&quot;your-bucket&quot;)</span>
+<span class="sd">            my_s3_bucket = S3Bucket.load(&quot;my-bucket&quot;)</span>
+
+<span class="sd">            my_s3_bucket.stream_from(</span>
+<span class="sd">                your_s3_bucket,</span>
+<span class="sd">                &quot;notes.txt&quot;,</span>
+<span class="sd">                to_path=&quot;landed/notes.txt&quot;</span>
+<span class="sd">            )</span>
+<span class="sd">            ```</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">to_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">to_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">from_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="c1"># Get the source object&#39;s StreamingBody</span>
+        <span class="n">from_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_bucket_folder</span><span class="p">(</span><span class="n">from_path</span><span class="p">)</span>
+        <span class="n">from_client</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">get_s3_client</span><span class="p">()</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
+            <span class="n">from_client</span><span class="o">.</span><span class="n">get_object</span><span class="p">,</span> <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="o">.</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">from_path</span>
+        <span class="p">)</span>
+        <span class="n">body</span><span class="p">:</span> <span class="n">StreamingBody</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;Body&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Upload the StreamingBody to this bucket</span>
+        <span class="n">bucket_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_join_bucket_folder</span><span class="p">(</span><span class="n">to_path</span><span class="p">))</span>
+        <span class="n">to_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">get_s3_client</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
+            <span class="n">to_client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">,</span>
+            <span class="n">Fileobj</span><span class="o">=</span><span class="n">body</span><span class="p">,</span>
+            <span class="n">Bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket_name</span><span class="p">,</span>
+            <span class="n">Key</span><span class="o">=</span><span class="n">bucket_path</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">upload_kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Streamed s3://</span><span class="si">{</span><span class="n">bucket</span><span class="o">.</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">from_path</span><span class="si">}</span><span class="s2"> to the bucket &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket_name</span><span class="si">!r}</span><span class="s2"> path </span><span class="si">{</span><span class="n">bucket_path</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">bucket_path</span>
 
     <span class="nd">@sync_compatible</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">upload_from_path</span><span class="p">(</span>
@@ -2839,6 +2917,163 @@ path to the key in S3.</p>
     <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_sync</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h5 id="prefect_aws.s3.S3Bucket.stream_from" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">stream_from</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>Streams an object from another bucket to this bucket.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>bucket</code></td>
+        <td><code>S3Bucket</code></td>
+        <td><p>The bucket to stream from.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>from_path</code></td>
+        <td><code>str</code></td>
+        <td><p>The path of the object to stream.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>to_path</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The path to stream the object to. Defaults to the object's name.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>**upload_kwargs</code></td>
+        <td><code>Dict[str, Any]</code></td>
+        <td><p>Additional keyword arguments to pass to
+<code>Client.upload_fileobj</code>.</p></td>
+        <td><code>{}</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>str</code></td>
+      <td><p>The path that the object was uploaded to.</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Examples:</strong></p>
+    <p>Stream notes.txt from your-bucket/notes.txt to my-bucket/landed/notes.txt.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
+
+<span class="n">your_s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;your-bucket&quot;</span><span class="p">)</span>
+<span class="n">my_s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
+
+<span class="n">my_s3_bucket</span><span class="o">.</span><span class="n">stream_from</span><span class="p">(</span>
+    <span class="n">your_s3_bucket</span><span class="p">,</span>
+    <span class="s2">&quot;notes.txt&quot;</span><span class="p">,</span>
+    <span class="n">to_path</span><span class="o">=</span><span class="s2">&quot;landed/notes.txt&quot;</span>
+<span class="p">)</span>
+</code></pre></div>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/s3.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@sync_compatible</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">stream_from</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">bucket</span><span class="p">:</span> <span class="s2">&quot;S3Bucket&quot;</span><span class="p">,</span>
+    <span class="n">from_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">to_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">upload_kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Streams an object from another bucket to this bucket.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        bucket: The bucket to stream from.</span>
+<span class="sd">        from_path: The path of the object to stream.</span>
+<span class="sd">        to_path: The path to stream the object to. Defaults to the object&#39;s name.</span>
+<span class="sd">        **upload_kwargs: Additional keyword arguments to pass to</span>
+<span class="sd">            `Client.upload_fileobj`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The path that the object was uploaded to.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        Stream notes.txt from your-bucket/notes.txt to my-bucket/landed/notes.txt.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        from prefect_aws.s3 import S3Bucket</span>
+
+<span class="sd">        your_s3_bucket = S3Bucket.load(&quot;your-bucket&quot;)</span>
+<span class="sd">        my_s3_bucket = S3Bucket.load(&quot;my-bucket&quot;)</span>
+
+<span class="sd">        my_s3_bucket.stream_from(</span>
+<span class="sd">            your_s3_bucket,</span>
+<span class="sd">            &quot;notes.txt&quot;,</span>
+<span class="sd">            to_path=&quot;landed/notes.txt&quot;</span>
+<span class="sd">        )</span>
+<span class="sd">        ```</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">to_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">to_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">from_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="c1"># Get the source object&#39;s StreamingBody</span>
+    <span class="n">from_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_bucket_folder</span><span class="p">(</span><span class="n">from_path</span><span class="p">)</span>
+    <span class="n">from_client</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">get_s3_client</span><span class="p">()</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
+        <span class="n">from_client</span><span class="o">.</span><span class="n">get_object</span><span class="p">,</span> <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="o">.</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">from_path</span>
+    <span class="p">)</span>
+    <span class="n">body</span><span class="p">:</span> <span class="n">StreamingBody</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;Body&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Upload the StreamingBody to this bucket</span>
+    <span class="n">bucket_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_join_bucket_folder</span><span class="p">(</span><span class="n">to_path</span><span class="p">))</span>
+    <span class="n">to_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">get_s3_client</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
+        <span class="n">to_client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">,</span>
+        <span class="n">Fileobj</span><span class="o">=</span><span class="n">body</span><span class="p">,</span>
+        <span class="n">Bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket_name</span><span class="p">,</span>
+        <span class="n">Key</span><span class="o">=</span><span class="n">bucket_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">upload_kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Streamed s3://</span><span class="si">{</span><span class="n">bucket</span><span class="o">.</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">from_path</span><span class="si">}</span><span class="s2"> to the bucket &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket_name</span><span class="si">!r}</span><span class="s2"> path </span><span class="si">{</span><span class="n">bucket_path</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">bucket_path</span>
 </code></pre></div>
         </details>
     </div>
