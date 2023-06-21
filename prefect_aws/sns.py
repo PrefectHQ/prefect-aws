@@ -50,8 +50,7 @@ class SNS(Block):
             block.publish("my subject", "my message")
             ```
         """
-        sns_client = self._get_sns_client()
-        sns_client.publish(
+        self._get_sns_client().publish(
             TopicArn=self.sns_arn,
             Message=message,
             Subject=subject,
