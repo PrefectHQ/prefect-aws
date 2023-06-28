@@ -828,7 +828,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             to_path = Path(from_path).name
 
         # Get the source object's StreamingBody
-        from_path: str = self._join_bucket_folder(from_path)
+        from_path: str = bucket._join_bucket_folder(from_path)
         from_client = bucket.credentials.get_s3_client()
         obj = await run_sync_in_worker_thread(
             from_client.get_object, Bucket=bucket.bucket_name, Key=from_path
