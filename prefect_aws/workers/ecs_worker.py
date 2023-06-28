@@ -507,8 +507,8 @@ class ECSWorker(BaseWorker):
     job_configuration = ECSJobConfiguration
     job_configuration_variables = ECSVariables
     _description = (
-        "Execute flow runs within containers on AWS ECS. Works with existing ECS "
-        "clusters and serverless execution via AWS Fargate. Requires an AWS account."
+        "Execute flow runs within containers on AWS ECS. Works with EC2 "
+        "and Fargate clusters. Requires an AWS account."
     )
     _display_name = "AWS Elastic Container Service"
     _documentation_url = "https://prefecthq.github.io/prefect-aws/ecs_worker/"
