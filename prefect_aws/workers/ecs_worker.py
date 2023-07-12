@@ -364,15 +364,15 @@ class ECSVariables(BaseVariables):
             "field will be slugified to match AWS character requirements."
         ),
     )
-    launch_type: Optional[Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]] = (
-        Field(
-            default=ECS_DEFAULT_LAUNCH_TYPE,
-            description=(
-                "The type of ECS task run infrastructure that should be used. Note that"
-                " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
-                " the proper capacity provider stategy if set here."
-            ),
-        )
+    launch_type: Optional[
+        Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]
+    ] = Field(
+        default=ECS_DEFAULT_LAUNCH_TYPE,
+        description=(
+            "The type of ECS task run infrastructure that should be used. Note that"
+            " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
+            " the proper capacity provider stategy if set here."
+        ),
     )
     image: Optional[str] = Field(
         default=None,
@@ -675,7 +675,9 @@ class ECSWorker(BaseWorker):
         _TASK_DEFINITION_CACHE[flow_run.deployment_id] = task_definition_arn
 
         logger.info(f"Using ECS task definition {task_definition_arn!r}...")
-        logger.debug(f"Task definition {json.dumps(task_definition, indent=2, default=str)}")
+        logger.debug(
+            f"Task definition {json.dumps(task_definition, indent=2, default=str)}"
+        )
 
         # Prepare the task run request
         task_run_request = self._prepare_task_run_request(
@@ -686,7 +688,9 @@ class ECSWorker(BaseWorker):
         )
 
         logger.info("Creating ECS task run...")
-        logger.debug(f"Task run request {json.dumps(task_run_request, indent=2, default=str)}")
+        logger.debug(
+            f"Task run request {json.dumps(task_run_request, indent=2, default=str)}"
+        )
         try:
             task = self._create_task_run(ecs_client, task_run_request)
             task_arn = task["taskArn"]
@@ -861,7 +865,9 @@ class ECSWorker(BaseWorker):
         Returns the ARN.
         """
         logger.info("Registering ECS task definition...")
-        logger.debug(f"Task definition request {json.dumps(task_definition, indent=2, default=str)}")
+        logger.debug(
+            f"Task definition request {json.dumps(task_definition, indent=2, default=str)}"
+        )
         response = ecs_client.register_task_definition(**task_definition)
         return response["taskDefinition"]["taskDefinitionArn"]
 
@@ -1255,8 +1261,7 @@ class ECSWorker(BaseWorker):
             )
             raise ValueError(
                 f"Failed to find {vpc_message}. "
-                "Network configuration cannot be inferred. "
-                + help_message
+                "Network configuration cannot be inferred. " + help_message
             )
 
         vpc_id = vpcs[0]["VpcId"]
