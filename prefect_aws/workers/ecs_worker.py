@@ -364,8 +364,7 @@ class ECSVariables(BaseVariables):
             "field will be slugified to match AWS character requirements."
         ),
     )
-    launch_type: Optional[
-        Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]
+    launch_type: Optional[Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]
     ] = Field(
         default=ECS_DEFAULT_LAUNCH_TYPE,
         description=(
@@ -866,7 +865,8 @@ class ECSWorker(BaseWorker):
         """
         logger.info("Registering ECS task definition...")
         logger.debug(
-            f"Task definition request {json.dumps(task_definition, indent=2, default=str)}"
+            "Task definition request"
+            f"{json.dumps(task_definition, indent=2, default=str)}"
         )
         response = ecs_client.register_task_definition(**task_definition)
         return response["taskDefinition"]["taskDefinitionArn"]
@@ -1261,7 +1261,8 @@ class ECSWorker(BaseWorker):
             )
             raise ValueError(
                 f"Failed to find {vpc_message}. "
-                "Network configuration cannot be inferred. " + help_message
+                "Network configuration cannot be inferred. "
+                + help_message
             )
 
         vpc_id = vpcs[0]["VpcId"]
