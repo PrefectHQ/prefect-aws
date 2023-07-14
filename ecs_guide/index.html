@@ -17,7 +17,7 @@
         <link rel="next" href="../blocks_catalog/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
@@ -692,13 +692,13 @@
 
   subgraph ecs_cluster[ECS cluster]
     subgraph ecs_service[ECS service]
-      td_worker[worker task definition] --&gt; |defines| prefect_worker((Prefect worker))
+      td_worker[Worker task definition] --&gt; |defines| prefect_worker((Prefect worker))
     end
     prefect_worker --&gt;|kicks off| ecs_task
     fr_task_definition[Flow run task definition]
 
 
-    subgraph ecs_task["ECS Task Execution &lt;br&gt;  (Flow run infrastructure)"]
+    subgraph ecs_task["ECS task execution &lt;br&gt;  (Flow run infrastructure)"]
     style ecs_task text-align:center
 
       flow_run((Flow run))
@@ -726,12 +726,12 @@
 <p>ECS tasks are groupings of containers that run within an ECS Cluster. An ECS task's behavior is determined by its task definition. </p>
 <p>An <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html"><em>ECS task definition</em></a> is the blueprint for the ECS task. It describes which Docker containers to run and what you want to have happen inside these containers.</p>
 </div>
-<p>ECS Tasks are instances of a task definition. A Task Execution launches container(s) as defined in the task definition <strong>until they are stopped or exit on their own</strong>. This setup is ideal for ephemeral processes such as a Prefect flow run.</p>
+<p>ECS tasks are instances of a task definition. A Task Execution launches container(s) as defined in the task definition <strong>until they are stopped or exit on their own</strong>. This setup is ideal for ephemeral processes such as a Prefect flow run.</p>
 <p>The ECS task running the Prefect <a href="https://docs.prefect.io/latest/concepts/work-pools/#worker-overview">worker</a> should be an <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html"><strong>ECS Service</strong></a>, given its long-running nature and need for <strong>auto-recovery in case of failure</strong>. An ECS service automatically replaces any task that fails, which is ideal for managing a long-running process such as a Prefect worker.</p>
-<p>When a Prefect <a href="https://docs.prefect.io/latest/concepts/flows/">flow</a> is scheduled to run, the run scheduled in the Prefect work pool specified in the flow's <a href="https://docs.prefect.io/latest/concepts/deployments">deployment</a>. <a href="https://docs.prefect.io/latest/concepts/work-pools/?h=work#work-pool-overview">Work pools</a> are typed according to the infrastructure the flow will run on. Flow runs scheduled in an <code>ecs</code> typed work pool are executed as ECS tasks. Only Prefect ECS <a href="https://docs.prefect.io/latest/concepts/work-pools/#worker-types">workers</a> can poll an <code>ecs</code> typed work pool.</p>
+<p>When a Prefect <a href="https://docs.prefect.io/latest/concepts/flows/">flow</a> is scheduled to run it goes into the work pool specified in the flow's <a href="https://docs.prefect.io/latest/concepts/deployments">deployment</a>. <a href="https://docs.prefect.io/latest/concepts/work-pools/?h=work#work-pool-overview">Work pools</a> are typed according to the infrastructure the flow will run on. Flow runs scheduled in an <code>ecs</code> typed work pool are executed as ECS tasks. Only Prefect ECS <a href="https://docs.prefect.io/latest/concepts/work-pools/#worker-types">workers</a> can poll an <code>ecs</code> typed work pool.</p>
 <p>When the ECS worker receives a scheduled flow run from the ECS work pool it is polling, it spins up the specified infrastructure on AWS ECS. The worker knows to build an ECS task definition for each flow run based on the configuration specified in the work pool.</p>
 <p>Once the flow run completes, the ECS containers of the cluster are spun down to a single container that continues to run the Prefect worker. This worker continues polling for work from the Prefect work pool.</p>
-<p>If you specify a task definition <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html">ARN (Amazon Resource Name)</a> in the work pool, the worker will use that ARN when spinning up the ECS Task, rather than creating a task definition from the fields supplied in the Work Pool configuration.</p>
+<p>If you specify a task definition <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html">ARN (Amazon Resource Name)</a> in the work pool, the worker will use that ARN when spinning up the ECS Task, rather than creating a task definition from the fields supplied in the work pool configuration.</p>
 <p>You can use either EC2 or Fargate as the capacity provider. Fargate simplifies initiation, but lengthens infrastructure setup time for each flow run. Using EC2 for the ECS cluster can reduce setup time. In this example, we will show how to use Fargate.</p>
 <hr>
 
@@ -753,7 +753,7 @@
 <p>Create a work pool from the Prefect UI or CLI:</p>
 <div class="highlight"><pre><span></span><code>prefect<span class="w"> </span>work-pool<span class="w"> </span>create<span class="w"> </span>--type<span class="w"> </span>ecs<span class="w"> </span>my-ecs-pool
 </code></pre></div>
-<p>Configure the VPC and ECS Cluster for your Work Pool via the UI:
+<p>Configure the VPC and ECS cluster for your work pool via the UI:
 <img alt="VPC" src="../img/VPC_UI.png" /></p>
 <p>Configuring custom fields is easiest from the UI.</p>
 <p><img alt="ECSCluster" src="../img/ECSCluster_UI.png" /></p>
@@ -768,8 +768,8 @@
 <p>To create an <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-custom.html#roles-creatingrole-custom-trust-policy-console">IAM role</a> for the ECS task using the AWS CLI, follow these steps:</p>
 <ol>
 <li>
-<p><strong>Create a Trust Policy</strong></p>
-<p>The Trust Policy will specify that ECS can assume the role.</p>
+<p><strong>Create a trust policy</strong></p>
+<p>The trust policy will specify that ECS can assume the role.</p>
 <p>Save this policy to a file, such as <code>ecs-trust-policy.json</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;Version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
@@ -786,7 +786,7 @@
 </code></pre></div>
 </li>
 <li>
-<p><strong>Create the IAM Role</strong></p>
+<p><strong>Create the IAM role</strong></p>
 <p>Use the <code>aws iam create-role</code> command to create the role:</p>
 <div class="highlight"><pre><span></span><code>aws<span class="w"> </span>iam<span class="w"> </span>create-role<span class="w"> </span><span class="se">\ </span>
 --role-name<span class="w"> </span>ecsTaskExecutionRole<span class="w"> </span><span class="se">\</span>
@@ -794,7 +794,7 @@
 </code></pre></div>
 </li>
 <li>
-<p><strong>Attach the Policy to the Role</strong></p>
+<p><strong>Attach the policy to the role</strong></p>
 <p>Amazon has a managed policy named <code>AmazonECSTaskExecutionRolePolicy</code> that grants the permissions necessary for ECS tasks. Attach this policy to your role:</p>
 <div class="highlight"><pre><span></span><code>aws<span class="w"> </span>iam<span class="w"> </span>attach-role-policy<span class="w"> </span><span class="se">\</span>
 --role-name<span class="w"> </span>ecsTaskExecutionRole<span class="w"> </span><span class="se">\ </span>
@@ -807,7 +807,7 @@
 <p><strong>Create a task definition</strong></p>
 </li>
 </ol>
-<p>Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example, the command to start our worker is <code>prefect worker start --pool my-ecs-pool</code>.</p>
+<p>Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example, the command to start the worker is <code>prefect worker start --pool my-ecs-pool</code>.</p>
 <p>Here are the steps:</p>
 <ol>
 <li>Create a JSON file with the following contents:</li>
@@ -1109,10 +1109,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.220ee61c.min.js"></script>
       
     
   </body>
