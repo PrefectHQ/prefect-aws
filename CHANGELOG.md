@@ -11,11 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Fixed `S3Bucket.stream_from` path resolution - [#291](https://github.com/PrefectHQ/prefect-aws/pull/291)
-
 ### Deprecated
 
 ### Removed
+
+## 0.3.5
+
+### Fixed
+
+- Fixed `S3Bucket.stream_from` path resolution - [#291](https://github.com/PrefectHQ/prefect-aws/pull/291)
+- Fixed `ECSWorker` debug logs from failing to parse json - [#296](https://github.com/PrefectHQ/prefect-aws/pull/296)
 
 ## 0.3.4
 
