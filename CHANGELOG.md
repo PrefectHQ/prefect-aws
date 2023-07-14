@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.3.5
 
+Released on July 14th, 2023.
+
 ### Fixed
 
 - Fixed `S3Bucket.stream_from` path resolution - [#291](https://github.com/PrefectHQ/prefect-aws/pull/291)
