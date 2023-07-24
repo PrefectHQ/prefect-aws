@@ -174,49 +174,54 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
     1. Create a JSON file with the following contents:
 
     ```json
-    {
-      "family": "prefect-worker-task",
-      "networkMode": "awsvpc",
-      "taskRoleArn": "<your-ecs-task-role-arn>",
-      "executionRoleArn": "<your-ecs-task-role-arn>",
-      "containerDefinitions": [
-        {
-          "name": "prefect-worker",
-          "image": "prefecthq/prefect:2-latest",
-          "cpu": 512,
-          "memory": 1024,
-          "essential": true,
-          "command": [
-            "pip",
-            "install",
-            "prefect-aws",
-            "&&",
-            "prefect",
-            "worker",
-            "start",
-            "--pool",
-            "my-ecs-pool"
-          ],
-          "environment": [
-            {
-              "name": "PREFECT_API_URL",
-              "value": "https://api.prefect.cloud/api/accounts/<your-account-id>/workspaces/<your-workspace-id>"
-            },
-            {
-              "name": "PREFECT_API_KEY",
-              "value": "<your-api-key>"
-            }
-          ]
-        }
+  {
+  "family": "prefect-worker-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+      "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "<your-ecs-task-role-arn>",
+  "taskRoleArn": "<your-ecs-task-role-arn>",
+  "containerDefinitions": [
+      {
+      "name": "prefect-worker",
+      "image": "prefecthq/prefect:2-latest",
+      "cpu": 512,
+      "memory": 1024,
+      "essential": true,
+      "command": [
+          "pip",
+          "install",
+          "prefect-aws",
+          "&&",
+          "prefect",
+          "worker",
+          "start",
+          "--pool",
+          "my-ecs-pool"
+      ],
+      "environment": [
+          {
+          "name": "PREFECT_API_URL",
+          "value": "https://api.prefect.cloud/api/accounts/<your-account-id>/workspaces/<your-workspace-id>"
+          },
+          {
+          "name": "PREFECT_API_KEY",
+          "value": "<your-prefect-api-key>"
+          }
       ]
-    }
+      }
+  ]
+  }
     ```
 
-    - Use `prefect config view` to view the `PREFECT_API_URL` for your current Prefect profile.
+    - Use `prefect config view` to view the `PREFECT_API_URL` for your current Prefect profile. Use this to replace both `<your-account-id>` and `<your-workspace-id>`.
 
     - For the `PREFECT_API_KEY`, individuals on the organization tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
 
-    - Replace `<your-ecs-task-role-arn>` with the ARN of the IAM role you created in Step 1, and `<your-ecr-image>` with the URI of the Docker image you pushed to Amazon ECR.
+    - Replace `<your-ecs-task-role-arn>` with the ARN of the IAM role you created in Step 1.
 
     - Notice that the CPU and Memory allocations are relatively small. The worker's main responsibility is to submit work through API calls to AWS, _not_ to execute your Prefect flow code.
 
@@ -243,7 +248,7 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
 
     aws ecs create-service --cluster <cluster-name> --service-name <service-name> --task-definition <task-definition-arn> --desired-count <number-of-tasks>
     ```
-    
+
 ### Step 3: Create an ECS service to host your worker
 
 Finally, create a service that will manage your Prefect worker:
