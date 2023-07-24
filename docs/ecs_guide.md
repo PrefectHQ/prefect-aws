@@ -84,7 +84,7 @@ Before you begin, make sure you have:
 
 - An AWS account with permissions to create ECS services and IAM roles.
 - The AWS CLI installed on your local machine. You can [download it from the AWS website](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
-- An [ECS Cluster](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html) to host both the worker and the flow runs it submits.
+- An [ECS Cluster](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html) to host both the worker and the flow runs it submits. Follow [this guide](https://docs.aws.amazon.com/AmazonECS/latest/userguide/create_cluster.html) to create an ECS cluster or simply use the default cluster.
 - A [VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) configured for your ECS tasks. A VPC is a good idea if using EC2 and required if using Fargate.
 
 ### Step 1: Set Up an ECS work pool
@@ -110,7 +110,7 @@ Configuring custom fields is easiest from the UI.
 ![Launch](img/LaunchType_UI.png)
 <sub>Pictures of UI Cropped
 
-Next, set up an Prefect ECS worker that will discover and pull work from this work pool.
+Next, set up a Prefect ECS worker that will discover and pull work from this work pool.
 
 ### Step 2: Start a Prefect worker in your ECS cluster.
 
@@ -167,62 +167,83 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
 
 4. **Create a task definition**
 
-Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example, the command to start the worker is `prefect worker start --pool my-ecs-pool`.
+    Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example, the command to start the worker is `prefect worker start --pool my-ecs-pool`.
 
-Here are the steps:
+    Here are the steps:
 
-1. Create a JSON file with the following contents:
+    1. Create a JSON file with the following contents:
 
-```json
-{
-  "family": "prefect-worker-task",
-  "networkMode": "awsvpc",
-  "taskRoleArn": "<your-ecs-task-role-arn>",
-  "executionRoleArn": "<your-ecs-task-role-arn>",
-  "containerDefinitions": [
+    ```json
     {
-      "name": "prefect-worker",
-      "image": "prefecthq/prefect:2-latest",
-      "cpu": 512,
-      "memory": 1024,
-      "essential": true,
-      "command": [
-        "pip",
-        "install",
-        "prefect-aws",
-        "&&",
-        "prefect",
-        "worker",
-        "start",
-        "--pool",
-        "my-ecs-pool"
-      ],
-      "environment": [
+      "family": "prefect-worker-task",
+      "networkMode": "awsvpc",
+      "taskRoleArn": "<your-ecs-task-role-arn>",
+      "executionRoleArn": "<your-ecs-task-role-arn>",
+      "containerDefinitions": [
         {
-          "name": "PREFECT_API_URL",
-          "value": "https://api.prefect.cloud/api/accounts/<your-account-id>/workspaces/<your-workspace-id>"
-        },
-        {
-          "name": "PREFECT_API_KEY",
-          "value": "<your-api-key>"
+          "name": "prefect-worker",
+          "image": "prefecthq/prefect:2-latest",
+          "cpu": 512,
+          "memory": 1024,
+          "essential": true,
+          "command": [
+            "pip",
+            "install",
+            "prefect-aws",
+            "&&",
+            "prefect",
+            "worker",
+            "start",
+            "--pool",
+            "my-ecs-pool"
+          ],
+          "environment": [
+            {
+              "name": "PREFECT_API_URL",
+              "value": "https://api.prefect.cloud/api/accounts/<your-account-id>/workspaces/<your-workspace-id>"
+            },
+            {
+              "name": "PREFECT_API_KEY",
+              "value": "<your-api-key>"
+            }
+          ]
         }
       ]
     }
-  ]
-}
-```
+    ```
 
-- Use `prefect config view` to view the `PREFECT_API_URL` for your current Prefect profile.
+    - Use `prefect config view` to view the `PREFECT_API_URL` for your current Prefect profile.
 
-- For the `PREFECT_API_KEY`, individuals on the organization tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
+    - For the `PREFECT_API_KEY`, individuals on the organization tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
 
-- Replace `<your-ecs-task-role-arn>` with the ARN of the IAM role you created in Step 1, and `<your-ecr-image>` with the URI of the Docker image you pushed to Amazon ECR.
+    - Replace `<your-ecs-task-role-arn>` with the ARN of the IAM role you created in Step 1, and `<your-ecr-image>` with the URI of the Docker image you pushed to Amazon ECR.
 
-- Notice that the CPU and Memory allocations are relatively small. The worker's main responsibility is to submit work, _not_ to execute your Prefect flow code.
+    - Notice that the CPU and Memory allocations are relatively small. The worker's main responsibility is to submit work through API calls to AWS, _not_ to execute your Prefect flow code.
 
-!!! tip
-    To avoid hardcoding your API key into the task definition JSON see [how to add environment variables to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition).
+    !!! tip
+        To avoid hardcoding your API key into the task definition JSON see [how to add environment variables to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition).
 
+  5. **Register the task definition** 
+    
+    Before creating a service, you first need to register a task definition. You can do that using the `register-task-definition` command in the AWS CLI. Here is an example:
+
+      ```bash
+
+      aws ecs register-task-definition --cli-input-json file://task-definition.json
+      ```
+
+
+
+      Replace `task-definition.json` with the name of your JSON file.
+
+    After you run this command, AWS will output a JSON response. This response includes the `taskDefinitionArn` for your new task definition, which you will need in the next step. 
+    1. **Create the service** : After registering your task definition, you can create a service that uses it. Here is an example command to do that:
+
+    ```bash
+
+    aws ecs create-service --cluster <cluster-name> --service-name <service-name> --task-definition <task-definition-arn> --desired-count <number-of-tasks>
+    ```
+    
 ### Step 3: Create an ECS service to host your worker
 
 Finally, create a service that will manage your Prefect worker:
@@ -233,13 +254,13 @@ Open a terminal window and run the following command to create an ECS Fargate se
 aws ecs create-service \
     --service-name prefect-worker-service \
     --cluster <your-ecs-cluster> \
-    --task-definition file://<path-to-task-definition-file>.json \
+    --task-definition <task-definition-arn> \
     --launch-type FARGATE \
     --desired-count 1 \
     --network-configuration "awsvpcConfiguration={subnets=[<your-subnet-ids>],securityGroups=[<your-security-group-ids>]}"
 ```
 
-Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-definition-file>` with the path to the JSON file you created in Step 2, `<your-subnet-ids>` with a comma-separated list of your VPC subnet IDs, and `<your-security-group-ids>` with a comma-separated list of your VPC security group IDs.
+Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-definition-file>` with the path to the JSON file you created in Step 2, `<your-subnet-ids>` with a comma-separated list of your VPC subnet IDs, and `<your-security-group-ids>` with a comma-separated list of your VPC security group IDs. Replace `<task-definition-arn>` with the ARN of the task definition you just registered.
 
 !!! tip "Sanity check"
     The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is live!
