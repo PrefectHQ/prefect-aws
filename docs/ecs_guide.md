@@ -174,47 +174,49 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
     1. Create a JSON file with the following contents:
 
     ```json
-  {
-  "family": "prefect-worker-task",
-  "networkMode": "awsvpc",
-  "requiresCompatibilities": [
-      "FARGATE"
-  ],
-  "cpu": "512",
-  "memory": "1024",
-  "executionRoleArn": "<your-ecs-task-role-arn>",
-  "taskRoleArn": "<your-ecs-task-role-arn>",
-  "containerDefinitions": [
-      {
-      "name": "prefect-worker",
-      "image": "prefecthq/prefect:2-latest",
-      "cpu": 512,
-      "memory": 1024,
-      "essential": true,
-      "command": [
-          "pip",
-          "install",
-          "prefect-aws",
-          "&&",
-          "prefect",
-          "worker",
-          "start",
-          "--pool",
-          "my-ecs-pool"
-      ],
-      "environment": [
-          {
-          "name": "PREFECT_API_URL",
-          "value": "https://api.prefect.cloud/api/accounts/<your-account-id>/workspaces/<your-workspace-id>"
-          },
-          {
-          "name": "PREFECT_API_KEY",
-          "value": "<your-prefect-api-key>"
-          }
-      ]
-      }
-  ]
-  }
+    {
+    "family": "prefect-worker-task",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024",
+    "executionRoleArn": "<your-ecs-task-role-arn>",
+    "taskRoleArn": "<your-ecs-task-role-arn>",
+    "containerDefinitions": [
+        {
+        "name": "prefect-worker",
+        "image": "prefecthq/prefect",
+        "cpu": 512,
+        "memory": 1024,
+        "essential": true,
+        "command": [
+            "pip",
+            "install",
+            "prefect-aws",
+            "&&",
+            "prefect",
+            "worker",
+            "start",
+            "--pool",
+            "my-ecs-pool",
+            "--type",
+            "ecs"
+        ],
+        "environment": [
+            {
+            "name": "PREFECT_API_URL",
+            "value": "https://api.prefect.cloud/api/accounts/<your-account-id>/workspaces/<your-workspace-id>"
+            },
+            {
+            "name": "PREFECT_API_KEY",
+            "value": "<your-prefect-api-key>"
+            }
+        ]
+        }
+    ]
+    }
     ```
 
     - Use `prefect config view` to view the `PREFECT_API_URL` for your current Prefect profile. Use this to replace both `<your-account-id>` and `<your-workspace-id>`.
@@ -226,7 +228,7 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
     - Notice that the CPU and Memory allocations are relatively small. The worker's main responsibility is to submit work through API calls to AWS, _not_ to execute your Prefect flow code.
 
     !!! tip
-        To avoid hardcoding your API key into the task definition JSON see [how to add environment variables to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition).
+        To avoid hardcoding your API key into the task definition JSON see [how to add environment variables to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition). The API key must be stored as plain text, not the key-value pair dictionary that it is formatted in by default.
 
   5. **Register the task definition** 
     
@@ -240,14 +242,6 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
 
 
       Replace `task-definition.json` with the name of your JSON file.
-
-    After you run this command, AWS will output a JSON response. This response includes the `taskDefinitionArn` for your new task definition, which you will need in the next step. 
-    1. **Create the service** : After registering your task definition, you can create a service that uses it. Here is an example command to do that:
-
-    ```bash
-
-    aws ecs create-service --cluster <cluster-name> --service-name <service-name> --task-definition <task-definition-arn> --desired-count <number-of-tasks>
-    ```
 
 ### Step 3: Create an ECS service to host your worker
 
@@ -265,7 +259,10 @@ aws ecs create-service \
     --network-configuration "awsvpcConfiguration={subnets=[<your-subnet-ids>],securityGroups=[<your-security-group-ids>]}"
 ```
 
-Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-definition-file>` with the path to the JSON file you created in Step 2, `<your-subnet-ids>` with a comma-separated list of your VPC subnet IDs, and `<your-security-group-ids>` with a comma-separated list of your VPC security group IDs. Replace `<task-definition-arn>` with the ARN of the task definition you just registered.
+- Replace `<your-ecs-cluster>` with the name of your ECS cluster. 
+- Replace `<path-to-task-definition-file>` with the path to the JSON file you created in Step 2, `<your-subnet-ids>` with a comma-separated list of your VPC subnet IDs.
+- Replace `<your-security-group-ids>` with a comma-separated list of your VPC security group IDs. 
+- Replace `<task-definition-arn>` with the ARN of the task definition you just registered.
 
 !!! tip "Sanity check"
     The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is live!
@@ -288,44 +285,13 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
         my_flow()
     ```
 
-2. Configure a project [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code at runtime.
-
-    !!! Tip "Create a [Prefect Project](https://docs.prefect.io/latest/tutorials/projects/#initializing-a-project)."
-        Run the following command at the base of whichever repo contains your flow. (See our [Projects Tutorial](https://docs.prefect.io/latest/tutorial/projects/#initializing-a-project) for other recipes with other pull step options.)  
-        ```bash
-        prefect project init --recipe git
-        ```
-
-        In the `prefect.yaml` file, specify the code in the [pull step](https://docs.prefect.io/latest/concepts/projects/#the-pull-section) to allow the worker to access your flow code.
-        `prefect.yaml`
-        ```yaml
-        # File for configuring project / deployment build, push and pull steps
-
-        # Generic metadata about this project
-        name: my-repo-name
-        prefect-version: 2.10.12
-
-        # build section allows you to manage and build docker images
-        build: null
-
-        # push section allows you to manage if and how this project is uploaded to remote locations
-        push: null
-
-        # pull section allows you to provide instructions for cloning this project in remote locations
-        pull:
-        - prefect.projects.steps.git_clone_project:
-            repository: https://github.com/git-user/my-repo-name.git
-            branch: main
-            access_token: null
-        ```
-
-3. Deploy the flow to the server, specifying the ECS work pool
+2. [Deploy](https://docs.prefect.io/2.11.0/tutorial/deployments/#create-a-deployment) the flow to the server, specifying the ECS work pool when prompted.
 
     ```bash
-    prefect deploy my_flow.py:my_flow --name ecs-test-deployment --pool my-ecs-pool
+    prefect deploy my_flow.py:my_flow
     ```
 
-4. Find the deployment in the UI and click the **Quick Run** button!
+3. Find the deployment in the UI and click the **Quick Run** button!
 
 
 ## Optional Next Steps
@@ -335,25 +301,27 @@ Replace `<your-ecs-cluster>` with the name of your ECS cluster, `<path-to-task-d
     - Do your flow runs require higher `CPU`?
     - Would an EC2 `Launch Type` speed up your flow run execution?
 
-    These infrastructure configuration values can be set on your ECS work pool or they can be [overriden on the deployment level](https://docs.prefect.io/latest/concepts/infrastructure/#kubernetesjob-overrides-and-customizations) if desired.
+    These infrastructure configuration values can be set on your ECS work pool or they can be overridden on the deployment level through [job_variables](https://docs.prefect.io/2.11.0/concepts/infrastructure/#kubernetesjob-overrides-and-customizations) if desired.
 
 
-2. Create a custom image for your flow executions, which you can build and push to the Amazon ECR registry.
+2. Consider adding a [build action](https://docs.prefect.io/2.11.0/concepts/deployments-ux/#the-build-action) to your Prefect Project [`prefect.yaml`](https://docs.prefect.io/2.11.0/concepts/deployments-ux/#the-prefect-yaml-file) if you want to automatically build a Docker image and push it to an image registry `prefect deploy` is run.
 
-    For example, a minimal base Dockerfile for a flow run in ECS could look like:
-
-    ```Dockerfile
-    FROM prefecthq/prefect:2-python3.10
-    RUN pip install s3fs prefect-aws
-    ```
-
-3. Consider adding a [build step](https://docs.prefect.io/latest/concepts/projects/#the-build-section) to your Prefect Project `prefect.yaml` if you want to automatically build a Docker image and push it to the repository referenced by the image name each time `prefect deploy` is run.
+Here is an example build action for ECR:
     ```yaml
     build:
-        - prefect_docker.projects.steps.build_docker_image:
-            requires: prefect-docker>=0.2.0
-            image_name: my-repo/my-image
-            tag: my-tag
-            dockerfile: auto
-            push: true
+    - prefect.deployments.steps.run_shell_script:
+        id: get-commit-hash
+        script: git rev-parse --short HEAD
+        stream_output: false
+    - prefect.deployments.steps.run_shell_script:
+        id: ecr-auth-step
+        script: aws ecr get-login-password --region <region> | docker login --username
+            AWS --password-stdin <>.dkr.ecr.<region>.amazonaws.com
+        stream_output: false
+    - prefect_docker.deployments.steps.build_docker_image:
+        requires: prefect-docker>=0.3.0
+        image_name: <>.dkr.ecr.us-east-2.amazonaws.com/<registry>
+        tag: '{{ get-commit-hash.stdout }}'
+        dockerfile: auto
+        push: true
     ```
