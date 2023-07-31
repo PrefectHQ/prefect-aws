@@ -11,9 +11,9 @@ ECS (Elastic Container Service) tasks are a good option for executing Prefect 2 
 
 ## ECS Flow Run Execution
 
-To set up Prefect flow execution in your cloud infrastructure, you need to understand two key Prefect concepts a [worker](https://docs.prefect.io/2.11.1/concepts/work-pools/#worker-overview) and [work pool](https://docs.prefect.io/2.11.1/concepts/work-pools/#work-pool-overview). To learn more about these concepts please see our [deployment tutorial](https://docs.prefect.io/2.11.1/tutorial/deployments/).
+Prefect enables remote flow execution via [workers](https://docs.prefect.io/2.11.1/concepts/work-pools/#worker-overview) and [work pools](https://docs.prefect.io/2.11.1/concepts/work-pools/#work-pool-overview). To learn more about these concepts please see our [deployment tutorial](https://docs.prefect.io/2.11.1/tutorial/deployments/).
 
-For details on how workers and work pools are implemented in ECS, see the diagram below:
+For details on how workers and work pools are implemented for ECS, see the diagram below:
 #### Architecture Diagram
 ```mermaid
 graph TB
@@ -106,7 +106,6 @@ Configuring custom fields is easiest from the UI.
     You need to have a VPC specified for your work pool if you are using AWS Fargate.
 
 ![Launch](img/LaunchType_UI.png)
-<sub>Pictures of UI Cropped
 
 Next, set up a Prefect ECS worker that will discover and pull work from this work pool.
 
@@ -167,7 +166,7 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
 
     Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example, the command to start the worker is `prefect worker start --pool my-ecs-pool`.
 
-5. **Create a JSON file with the following contents:**
+    **Create a JSON file with the following contents:**
 
     ```json
     {
