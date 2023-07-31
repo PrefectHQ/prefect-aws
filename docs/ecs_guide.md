@@ -171,47 +171,47 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
 
     ```json
     {
-    "family": "prefect-worker-task",
-    "networkMode": "awsvpc",
-    "requiresCompatibilities": [
-        "FARGATE"
-    ],
-    "cpu": "512",
-    "memory": "1024",
-    "executionRoleArn": "<your-ecs-task-role-arn>",
-    "taskRoleArn": "<your-ecs-task-role-arn>",
-    "containerDefinitions": [
-        {
-        "name": "prefect-worker",
-        "image": "prefecthq/prefect",
-        "cpu": 512,
-        "memory": 1024,
-        "essential": true,
-        "command": [
-            "pip",
-            "install",
-            "prefect-aws",
-            "&&",
-            "prefect",
-            "worker",
-            "start",
-            "--pool",
-            "my-ecs-pool",
-            "--type",
-            "ecs"
+        "family": "prefect-worker-task",
+        "networkMode": "awsvpc",
+        "requiresCompatibilities": [
+            "FARGATE"
         ],
-        "environment": [
+        "cpu": "512",
+        "memory": "1024",
+        "executionRoleArn": "<your-ecs-task-role-arn>",
+        "taskRoleArn": "<your-ecs-task-role-arn>",
+        "containerDefinitions": [
             {
-            "name": "PREFECT_API_URL",
-            "value": "https://api.prefect.cloud/api/accounts/<your-account-id>/workspaces/<your-workspace-id>"
-            },
-            {
-            "name": "PREFECT_API_KEY",
-            "value": "<your-prefect-api-key>"
+                "name": "prefect-worker",
+                "image": "prefecthq/prefect",
+                "cpu": 512,
+                "memory": 1024,
+                "essential": true,
+                "command": [
+                    "pip",
+                    "install",
+                    "prefect-aws",
+                    "&&",
+                    "prefect",
+                    "worker",
+                    "start",
+                    "--pool",
+                    "my-ecs-pool",
+                    "--type",
+                    "ecs"
+                ],
+                "environment": [
+                    {
+                        "name": "PREFECT_API_URL",
+                        "value": "https://api.prefect.cloud/api/accounts/<your-account-id>/workspaces/<your-workspace-id>"
+                    },
+                    {
+                        "name": "PREFECT_API_KEY",
+                        "value": "<your-prefect-api-key>"
+                    }
+                ]
             }
         ]
-        }
-    ]
     }
     ```
 
