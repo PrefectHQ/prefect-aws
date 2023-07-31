@@ -258,7 +258,7 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
     ```
 
     - Replace `<your-ecs-cluster>` with the name of your ECS cluster. 
-    - Replace `<path-to-task-definition-file>` with the path to the JSON file you created in Step 2, `<your-subnet-ids>` with a comma-separated list of your VPC subnet IDs.
+    - Replace `<path-to-task-definition-file>` with the path to the JSON file you created in Step 2, `<your-subnet-ids>` with a comma-separated list of your VPC subnet IDs. Ensure that these subnets are aligned with the vpc specified on the work pool in step 1.
     - Replace `<your-security-group-ids>` with a comma-separated list of your VPC security group IDs. 
     - Replace `<task-definition-arn>` with the ARN of the task definition you just registered.
 
