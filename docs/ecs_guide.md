@@ -316,7 +316,7 @@ Here is an example build action for ECR:
         stream_output: false
     - prefect_docker.deployments.steps.build_docker_image:
         requires: prefect-docker>=0.3.0
-        image_name: <>.dkr.ecr.us-east-2.amazonaws.com/<registry>
+        image_name: <your-AWS-account-number>.dkr.ecr.us-east-2.amazonaws.com/<registry>
         tag: '{{ get-commit-hash.stdout }}'
         dockerfile: auto
         push: true
