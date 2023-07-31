@@ -14,7 +14,7 @@ ECS (Elastic Container Service) tasks are a good option for executing Prefect 2 
 To set up Prefect flow execution in your cloud infrastructure, you need to understand two key Prefect concepts: 
 
 - a [worker](https://docs.prefect.io/latest/concepts/work-pools/#worker-overview) to poll Prefect's API (specifically that worker's [work queue](https://docs.prefect.io/latest/concepts/work-pools/#work-queues)) 
-- and the emphemeral [infrastructure](https://docs.prefect.io/2.10.11/concepts/infrastructure/) that this worker will spin up for each scheduled [flow run](https://docs.prefect.io/2.10.11/concepts/flows/#flow-runs). 
+- and the ephemeral [infrastructure](https://docs.prefect.io/2.10.11/concepts/infrastructure/) that this worker will spin up for each scheduled [flow run](https://docs.prefect.io/2.10.11/concepts/flows/#flow-runs). 
 
 #### Architecture Diagram
 ```mermaid
