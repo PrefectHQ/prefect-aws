@@ -165,13 +165,11 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
 
     Now, you have a role named `ecsTaskExecutionRole` that you can assign to your ECS tasks. This role has the necessary permissions to pull container images and publish logs to CloudWatch.
 
-4. **Create a task definition**
+4. **Launch an ECS Service to host the worker**
 
     Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example, the command to start the worker is `prefect worker start --pool my-ecs-pool`.
 
-    Here are the steps:
-
-    1. Create a JSON file with the following contents:
+5. **Create a JSON file with the following contents:**
 
     ```json
     {
@@ -230,42 +228,42 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
     !!! tip
         To avoid hardcoding your API key into the task definition JSON see [how to add environment variables to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar-secrets-manager.html#secrets-envvar-secrets-manager-update-container-definition). The API key must be stored as plain text, not the key-value pair dictionary that it is formatted in by default.
 
-  5. **Register the task definition** 
+6. **Register the task definition:**
     
     Before creating a service, you first need to register a task definition. You can do that using the `register-task-definition` command in the AWS CLI. Here is an example:
 
-      ```bash
+    ```bash
 
-      aws ecs register-task-definition --cli-input-json file://task-definition.json
-      ```
+    aws ecs register-task-definition --cli-input-json file://task-definition.json
+    ```
 
 
 
-      Replace `task-definition.json` with the name of your JSON file.
+    Replace `task-definition.json` with the name of your JSON file.
 
-### Step 3: Create an ECS service to host your worker
+7. **Create an ECS service to host your worker:**
 
-Finally, create a service that will manage your Prefect worker:
+    Finally, create a service that will manage your Prefect worker:
 
-Open a terminal window and run the following command to create an ECS Fargate service:
+    Open a terminal window and run the following command to create an ECS Fargate service:
 
-```bash
-aws ecs create-service \
-    --service-name prefect-worker-service \
-    --cluster <your-ecs-cluster> \
-    --task-definition <task-definition-arn> \
-    --launch-type FARGATE \
-    --desired-count 1 \
-    --network-configuration "awsvpcConfiguration={subnets=[<your-subnet-ids>],securityGroups=[<your-security-group-ids>]}"
-```
+    ```bash
+    aws ecs create-service \
+        --service-name prefect-worker-service \
+        --cluster <your-ecs-cluster> \
+        --task-definition <task-definition-arn> \
+        --launch-type FARGATE \
+        --desired-count 1 \
+        --network-configuration "awsvpcConfiguration={subnets=[<your-subnet-ids>],securityGroups=[<your-security-group-ids>]}"
+    ```
 
-- Replace `<your-ecs-cluster>` with the name of your ECS cluster. 
-- Replace `<path-to-task-definition-file>` with the path to the JSON file you created in Step 2, `<your-subnet-ids>` with a comma-separated list of your VPC subnet IDs.
-- Replace `<your-security-group-ids>` with a comma-separated list of your VPC security group IDs. 
-- Replace `<task-definition-arn>` with the ARN of the task definition you just registered.
+    - Replace `<your-ecs-cluster>` with the name of your ECS cluster. 
+    - Replace `<path-to-task-definition-file>` with the path to the JSON file you created in Step 2, `<your-subnet-ids>` with a comma-separated list of your VPC subnet IDs.
+    - Replace `<your-security-group-ids>` with a comma-separated list of your VPC security group IDs. 
+    - Replace `<task-definition-arn>` with the ARN of the task definition you just registered.
 
-!!! tip "Sanity check"
-    The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is live!
+    !!! tip "Sanity check"
+        The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is live!
 
 ### Step 4: Pick up a flow run with your new worker!
 
