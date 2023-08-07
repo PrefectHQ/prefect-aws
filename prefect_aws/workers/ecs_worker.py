@@ -123,6 +123,11 @@ tags: "{{ labels }}"
 taskDefinition: "{{ task_definition_arn }}"
 """
 
+# Create task run retry settings
+MAX_CREATE_TASK_RUN_ATTEMPTS = 3
+CREATE_TASK_RUN_MIN_DELAY_SECONDS = 1
+CREATE_TASK_RUN_MIN_DELAY_JITTER_SECONDS = 0
+CREATE_TASK_RUN_MAX_DELAY_JITTER_SECONDS = 3
 
 _TASK_DEFINITION_CACHE: Dict[UUID, str] = {}
 _TAG_REGEX = r"[^a-zA-Z0-9-_.=+-@: ]+"
@@ -1422,7 +1427,14 @@ class ECSWorker(BaseWorker):
 
         return task_run_request
 
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1) + wait_random(0, 3))
+    @retry(
+        stop=stop_after_attempt(MAX_CREATE_TASK_RUN_ATTEMPTS),
+        wait=wait_fixed(CREATE_TASK_RUN_MIN_DELAY_SECONDS)
+        + wait_random(
+            CREATE_TASK_RUN_MIN_DELAY_JITTER_SECONDS,
+            CREATE_TASK_RUN_MAX_DELAY_JITTER_SECONDS,
+        ),
+    )
     def _create_task_run(self, ecs_client: _ECSClient, task_run_request: dict) -> str:
         """
         Create a run of a task definition.
