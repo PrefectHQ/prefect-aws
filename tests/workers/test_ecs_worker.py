@@ -12,6 +12,7 @@ from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
+from tenacity import RetryError
 
 from prefect_aws.workers.ecs_worker import (
     _TASK_DEFINITION_CACHE,
@@ -1900,3 +1901,26 @@ async def test_kill_infrastructure_with_grace_period(aws_credentials, caplog, fl
 
     # Logs warning
     assert "grace period of 60s requested, but AWS does not support" in caplog.text
+
+
+async def test_retry_on_failed_task_start(
+    aws_credentials: AwsCredentials, flow_run, ecs_mocks
+):
+    run_task_mock = MagicMock(return_value=[])
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, command="echo test"
+    )
+
+    inject_moto_patches(
+        ecs_mocks,
+        {
+            "run_task": [run_task_mock],
+        },
+    )
+
+    with pytest.raises(RetryError):
+        async with ECSWorker(work_pool_name="test") as worker:
+            await run_then_stop_task(worker, configuration, flow_run)
+
+    assert run_task_mock.call_count == 3
