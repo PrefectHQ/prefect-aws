@@ -512,7 +512,6 @@ class ECSWorker(BaseWorker):
     )
     _display_name = "AWS Elastic Container Service"
     _documentation_url = "https://prefecthq.github.io/prefect-aws/ecs_worker/"
-    _is_beta = True
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
 
     async def run(
@@ -675,7 +674,9 @@ class ECSWorker(BaseWorker):
         _TASK_DEFINITION_CACHE[flow_run.deployment_id] = task_definition_arn
 
         logger.info(f"Using ECS task definition {task_definition_arn!r}...")
-        logger.debug(f"Task definition {json.dumps(task_definition, indent=2)}")
+        logger.debug(
+            f"Task definition {json.dumps(task_definition, indent=2, default=str)}"
+        )
 
         # Prepare the task run request
         task_run_request = self._prepare_task_run_request(
@@ -686,7 +687,9 @@ class ECSWorker(BaseWorker):
         )
 
         logger.info("Creating ECS task run...")
-        logger.debug(f"Task run request {json.dumps(task_run_request, indent=2)}")
+        logger.debug(
+            f"Task run request {json.dumps(task_run_request, indent=2, default=str)}"
+        )
         try:
             task = self._create_task_run(ecs_client, task_run_request)
             task_arn = task["taskArn"]
@@ -861,7 +864,10 @@ class ECSWorker(BaseWorker):
         Returns the ARN.
         """
         logger.info("Registering ECS task definition...")
-        logger.debug(f"Task definition request {json.dumps(task_definition, indent=2)}")
+        logger.debug(
+            "Task definition request"
+            f"{json.dumps(task_definition, indent=2, default=str)}"
+        )
         response = ecs_client.register_task_definition(**task_definition)
         return response["taskDefinition"]["taskDefinitionArn"]
 
