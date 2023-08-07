@@ -70,6 +70,7 @@ from prefect.workers.base import (
 )
 from pydantic import Field, root_validator
 from slugify import slugify
+from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
 from typing_extensions import Literal
 
 from prefect_aws import AwsCredentials
@@ -1421,6 +1422,7 @@ class ECSWorker(BaseWorker):
 
         return task_run_request
 
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1) + wait_random(0, 3))
     def _create_task_run(self, ecs_client: _ECSClient, task_run_request: dict) -> str:
         """
         Create a run of a task definition.
