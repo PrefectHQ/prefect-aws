@@ -229,6 +229,8 @@ class ECSJobConfiguration(BaseJobConfiguration):
     )
     configure_cloudwatch_logs: Optional[bool] = Field(default=None)
     cloudwatch_logs_options: Dict[str, str] = Field(default_factory=dict)
+    override_network_configuration: Optional[bool] = Field(default=None)
+    network_configuration: Dict[str, Any] = Field(default_factory=dict)
     stream_output: Optional[bool] = Field(default=None)
     task_start_timeout_seconds: int = Field(default=300)
     task_watch_poll_interval: float = Field(default=5.0)
@@ -318,6 +320,53 @@ class ECSJobConfiguration(BaseJobConfiguration):
             raise ValueError(
                 "`configure_cloudwatch_log` must be enabled to use "
                 "`cloudwatch_logs_options`."
+            )
+        return values
+
+    @root_validator
+    def network_configuration_requires_override_network_configuration(
+        cls, values: dict
+    ) -> dict:
+        """
+        Enforces that custom network configuration mode is enabled to provide custom
+        awsvpcConfiguration for network settings.
+        """
+        if values.get("network_configuration") and not values.get(
+            "override_network_configuration"
+        ):
+            raise ValueError(
+                "You must enable `override_network_configuration` to use"
+                " `network_configuration`."
+            )
+        return values
+
+    @root_validator
+    def network_configuration_requires_vpc_id(cls, values: dict) -> dict:
+        """
+        Enforces a `vpc_id` is provided when custom network configuration mode is
+        enabled for network settings.
+        """
+        if values.get("network_configuration") and not values.get("vpc_id"):
+            raise ValueError(
+                "You must provide a `vpc_id` to enable"
+                " `override_network_configuration`."
+            )
+        return values
+
+    @root_validator
+    def override_network_configuration_requires_network_configuration(
+        cls, values: dict
+    ) -> dict:
+        """
+        Enforces that awsvpcConfiguration is present when when enabling custom
+        configuration mode for network settings.
+        """
+        if not values.get("network_configuration") and values.get(
+            "override_network_configuration"
+        ):
+            raise ValueError(
+                "You must provide `network_configuration` if "
+                "`override_network_configuration` is enabled."
             )
         return values
 
@@ -459,10 +508,33 @@ class ECSVariables(BaseVariables):
             "When `configure_cloudwatch_logs` is enabled, this setting may be used to"
             " pass additional options to the CloudWatch logs configuration or override"
             " the default options. See the [AWS"
-            " documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options.)"  # noqa
+            " documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options)"  # noqa
             " for available options. "
         ),
     )
+
+    override_network_configuration: bool = Field(
+        default=None,
+        description=(
+            "If enabled, the Prefect container will be configured to use the"
+            " awsvpcConfiguration supplied in `network_configuration` rather than auto"
+            " generating it based on the available subnets and security groups"
+            " within the vpc. Because this is advanced configuration it is expected"
+            " that a `vpc_id` will also be provided."
+        ),
+    )
+
+    network_configuration: Dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "When `override_network_configuration` is enabled, this setting is applied"
+            " to the"
+            " awsvpcConfiguration that defines the ECS task executing your workload. "
+            "See the [AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-service-awsvpcconfiguration.html)"  # noqa
+            " for available options."
+        ),
+    )
+
     stream_output: bool = Field(
         default=None,
         description=(
@@ -1242,7 +1314,7 @@ class ECSWorker(BaseWorker):
 
         return task_definition
 
-    def _load_vpc_network_config(
+    def _load_network_configuration(
         self, vpc_id: Optional[str], boto_session: boto3.Session
     ) -> dict:
         """
@@ -1289,6 +1361,47 @@ class ECSWorker(BaseWorker):
             }
         }
 
+    def _custom_network_configuration(
+        self, vpc_id: str, network_configuration: dict, boto_session: boto3.Session
+    ) -> dict:
+        """
+        Load settings from a specific VPC or the default VPC and generate a task
+        run request's network configuration.
+        """
+        ec2_client = boto_session.client("ec2")
+        vpc_message = f"VPC with ID {vpc_id}"
+
+        vpcs = ec2_client.describe_vpcs(**{"VpcIds": [vpc_id]})["Vpcs"]
+
+        if not vpcs:
+            raise ValueError(
+                f"Failed to find {vpc_message}. "
+                + "Network configuration cannot be inferred. "
+                + "Pass an explicit `vpc_id`."
+            )
+
+        vpc_id = vpcs[0]["VpcId"]
+        subnets = ec2_client.describe_subnets(
+            Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
+        )["Subnets"]
+
+        if not subnets:
+            raise ValueError(
+                f"Failed to find subnets for {vpc_message}. "
+                + "Network configuration cannot be inferred."
+            )
+
+        config_subnets = network_configuration.get("subnets")
+        if not all(
+            [conf_sn in sn.values() for conf_sn in config_subnets for sn in subnets]
+        ):
+            raise ValueError(
+                f"Subnets {config_subnets} not found within {vpc_message}."
+                + "Please check that VPC is associated with supplied subnets."
+            )
+
+        return {"awsvpcConfiguration": network_configuration}
+
     def _prepare_task_run_request(
         self,
         boto_session: boto3.Session,
@@ -1322,8 +1435,14 @@ class ECSWorker(BaseWorker):
         if task_definition.get("networkMode") == "awsvpc" and not task_run_request.get(
             "networkConfiguration"
         ):
-            task_run_request["networkConfiguration"] = self._load_vpc_network_config(
-                configuration.vpc_id, boto_session
+            task_run_request["networkConfiguration"] = (
+                self._load_network_configuration(configuration.vpc_id, boto_session)
+                if not configuration.override_network_configuration
+                else self._custom_network_configuration(
+                    configuration.vpc_id,
+                    configuration.network_configuration,
+                    boto_session,
+                )
             )
 
         # Ensure the container name is set if not provided at template time
