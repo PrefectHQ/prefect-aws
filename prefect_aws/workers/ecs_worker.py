@@ -1391,7 +1391,7 @@ class ECSWorker(BaseWorker):
                 + "Network configuration cannot be inferred."
             )
 
-        config_subnets = network_configuration.get("subnets")
+        config_subnets = network_configuration.get("subnets", [])
         if not all(
             [conf_sn in sn.values() for conf_sn in config_subnets for sn in subnets]
         ):

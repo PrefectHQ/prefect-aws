@@ -932,6 +932,47 @@ async def test_network_config_from_custom_settings(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_network_config_from_custom_settings_invalid_subnet(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ec2_resource = session.resource("ec2")
+    vpc = ec2_resource.create_vpc(CidrBlock="10.0.0.0/16")
+    security_group = ec2_resource.create_security_group(
+        GroupName="ECSWorkerTestSG", Description="ECS Worker test SG", VpcId=vpc.id
+    )
+    ec2_resource.create_subnet(CidrBlock="10.0.2.0/24", VpcId=vpc.id)
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        vpc_id=vpc.id,
+        override_network_configuration=True,
+        network_configuration={
+            "subnets": ["sn-8asdas"],
+            "assignPublicIp": "DISABLED",
+            "securityGroups": [security_group.id],
+        },
+    )
+
+    session = aws_credentials.get_boto3_session()
+
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Subnets \['sn-8asdas'\] not found within VPC with ID "
+            + vpc.id
+            + r"\.Please check that VPC is associated with supplied subnets\."
+        ),
+    ):
+        async with ECSWorker(work_pool_name="test") as worker:
+            original_run_task = worker._create_task_run
+            mock_run_task = MagicMock(side_effect=original_run_task)
+            worker._create_task_run = mock_run_task
+
+            await run_then_stop_task(worker, configuration, flow_run)
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_network_config_configure_network_requires_config(
     aws_credentials: AwsCredentials, flow_run: FlowRun
 ):
