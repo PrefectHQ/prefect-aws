@@ -229,7 +229,6 @@ class ECSJobConfiguration(BaseJobConfiguration):
     )
     configure_cloudwatch_logs: Optional[bool] = Field(default=None)
     cloudwatch_logs_options: Dict[str, str] = Field(default_factory=dict)
-    override_network_configuration: Optional[bool] = Field(default=None)
     network_configuration: Dict[str, Any] = Field(default_factory=dict)
     stream_output: Optional[bool] = Field(default=None)
     task_start_timeout_seconds: int = Field(default=300)
@@ -324,23 +323,6 @@ class ECSJobConfiguration(BaseJobConfiguration):
         return values
 
     @root_validator
-    def network_configuration_requires_override_network_configuration(
-        cls, values: dict
-    ) -> dict:
-        """
-        Enforces that custom network configuration mode is enabled to provide custom
-        awsvpcConfiguration for network settings.
-        """
-        if values.get("network_configuration") and not values.get(
-            "override_network_configuration"
-        ):
-            raise ValueError(
-                "You must enable `override_network_configuration` to use"
-                " `network_configuration`."
-            )
-        return values
-
-    @root_validator
     def network_configuration_requires_vpc_id(cls, values: dict) -> dict:
         """
         Enforces a `vpc_id` is provided when custom network configuration mode is
@@ -348,25 +330,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
         """
         if values.get("network_configuration") and not values.get("vpc_id"):
             raise ValueError(
-                "You must provide a `vpc_id` to enable"
-                " `override_network_configuration`."
-            )
-        return values
-
-    @root_validator
-    def override_network_configuration_requires_network_configuration(
-        cls, values: dict
-    ) -> dict:
-        """
-        Enforces that awsvpcConfiguration is present when when enabling custom
-        configuration mode for network settings.
-        """
-        if not values.get("network_configuration") and values.get(
-            "override_network_configuration"
-        ):
-            raise ValueError(
-                "You must provide `network_configuration` if "
-                "`override_network_configuration` is enabled."
+                "You must provide a `vpc_id` to enable custom `network_configuration`."
             )
         return values
 
@@ -513,23 +477,11 @@ class ECSVariables(BaseVariables):
         ),
     )
 
-    override_network_configuration: bool = Field(
-        default=None,
-        description=(
-            "If enabled, the Prefect container will be configured to use the"
-            " awsvpcConfiguration supplied in `network_configuration` rather than auto"
-            " generating it based on the available subnets and security groups"
-            " within the vpc. Because this is advanced configuration it is expected"
-            " that a `vpc_id` will also be provided."
-        ),
-    )
-
     network_configuration: Dict[str, Any] = Field(
         default_factory=dict,
         description=(
-            "When `override_network_configuration` is enabled, this setting is applied"
-            " to the"
-            " awsvpcConfiguration that defines the ECS task executing your workload. "
+            "When `network_configuration` is supplied it will override ECS Worker's"
+            "awsvpcConfiguration that defined in the ECS task executing your workload. "
             "See the [AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-service-awsvpcconfiguration.html)"  # noqa
             " for available options."
         ),
@@ -1371,7 +1323,7 @@ class ECSWorker(BaseWorker):
         ec2_client = boto_session.client("ec2")
         vpc_message = f"VPC with ID {vpc_id}"
 
-        vpcs = ec2_client.describe_vpcs(**{"VpcIds": [vpc_id]})["Vpcs"]
+        vpcs = ec2_client.describe_vpcs(VpcIds=[vpc_id]).get("Vpcs")
 
         if not vpcs:
             raise ValueError(
@@ -1431,14 +1383,23 @@ class ECSWorker(BaseWorker):
         container_overrides = overrides.get("containerOverrides", [])
 
         # Ensure the network configuration is present if using awsvpc for network mode
+        if (
+            task_definition.get("networkMode") == "awsvpc"
+            and not task_run_request.get("networkConfiguration")
+            and not configuration.network_configuration
+        ):
+            task_run_request["networkConfiguration"] = self._load_network_configuration(
+                configuration.vpc_id, boto_session
+            )
 
-        if task_definition.get("networkMode") == "awsvpc" and not task_run_request.get(
-            "networkConfiguration"
+        # Use networkConfiguration if supplied by user
+        if (
+            task_definition.get("networkMode") == "awsvpc"
+            and configuration.network_configuration
+            and configuration.vpc_id
         ):
             task_run_request["networkConfiguration"] = (
-                self._load_network_configuration(configuration.vpc_id, boto_session)
-                if not configuration.override_network_configuration
-                else self._custom_network_configuration(
+                self._custom_network_configuration(
                     configuration.vpc_id,
                     configuration.network_configuration,
                     boto_session,

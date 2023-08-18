@@ -973,56 +973,16 @@ async def test_network_config_from_custom_settings_invalid_subnet(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
-async def test_network_config_configure_network_requires_config(
-    aws_credentials: AwsCredentials, flow_run: FlowRun
-):
-    with pytest.raises(
-        ValidationError,
-        match=(
-            "You must provide `network_configuration` if"
-            " `override_network_configuration` is enabled."
-        ),
-    ):
-        await construct_configuration(
-            aws_credentials=aws_credentials,
-            vpc_id="vpc-ase3456",
-            override_network_configuration=True,
-        )
-
-
-@pytest.mark.usefixtures("ecs_mocks")
 async def test_network_config_configure_network_requires_vpc_id(
     aws_credentials: AwsCredentials, flow_run: FlowRun
 ):
     with pytest.raises(
         ValidationError,
-        match="You must provide a `vpc_id` to enable `override_network_configuration`.",
+        match="You must provide a `vpc_id` to enable custom `network_configuration`.",
     ):
         await construct_configuration(
             aws_credentials=aws_credentials,
             override_network_configuration=True,
-            network_configuration={
-                "subnets": [],
-                "assignPublicIp": "ENABLED",
-                "securityGroups": [],
-            },
-        )
-
-
-@pytest.mark.usefixtures("ecs_mocks")
-async def test_network_config_requires_configure_network(
-    aws_credentials: AwsCredentials, flow_run: FlowRun
-):
-    with pytest.raises(
-        ValidationError,
-        match=(
-            "You must enable `override_network_configuration` to use"
-            " `network_configuration`."
-        ),
-    ):
-        await construct_configuration(
-            aws_credentials=aws_credentials,
-            vpc_id="vpc-ase3456",
             network_configuration={
                 "subnets": [],
                 "assignPublicIp": "ENABLED",
