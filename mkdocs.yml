@@ -89,6 +89,7 @@ nav:
         - ECS: ecs.md
         - Deployments:
           - Steps: deployments/steps.md
+        - Glue Job: glue_job.md
         - S3: s3.md
         - Secrets Manager: secrets_manager.md
 
