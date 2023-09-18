@@ -56,7 +56,7 @@ class GlueJob(Infrastructure):
                 aws_secret_access_key="your_secret_access_key"
             )
             glue_job = GlueJob(
-                glue_job_name="your_glue_job_name",
+                job_name="your_glue_job_name",
                 arguments={"--YOUR_EXTRA_ARGUMENT": "YOUR_EXTRA_ARGUMENT_VALUE"},
             )
             return glue_job.run()
