@@ -117,7 +117,9 @@ def push_to_s3(
             continue
         elif not local_file_path.is_dir():
             remote_file_path = Path(folder) / local_file_path.relative_to(local_path)
-            client.upload_file(str(local_file_path), bucket, str(remote_file_path))
+            client.upload_file(
+                str(local_file_path), bucket, str(remote_file_path.as_posix())
+            )
 
     return {
         "bucket": bucket,

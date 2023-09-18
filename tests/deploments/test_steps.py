@@ -41,6 +41,24 @@ def tmp_files(tmp_path: Path):
 
 
 @pytest.fixture
+def tmp_files_win(tmp_path: Path):
+    files = [
+        "testfile1.txt",
+        "testfile2.txt",
+        "testfile3.txt",
+        "testdir1\\testfile4.txt",
+        "testdir2\\testfile5.txt",
+    ]
+
+    for file in files:
+        filepath = tmp_path / file
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        filepath.write_text("Sample text")
+
+    return tmp_path
+
+
+@pytest.fixture
 def mock_aws_credentials(monkeypatch):
     # Set mock environment variables for AWS credentials
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test_access_key")
@@ -71,6 +89,28 @@ def test_push_to_s3(s3_setup, tmp_files, mock_aws_credentials):
         f"{folder}/testfile1.txt",
         f"{folder}/testfile2.txt",
         f"{folder}/testfile3.txt",
+        f"{folder}/testdir2/testfile5.txt",
+    ]
+
+    assert set(object_keys) == set(expected_keys)
+
+
+def test_push_to_s3_as_posix(s3_setup, tmp_files_win, mock_aws_credentials):
+    s3, bucket_name = s3_setup
+    folder = "my-project"
+
+    os.chdir(tmp_files_win)
+
+    push_to_s3(bucket_name, folder)
+
+    s3_objects = s3.list_objects_v2(Bucket=bucket_name)
+    object_keys = [item["Key"] for item in s3_objects["Contents"]]
+
+    expected_keys = [
+        f"{folder}/testfile1.txt",
+        f"{folder}/testfile2.txt",
+        f"{folder}/testfile3.txt",
+        f"{folder}/testdir1/testfile4.txt",
         f"{folder}/testdir2/testfile5.txt",
     ]
 
