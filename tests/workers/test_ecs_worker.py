@@ -1874,9 +1874,7 @@ async def test_user_defined_capacity_provider_strategy_in_task_run_request_templ
     _, task_arn = parse_identifier(result.identifier)
 
     task = describe_task(ecs_client, task_arn)
-    assert task.get("capacityProviderStrategy") == [
-        {"base": 0, "weight": 1, "capacityProvider": "FOO"},
-    ]
+    assert task.get("capacityProviderName") == "FOO"
 
 @pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize(
