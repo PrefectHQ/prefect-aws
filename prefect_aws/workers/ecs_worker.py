@@ -383,15 +383,15 @@ class ECSVariables(BaseVariables):
             "field will be slugified to match AWS character requirements."
         ),
     )
-    launch_type: Optional[
-        Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]
-    ] = Field(
-        default=ECS_DEFAULT_LAUNCH_TYPE,
-        description=(
-            "The type of ECS task run infrastructure that should be used. Note that"
-            " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
-            " the proper capacity provider stategy if set here."
-        ),
+    launch_type: Optional[Literal["FARGATE", "EC2", "EXTERNAL", "FARGATE_SPOT"]] = (
+        Field(
+            default=ECS_DEFAULT_LAUNCH_TYPE,
+            description=(
+                "The type of ECS task run infrastructure that should be used. Note that"
+                " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
+                " the proper capacity provider stategy if set here."
+            ),
+        )
     )
     image: Optional[str] = Field(
         default=None,
@@ -1403,12 +1403,12 @@ class ECSWorker(BaseWorker):
             and configuration.network_configuration
             and configuration.vpc_id
         ):
-            task_run_request[
-                "networkConfiguration"
-            ] = self._custom_network_configuration(
-                configuration.vpc_id,
-                configuration.network_configuration,
-                boto_session,
+            task_run_request["networkConfiguration"] = (
+                self._custom_network_configuration(
+                    configuration.vpc_id,
+                    configuration.network_configuration,
+                    boto_session,
+                )
             )
 
         # Ensure the container name is set if not provided at template time
