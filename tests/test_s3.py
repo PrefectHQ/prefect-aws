@@ -882,3 +882,52 @@ class TestS3Bucket:
 
         s3_bucket_with_object.copy_object("object", "object_copy_4", s3_bucket_2_empty)
         assert s3_bucket_2_empty.read_path("object_copy_4") == b"TEST"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_move_object_within_bucket(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        client_parameters,
+    ):
+        s3_bucket_with_object.move_object("object", "object_copy_1")
+        assert s3_bucket_with_object.read_path("object_copy_1") == b"TEST"
+
+        with pytest.raises(ClientError):
+            assert s3_bucket_with_object.read_path("object") == b"TEST"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_move_object_to_nonexistent_bucket_fails(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        client_parameters,
+    ):
+        with pytest.raises(ClientError):
+            s3_bucket_with_object.move_object(
+                "object", "object_copy_1", to_bucket="nonexistent-bucket"
+            )
+        assert s3_bucket_with_object.read_path("object") == b"TEST"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_move_object_onto_itself_fails(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        client_parameters,
+    ):
+        with pytest.raises(ClientError):
+            s3_bucket_with_object.move_object("object", "object")
+        assert s3_bucket_with_object.read_path("object") == b"TEST"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_move_object_between_buckets(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        s3_bucket_2_empty: S3Bucket,
+        client_parameters,
+    ):
+        s3_bucket_with_object.move_object(
+            "object", "object_copy_1", to_bucket=s3_bucket_2_empty
+        )
+        assert s3_bucket_with_object.read_path("object_copy_1") == b"TEST"
+
+        with pytest.raises(ClientError):
+            assert s3_bucket_with_object.read_path("object") == b"TEST"

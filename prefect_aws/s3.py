@@ -1208,3 +1208,81 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         )
 
         return target_path
+
+    @sync_compatible
+    async def move_object(
+        self,
+        from_path: Union[str, Path],
+        to_path: Union[str, Path],
+        to_bucket: Optional[Union["S3Bucket", str]] = None,
+    ) -> str:
+        """Uses S3's internal CopyObject and DeleteObject to move objects within or
+        between buckets.
+
+        Args:
+            from_path: The path of the object to move.
+            to_path: The path to move the object to.
+            to_bucket: The bucket to move to. Defaults to the current bucket.
+
+        Returns:
+            The path that the object was moved to. Excludes the bucket name.
+
+        Examples:
+
+            Move notes.txt from my_folder/notes.txt to my_folder/notes_copy.txt.
+
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.move_object("my_folder/notes.txt", "my_folder/notes_copy.txt")
+            ```
+
+            Move notes.txt from my_folder/notes.txt to my_folder/notes_copy.txt in
+            another bucket.
+
+            ```python
+            from prefect_aws.s3 import S3Bucket
+
+            s3_bucket = S3Bucket.load("my-bucket")
+            s3_bucket.move_object(
+                "my_folder/notes.txt",
+                "my_folder/notes_copy.txt",
+                to_bucket="other-bucket"
+            )
+            ```
+        """
+        s3_client = self.credentials.get_s3_client()
+
+        source_path = self._resolve_path(Path(from_path).as_posix())
+        target_path = self._resolve_path(Path(to_path).as_posix())
+
+        source_bucket_name = self.bucket_name
+        target_bucket_name = self.bucket_name
+        if isinstance(to_bucket, S3Bucket):
+            target_bucket_name = to_bucket.bucket_name
+            target_path = to_bucket._resolve_path(target_path)
+        elif isinstance(to_bucket, str):
+            target_bucket_name = to_bucket
+        elif to_bucket is not None:
+            raise TypeError(
+                "to_bucket must be a string or S3Bucket, not"
+                f" {type(target_bucket_name)}"
+            )
+
+        self.logger.info(
+            "Moving object from s3://%s/%s to s3://%s/%s",
+            source_bucket_name,
+            source_path,
+            target_bucket_name,
+            target_path,
+        )
+
+        # If invalid, should error and prevent next operation
+        s3_client.copy(
+            CopySource={"Bucket": source_bucket_name, "Key": source_path},
+            Bucket=target_bucket_name,
+            Key=target_path,
+        )
+        s3_client.delete_object(Bucket=source_bucket_name, Key=source_path)
+        return target_path
