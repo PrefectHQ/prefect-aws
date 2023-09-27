@@ -149,11 +149,11 @@ async def s3_upload(
 
 @task
 async def s3_copy(
-    source_object,
-    target_object,
-    source_bucket,
+    source_path: str,
+    target_path: str,
+    source_bucket_name: str,
     aws_credentials: AwsCredentials,
-    target_bucket=None,
+    target_bucket_name: Optional[str] = None,
     aws_client_parameters: AwsClientParameters = AwsClientParameters(),
     **copy_kwargs,
 ) -> str:
@@ -164,11 +164,13 @@ async def s3_copy(
     object.
 
     Args:
-        source_object: The path to the object to copy. Can be a string or `Path`.
-        target_object: The path to copy the object to. Can be a string or `Path`.
-        source_bucket: The bucket to copy the object from.
-        target_bucket: The bucket to copy the object to. If not provided, defaults to
-            `source_bucket`.
+        source_path: The path to the object to copy. Can be a string or `Path`.
+        target_path: The path to copy the object to. Can be a string or `Path`.
+        source_bucket_name: The bucket to copy the object from.
+        aws_credentials: Credentials to use for authentication with AWS.
+        target_bucket_name: The bucket to copy the object to. If not provided, defaults
+            to `source_bucket`.
+        aws_client_parameters: Custom parameter for the boto3 client initialization.
         **copy_kwargs: Additional keyword arguments to pass to `S3Client.copy`.
 
     Returns:
@@ -189,9 +191,9 @@ async def s3_copy(
         @flow
         async def example_copy_flow():
             await s3_copy(
-                source_object="my_folder/notes.txt",
-                target_object="my_folder/notes_copy.txt",
-                source_bucket="my-bucket",
+                source_path="my_folder/notes.txt",
+                target_path="my_folder/notes_copy.txt",
+                source_bucket_name="my-bucket",
                 aws_credentials=aws_credentials,
             )
 
@@ -211,11 +213,11 @@ async def s3_copy(
         @flow
         async def example_copy_flow():
             await s3_copy(
-                source_object="my_folder/notes.txt",
-                target_object="notes_copy.txt",
-                source_bucket="my-bucket",
+                source_path="my_folder/notes.txt",
+                target_path="notes_copy.txt",
+                source_bucket_name="my-bucket",
                 aws_credentials=aws_credentials,
-                target_bucket="other-bucket",
+                target_bucket_name="other-bucket",
             )
 
         example_copy_flow()
@@ -228,24 +230,24 @@ async def s3_copy(
         "s3", **aws_client_parameters.get_params_override()
     )
 
-    target_bucket = target_bucket or source_bucket
+    target_bucket_name = target_bucket_name or source_bucket_name
 
     logger.info(
         "Copying object from bucket %s with key %s to bucket %s with key %s",
-        source_bucket,
-        source_object,
-        target_bucket,
-        target_object,
+        source_bucket_name,
+        source_path,
+        target_bucket_name,
+        target_path,
     )
 
     s3_client.copy(
-        CopySource={"Bucket": source_bucket, "Key": source_object},
-        Bucket=target_bucket,
-        Key=target_object,
+        CopySource={"Bucket": source_bucket_name, "Key": source_path},
+        Bucket=target_bucket_name,
+        Key=target_path,
         **copy_kwargs,
     )
 
-    return target_object
+    return target_path
 
 
 def _list_objects_sync(page_iterator: PageIterator):
@@ -1173,34 +1175,35 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         """
         s3_client = self.credentials.get_s3_client()
 
-        source_object = self._resolve_path(Path(from_path).as_posix())
-        target_object = self._resolve_path(Path(to_path).as_posix())
+        source_path = self._resolve_path(Path(from_path).as_posix())
+        target_path = self._resolve_path(Path(to_path).as_posix())
 
-        source_bucket = self.bucket_name
-        target_bucket = self.bucket_name
+        source_bucket_name = self.bucket_name
+        target_bucket_name = self.bucket_name
         if isinstance(to_bucket, S3Bucket):
-            target_bucket = to_bucket.bucket_name
-            target_object = to_bucket._resolve_path(target_object)
+            target_bucket_name = to_bucket.bucket_name
+            target_path = to_bucket._resolve_path(target_path)
         elif isinstance(to_bucket, str):
-            target_bucket = to_bucket
+            target_bucket_name = to_bucket
         elif to_bucket is not None:
             raise TypeError(
-                f"to_bucket must be a string or S3Bucket, not {type(target_bucket)}"
+                "to_bucket must be a string or S3Bucket, not"
+                f" {type(target_bucket_name)}"
             )
 
         self.logger.info(
             "Copying object from bucket %s with key %s to bucket %s with key %s",
-            source_bucket,
-            source_object,
-            target_bucket,
-            target_object,
+            source_bucket_name,
+            source_path,
+            target_bucket_name,
+            target_path,
         )
 
         s3_client.copy(
-            CopySource={"Bucket": source_bucket, "Key": source_object},
-            Bucket=target_bucket,
-            Key=target_object,
+            CopySource={"Bucket": source_bucket_name, "Key": source_path},
+            Bucket=target_bucket_name,
+            Key=target_path,
             **copy_kwargs,
         )
 
-        return target_object
+        return target_path

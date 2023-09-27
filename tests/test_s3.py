@@ -230,19 +230,19 @@ async def test_s3_copy(object, bucket, bucket_2, client_parameters, aws_credenti
     async def test_flow():
         # Test cross-bucket copy
         await s3_copy(
-            source_object="object",
-            source_bucket="bucket",
-            target_object="subfolder/new_object",
-            target_bucket="bucket_2",
+            source_path="object",
+            target_path="subfolder/new_object",
+            source_bucket_name="bucket",
             aws_credentials=aws_credentials,
+            target_bucket_name="bucket_2",
             aws_client_parameters=client_parameters,
         )
 
         # Test within-bucket copy
         await s3_copy(
-            source_object="object",
-            source_bucket="bucket",
-            target_object="subfolder/new_object",
+            source_path="object",
+            target_path="subfolder/new_object",
+            source_bucket_name="bucket",
             aws_credentials=aws_credentials,
             aws_client_parameters=client_parameters,
         )
