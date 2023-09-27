@@ -12,7 +12,7 @@ from pytest_lazyfixture import lazy_fixture
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.client_parameters import AwsClientParameters
-from prefect_aws.s3 import S3Bucket, s3_download, s3_list_objects, s3_upload
+from prefect_aws.s3 import S3Bucket, s3_copy, s3_download, s3_list_objects, s3_upload
 
 aws_clients = [
     (lazy_fixture("aws_client_parameters_custom_endpoint")),
@@ -39,6 +39,18 @@ def client_parameters(request):
 def bucket(s3_mock, request):
     s3 = boto3.resource("s3")
     bucket = s3.Bucket("bucket")
+    marker = request.node.get_closest_marker("is_public", None)
+    if marker and marker.args[0]:
+        bucket.create(ACL="public-read")
+    else:
+        bucket.create()
+    return bucket
+
+
+@pytest.fixture
+def bucket_2(s3_mock, request):
+    s3 = boto3.resource("s3")
+    bucket = s3.Bucket("bucket_2")
     marker = request.node.get_closest_marker("is_public", None)
     if marker and marker.args[0]:
         bucket.create(ACL="public-read")
@@ -203,6 +215,41 @@ async def test_s3_upload(bucket, client_parameters, tmp_path, aws_credentials):
     output = stream.read()
 
     assert output == b"NEW OBJECT"
+
+
+# Ignore public bucket client parameters
+@pytest.mark.parametrize("client_parameters", aws_clients[:-1], indirect=True)
+async def test_s3_copy(object, bucket, bucket_2, client_parameters, aws_credentials):
+    def read(bucket, key):
+        stream = io.BytesIO()
+        bucket.download_fileobj(key, stream)
+        stream.seek(0)
+        return stream.read()
+
+    @flow
+    async def test_flow():
+        # Test cross-bucket copy
+        await s3_copy(
+            source_object="object",
+            source_bucket="bucket",
+            target_object="subfolder/new_object",
+            target_bucket="bucket_2",
+            aws_credentials=aws_credentials,
+            aws_client_parameters=client_parameters,
+        )
+
+        # Test within-bucket copy
+        await s3_copy(
+            source_object="object",
+            source_bucket="bucket",
+            target_object="subfolder/new_object",
+            aws_credentials=aws_credentials,
+            aws_client_parameters=client_parameters,
+        )
+
+    await test_flow()
+    assert read(bucket_2, "subfolder/new_object") == b"TEST"
+    assert read(bucket, "subfolder/new_object") == b"TEST"
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
@@ -623,9 +670,9 @@ class TestS3Bucket:
         return _s3_bucket
 
     @pytest.fixture
-    def s3_bucket_2_empty(self, credentials, bucket):
+    def s3_bucket_2_empty(self, credentials, bucket_2):
         _s3_bucket = S3Bucket(
-            bucket_name="bucket",
+            bucket_name="bucket_2",
             credentials=credentials,
             bucket_folder="subfolder",
         )
@@ -811,3 +858,27 @@ class TestS3Bucket:
                 break
         else:
             raise AssertionError("Files did upload")
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_copy_object(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        s3_bucket_2_empty: S3Bucket,
+        client_parameters,
+    ):
+        s3_bucket_with_object.copy_object("object", "object_copy_1")
+        assert s3_bucket_with_object.read_path("object_copy_1") == b"TEST"
+
+        s3_bucket_with_object.copy_object("object", "folder/object_copy_2")
+        assert s3_bucket_with_object.read_path("folder/object_copy_2") == b"TEST"
+
+        # S3Bucket for second bucket has a basepath
+        s3_bucket_with_object.copy_object(
+            "object",
+            s3_bucket_2_empty._resolve_path("object_copy_3"),
+            to_bucket="bucket_2",
+        )
+        assert s3_bucket_2_empty.read_path("object_copy_3") == b"TEST"
+
+        s3_bucket_with_object.copy_object("object", "object_copy_4", s3_bucket_2_empty)
+        assert s3_bucket_2_empty.read_path("object_copy_4") == b"TEST"
