@@ -250,6 +250,60 @@ async def s3_copy(
     return target_path
 
 
+@task
+async def s3_move(
+    source_path: str,
+    target_path: str,
+    source_bucket_name: str,
+    aws_credentials: AwsCredentials,
+    target_bucket_name: Optional[str] = None,
+    aws_client_parameters: AwsClientParameters = AwsClientParameters(),
+) -> str:
+    """
+    Move an object from one S3 location to another
+
+    Args:
+        source_path: The path of the object to move
+        target_path: The path to move the object to
+        source_bucket_name: The name of the bucket containing the source object
+        aws_credentials: Credentials to use for authentication with AWS.
+        target_bucket_name: The bucket to copy the object to. If not provided, defaults
+            to `source_bucket`.
+        aws_client_parameters: Custom parameter for the boto3 client initialization.
+
+    Returns:
+        The path that the object was moved to. Excludes the bucket name.
+    """
+    logger = get_run_logger()
+
+    s3_client = aws_credentials.get_boto3_session().client(
+        "s3", **aws_client_parameters.get_params_override()
+    )
+
+    # If target bucket is not provided, assume it's the same as the source bucket
+    target_bucket_name = target_bucket_name or source_bucket_name
+
+    logger.info(
+        "Moving object from s3://%s/%s s3://%s/%s",
+        source_bucket_name,
+        source_path,
+        target_bucket_name,
+        target_path,
+    )
+
+    # Copy the object to the new location
+    s3_client.copy_object(
+        Bucket=target_bucket_name,
+        CopySource={"Bucket": source_bucket_name, "Key": source_path},
+        Key=target_path,
+    )
+
+    # Delete the original object
+    s3_client.delete_object(Bucket=source_bucket_name, Key=source_path)
+
+    return target_path
+
+
 def _list_objects_sync(page_iterator: PageIterator):
     """
     Synchronous method to collect S3 objects into a list
