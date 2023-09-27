@@ -171,7 +171,7 @@ async def s3_copy(
         target_bucket_name: The bucket to copy the object to. If not provided, defaults
             to `source_bucket`.
         aws_client_parameters: Custom parameter for the boto3 client initialization.
-        **copy_kwargs: Additional keyword arguments to pass to `S3Client.copy`.
+        **copy_kwargs: Additional keyword arguments to pass to `S3Client.copy_object`.
 
     Returns:
         The path that the object was copied to. Excludes the bucket name.
@@ -240,7 +240,7 @@ async def s3_copy(
         target_path,
     )
 
-    s3_client.copy(
+    s3_client.copy_object(
         CopySource={"Bucket": source_bucket_name, "Key": source_path},
         Bucket=target_bucket_name,
         Key=target_path,
@@ -1143,7 +1143,8 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             from_path: The path of the object to copy.
             to_path: The path to copy the object to.
             to_bucket: The bucket to copy to. Defaults to the current bucket.
-            **copy_kwargs: Additional keyword arguments to pass to `S3Client.copy`.
+            **copy_kwargs: Additional keyword arguments to pass to
+                `S3Client.copy_object`.
 
         Returns:
             The path that the object was copied to. Excludes the bucket name.
@@ -1199,7 +1200,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             target_path,
         )
 
-        s3_client.copy(
+        s3_client.copy_object(
             CopySource={"Bucket": source_bucket_name, "Key": source_path},
             Bucket=target_bucket_name,
             Key=target_path,
