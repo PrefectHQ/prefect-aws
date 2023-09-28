@@ -161,7 +161,8 @@ async def s3_copy(
     [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html)
     to copy objects within or between buckets. To copy objects between buckets, the
     credentials must have permission to read the source object and write to the target
-    object.
+    object. If the credentials do not have those permissions, try using
+    `S3Bucket.stream_from`.
 
     Args:
         source_path: The path to the object to copy. Can be a string or `Path`.
@@ -260,7 +261,11 @@ async def s3_move(
     aws_client_parameters: AwsClientParameters = AwsClientParameters(),
 ) -> str:
     """
-    Move an object from one S3 location to another
+    Move an object from one S3 location to another. To move objects between buckets,
+    the credentials must have permission to read and delete the source object and write
+    to the target object. If the credentials do not have those permissions, this method
+    will raise an error. If the credentials have permission to read the source object
+    but not delete it, the object will be copied but not deleted.
 
     Args:
         source_path: The path of the object to move
@@ -952,7 +957,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         to_path: Optional[str] = None,
         **upload_kwargs: Dict[str, Any],
     ) -> str:
-        """Streams an object from another bucket to this bucket.
+        """Streams an object from another bucket to this bucket. Requires the
+        object to be downloaded and uploaded in chunks. If `self`'s credentials
+        allow for writes to the other bucket, try using `S3Bucket.copy_object`.
 
         Args:
             bucket: The bucket to stream from.
@@ -1191,7 +1198,10 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
     ) -> str:
         """Uses S3's internal
         [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html)
-        to copy objects within or between buckets.
+        to copy objects within or between buckets. To copy objects between buckets,
+        `self`'s credentials must have permission to read the source object and write
+        to the target object. If the credentials do not have those permissions, try
+        using `S3Bucket.stream_from`.
 
         Args:
             from_path: The path of the object to copy.
@@ -1271,7 +1281,11 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         to_bucket: Optional[Union["S3Bucket", str]] = None,
     ) -> str:
         """Uses S3's internal CopyObject and DeleteObject to move objects within or
-        between buckets.
+        between buckets. To move objects between buckets, `self`'s credentials must
+        have permission to read and delete the source object and write to the target
+        object. If the credentials do not have those permissions, this method will
+        raise an error. If the credentials have permission to read the source object
+        but not delete it, the object will be copied but not deleted.
 
         Args:
             from_path: The path of the object to move.
