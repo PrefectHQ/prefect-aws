@@ -1054,7 +1054,7 @@ class TestS3Bucket:
         s3_bucket_with_object.move_object(
             "object", "object_copy_1", to_bucket=s3_bucket_2_empty
         )
-        assert s3_bucket_with_object.read_path("object_copy_1") == b"TEST"
+        assert s3_bucket_2_empty.read_path("object_copy_1") == b"TEST"
 
         with pytest.raises(ClientError):
             assert s3_bucket_with_object.read_path("object") == b"TEST"
