@@ -154,7 +154,6 @@ async def s3_copy(
     source_bucket_name: str,
     aws_credentials: AwsCredentials,
     target_bucket_name: Optional[str] = None,
-    aws_client_parameters: AwsClientParameters = AwsClientParameters(),
     **copy_kwargs,
 ) -> str:
     """Uses S3's internal
@@ -171,7 +170,6 @@ async def s3_copy(
         aws_credentials: Credentials to use for authentication with AWS.
         target_bucket_name: The bucket to copy the object to. If not provided, defaults
             to `source_bucket`.
-        aws_client_parameters: Custom parameter for the boto3 client initialization.
         **copy_kwargs: Additional keyword arguments to pass to `S3Client.copy_object`.
 
     Returns:
@@ -227,9 +225,7 @@ async def s3_copy(
     """
     logger = get_run_logger()
 
-    s3_client = aws_credentials.get_boto3_session().client(
-        "s3", **aws_client_parameters.get_params_override()
-    )
+    s3_client = aws_credentials.get_s3_client()
 
     target_bucket_name = target_bucket_name or source_bucket_name
 
@@ -258,7 +254,6 @@ async def s3_move(
     source_bucket_name: str,
     aws_credentials: AwsCredentials,
     target_bucket_name: Optional[str] = None,
-    aws_client_parameters: AwsClientParameters = AwsClientParameters(),
 ) -> str:
     """
     Move an object from one S3 location to another. To move objects between buckets,
@@ -274,16 +269,13 @@ async def s3_move(
         aws_credentials: Credentials to use for authentication with AWS.
         target_bucket_name: The bucket to copy the object to. If not provided, defaults
             to `source_bucket`.
-        aws_client_parameters: Custom parameter for the boto3 client initialization.
 
     Returns:
         The path that the object was moved to. Excludes the bucket name.
     """
     logger = get_run_logger()
 
-    s3_client = aws_credentials.get_boto3_session().client(
-        "s3", **aws_client_parameters.get_params_override()
-    )
+    s3_client = aws_credentials.get_s3_client()
 
     # If target bucket is not provided, assume it's the same as the source bucket
     target_bucket_name = target_bucket_name or source_bucket_name
