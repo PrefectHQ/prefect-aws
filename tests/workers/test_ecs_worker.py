@@ -12,6 +12,8 @@ from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
+from pydantic import ValidationError
+from tenacity import RetryError
 
 from prefect_aws.workers.ecs_worker import (
     _TASK_DEFINITION_CACHE,
@@ -881,6 +883,112 @@ async def test_network_config_from_vpc_id(
             "securityGroups": [],
         }
     }
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_network_config_from_custom_settings(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ec2_resource = session.resource("ec2")
+    vpc = ec2_resource.create_vpc(CidrBlock="10.0.0.0/16")
+    subnet = ec2_resource.create_subnet(CidrBlock="10.0.2.0/24", VpcId=vpc.id)
+    security_group = ec2_resource.create_security_group(
+        GroupName="ECSWorkerTestSG", Description="ECS Worker test SG", VpcId=vpc.id
+    )
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        vpc_id=vpc.id,
+        override_network_configuration=True,
+        network_configuration={
+            "subnets": [subnet.id],
+            "assignPublicIp": "DISABLED",
+            "securityGroups": [security_group.id],
+        },
+    )
+
+    session = aws_credentials.get_boto3_session()
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        # Capture the task run call because moto does not track 'networkConfiguration'
+        original_run_task = worker._create_task_run
+        mock_run_task = MagicMock(side_effect=original_run_task)
+        worker._create_task_run = mock_run_task
+
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    network_configuration = mock_run_task.call_args[0][1].get("networkConfiguration")
+
+    # Subnet ids are copied from the vpc
+    assert network_configuration == {
+        "awsvpcConfiguration": {
+            "subnets": [subnet.id],
+            "assignPublicIp": "DISABLED",
+            "securityGroups": [security_group.id],
+        }
+    }
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_network_config_from_custom_settings_invalid_subnet(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ec2_resource = session.resource("ec2")
+    vpc = ec2_resource.create_vpc(CidrBlock="10.0.0.0/16")
+    security_group = ec2_resource.create_security_group(
+        GroupName="ECSWorkerTestSG", Description="ECS Worker test SG", VpcId=vpc.id
+    )
+    ec2_resource.create_subnet(CidrBlock="10.0.2.0/24", VpcId=vpc.id)
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        vpc_id=vpc.id,
+        override_network_configuration=True,
+        network_configuration={
+            "subnets": ["sn-8asdas"],
+            "assignPublicIp": "DISABLED",
+            "securityGroups": [security_group.id],
+        },
+    )
+
+    session = aws_credentials.get_boto3_session()
+
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Subnets \['sn-8asdas'\] not found within VPC with ID "
+            + vpc.id
+            + r"\.Please check that VPC is associated with supplied subnets\."
+        ),
+    ):
+        async with ECSWorker(work_pool_name="test") as worker:
+            original_run_task = worker._create_task_run
+            mock_run_task = MagicMock(side_effect=original_run_task)
+            worker._create_task_run = mock_run_task
+
+            await run_then_stop_task(worker, configuration, flow_run)
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_network_config_configure_network_requires_vpc_id(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    with pytest.raises(
+        ValidationError,
+        match="You must provide a `vpc_id` to enable custom `network_configuration`.",
+    ):
+        await construct_configuration(
+            aws_credentials=aws_credentials,
+            override_network_configuration=True,
+            network_configuration={
+                "subnets": [],
+                "assignPublicIp": "ENABLED",
+                "securityGroups": [],
+            },
+        )
 
 
 @pytest.mark.usefixtures("ecs_mocks")
@@ -1900,3 +2008,26 @@ async def test_kill_infrastructure_with_grace_period(aws_credentials, caplog, fl
 
     # Logs warning
     assert "grace period of 60s requested, but AWS does not support" in caplog.text
+
+
+async def test_retry_on_failed_task_start(
+    aws_credentials: AwsCredentials, flow_run, ecs_mocks
+):
+    run_task_mock = MagicMock(return_value=[])
+
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials, command="echo test"
+    )
+
+    inject_moto_patches(
+        ecs_mocks,
+        {
+            "run_task": [run_task_mock],
+        },
+    )
+
+    with pytest.raises(RetryError):
+        async with ECSWorker(work_pool_name="test") as worker:
+            await run_then_stop_task(worker, configuration, flow_run)
+
+    assert run_task_mock.call_count == 3

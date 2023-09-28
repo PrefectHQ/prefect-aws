@@ -1,4 +1,4 @@
-# Coordinate and incorporate AWS in your dataflow with `prefect-aws`
+# Incorporate AWS into your Prefect workflows with `prefect-aws`
 
 <p align="center">
     <img src="https://user-images.githubusercontent.com/15331990/214123296-4cfa69ed-d105-4ca2-a351-4c21917086c7.png">

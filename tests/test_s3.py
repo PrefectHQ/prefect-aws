@@ -623,8 +623,23 @@ class TestS3Bucket:
         return _s3_bucket
 
     @pytest.fixture
+    def s3_bucket_2_empty(self, credentials, bucket):
+        _s3_bucket = S3Bucket(
+            bucket_name="bucket",
+            credentials=credentials,
+            bucket_folder="subfolder",
+        )
+        return _s3_bucket
+
+    @pytest.fixture
     def s3_bucket_with_object(self, s3_bucket_empty, object):
         _s3_bucket_with_object = s3_bucket_empty  # object will be added
+        return _s3_bucket_with_object
+
+    @pytest.fixture
+    def s3_bucket_2_with_object(self, s3_bucket_2_empty):
+        _s3_bucket_with_object = s3_bucket_2_empty
+        s3_bucket_2_empty.write_path("object", content=b"TEST")
         return _s3_bucket_with_object
 
     @pytest.fixture
@@ -714,6 +729,19 @@ class TestS3Bucket:
             to_path = ""
         to_path = Path(to_path)
         assert (to_path / "object").read_text() == "TEST OBJECT IN FOLDER"
+
+    @pytest.mark.parametrize("to_path", ["to_path", None])
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_stream_from(
+        self,
+        s3_bucket_2_with_object: S3Bucket,
+        s3_bucket_empty: S3Bucket,
+        client_parameters,
+        to_path,
+    ):
+        path = s3_bucket_empty.stream_from(s3_bucket_2_with_object, "object", to_path)
+        data: bytes = s3_bucket_empty.read_path(path)
+        assert data == b"TEST"
 
     @pytest.mark.parametrize("to_path", ["new_object", None])
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)

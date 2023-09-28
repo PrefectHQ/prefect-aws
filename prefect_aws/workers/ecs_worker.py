@@ -70,6 +70,7 @@ from prefect.workers.base import (
 )
 from pydantic import Field, root_validator
 from slugify import slugify
+from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
 from typing_extensions import Literal
 
 from prefect_aws import AwsCredentials
@@ -122,6 +123,11 @@ tags: "{{ labels }}"
 taskDefinition: "{{ task_definition_arn }}"
 """
 
+# Create task run retry settings
+MAX_CREATE_TASK_RUN_ATTEMPTS = 3
+CREATE_TASK_RUN_MIN_DELAY_SECONDS = 1
+CREATE_TASK_RUN_MIN_DELAY_JITTER_SECONDS = 0
+CREATE_TASK_RUN_MAX_DELAY_JITTER_SECONDS = 3
 
 _TASK_DEFINITION_CACHE: Dict[UUID, str] = {}
 _TAG_REGEX = r"[^a-zA-Z0-9-_.=+-@: ]+"
@@ -223,6 +229,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
     )
     configure_cloudwatch_logs: Optional[bool] = Field(default=None)
     cloudwatch_logs_options: Dict[str, str] = Field(default_factory=dict)
+    network_configuration: Dict[str, Any] = Field(default_factory=dict)
     stream_output: Optional[bool] = Field(default=None)
     task_start_timeout_seconds: int = Field(default=300)
     task_watch_poll_interval: float = Field(default=5.0)
@@ -312,6 +319,18 @@ class ECSJobConfiguration(BaseJobConfiguration):
             raise ValueError(
                 "`configure_cloudwatch_log` must be enabled to use "
                 "`cloudwatch_logs_options`."
+            )
+        return values
+
+    @root_validator
+    def network_configuration_requires_vpc_id(cls, values: dict) -> dict:
+        """
+        Enforces a `vpc_id` is provided when custom network configuration mode is
+        enabled for network settings.
+        """
+        if values.get("network_configuration") and not values.get("vpc_id"):
+            raise ValueError(
+                "You must provide a `vpc_id` to enable custom `network_configuration`."
             )
         return values
 
@@ -453,10 +472,21 @@ class ECSVariables(BaseVariables):
             "When `configure_cloudwatch_logs` is enabled, this setting may be used to"
             " pass additional options to the CloudWatch logs configuration or override"
             " the default options. See the [AWS"
-            " documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options.)"  # noqa
+            " documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options)"  # noqa
             " for available options. "
         ),
     )
+
+    network_configuration: Dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "When `network_configuration` is supplied it will override ECS Worker's"
+            "awsvpcConfiguration that defined in the ECS task executing your workload. "
+            "See the [AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-service-awsvpcconfiguration.html)"  # noqa
+            " for available options."
+        ),
+    )
+
     stream_output: bool = Field(
         default=None,
         description=(
@@ -507,12 +537,11 @@ class ECSWorker(BaseWorker):
     job_configuration = ECSJobConfiguration
     job_configuration_variables = ECSVariables
     _description = (
-        "Execute flow runs within containers on AWS ECS. Works with existing ECS "
-        "clusters and serverless execution via AWS Fargate. Requires an AWS account."
+        "Execute flow runs within containers on AWS ECS. Works with EC2 "
+        "and Fargate clusters. Requires an AWS account."
     )
     _display_name = "AWS Elastic Container Service"
     _documentation_url = "https://prefecthq.github.io/prefect-aws/ecs_worker/"
-    _is_beta = True
     _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
 
     async def run(
@@ -675,7 +704,9 @@ class ECSWorker(BaseWorker):
         _TASK_DEFINITION_CACHE[flow_run.deployment_id] = task_definition_arn
 
         logger.info(f"Using ECS task definition {task_definition_arn!r}...")
-        logger.debug(f"Task definition {json.dumps(task_definition, indent=2)}")
+        logger.debug(
+            f"Task definition {json.dumps(task_definition, indent=2, default=str)}"
+        )
 
         # Prepare the task run request
         task_run_request = self._prepare_task_run_request(
@@ -686,7 +717,9 @@ class ECSWorker(BaseWorker):
         )
 
         logger.info("Creating ECS task run...")
-        logger.debug(f"Task run request {json.dumps(task_run_request, indent=2)}")
+        logger.debug(
+            f"Task run request {json.dumps(task_run_request, indent=2, default=str)}"
+        )
         try:
             task = self._create_task_run(ecs_client, task_run_request)
             task_arn = task["taskArn"]
@@ -861,7 +894,10 @@ class ECSWorker(BaseWorker):
         Returns the ARN.
         """
         logger.info("Registering ECS task definition...")
-        logger.debug(f"Task definition request {json.dumps(task_definition, indent=2)}")
+        logger.debug(
+            "Task definition request"
+            f"{json.dumps(task_definition, indent=2, default=str)}"
+        )
         response = ecs_client.register_task_definition(**task_definition)
         return response["taskDefinition"]["taskDefinitionArn"]
 
@@ -1230,7 +1266,7 @@ class ECSWorker(BaseWorker):
 
         return task_definition
 
-    def _load_vpc_network_config(
+    def _load_network_configuration(
         self, vpc_id: Optional[str], boto_session: boto3.Session
     ) -> dict:
         """
@@ -1277,6 +1313,47 @@ class ECSWorker(BaseWorker):
             }
         }
 
+    def _custom_network_configuration(
+        self, vpc_id: str, network_configuration: dict, boto_session: boto3.Session
+    ) -> dict:
+        """
+        Load settings from a specific VPC or the default VPC and generate a task
+        run request's network configuration.
+        """
+        ec2_client = boto_session.client("ec2")
+        vpc_message = f"VPC with ID {vpc_id}"
+
+        vpcs = ec2_client.describe_vpcs(VpcIds=[vpc_id]).get("Vpcs")
+
+        if not vpcs:
+            raise ValueError(
+                f"Failed to find {vpc_message}. "
+                + "Network configuration cannot be inferred. "
+                + "Pass an explicit `vpc_id`."
+            )
+
+        vpc_id = vpcs[0]["VpcId"]
+        subnets = ec2_client.describe_subnets(
+            Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
+        )["Subnets"]
+
+        if not subnets:
+            raise ValueError(
+                f"Failed to find subnets for {vpc_message}. "
+                + "Network configuration cannot be inferred."
+            )
+
+        config_subnets = network_configuration.get("subnets", [])
+        if not all(
+            [conf_sn in sn.values() for conf_sn in config_subnets for sn in subnets]
+        ):
+            raise ValueError(
+                f"Subnets {config_subnets} not found within {vpc_message}."
+                + "Please check that VPC is associated with supplied subnets."
+            )
+
+        return {"awsvpcConfiguration": network_configuration}
+
     def _prepare_task_run_request(
         self,
         boto_session: boto3.Session,
@@ -1306,12 +1383,27 @@ class ECSWorker(BaseWorker):
         container_overrides = overrides.get("containerOverrides", [])
 
         # Ensure the network configuration is present if using awsvpc for network mode
-
-        if task_definition.get("networkMode") == "awsvpc" and not task_run_request.get(
-            "networkConfiguration"
+        if (
+            task_definition.get("networkMode") == "awsvpc"
+            and not task_run_request.get("networkConfiguration")
+            and not configuration.network_configuration
         ):
-            task_run_request["networkConfiguration"] = self._load_vpc_network_config(
+            task_run_request["networkConfiguration"] = self._load_network_configuration(
                 configuration.vpc_id, boto_session
+            )
+
+        # Use networkConfiguration if supplied by user
+        if (
+            task_definition.get("networkMode") == "awsvpc"
+            and configuration.network_configuration
+            and configuration.vpc_id
+        ):
+            task_run_request["networkConfiguration"] = (
+                self._custom_network_configuration(
+                    configuration.vpc_id,
+                    configuration.network_configuration,
+                    boto_session,
+                )
             )
 
         # Ensure the container name is set if not provided at template time
@@ -1415,6 +1507,14 @@ class ECSWorker(BaseWorker):
 
         return task_run_request
 
+    @retry(
+        stop=stop_after_attempt(MAX_CREATE_TASK_RUN_ATTEMPTS),
+        wait=wait_fixed(CREATE_TASK_RUN_MIN_DELAY_SECONDS)
+        + wait_random(
+            CREATE_TASK_RUN_MIN_DELAY_JITTER_SECONDS,
+            CREATE_TASK_RUN_MAX_DELAY_JITTER_SECONDS,
+        ),
+    )
     def _create_task_run(self, ecs_client: _ECSClient, task_run_request: dict) -> str:
         """
         Create a run of a task definition.

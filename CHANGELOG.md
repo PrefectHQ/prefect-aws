@@ -9,14 +9,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added retries to ECS task run creation for ECS worker - [#303](https://github.com/PrefectHQ/prefect-aws/pull/303)
+- Added support to `ECSWorker` for `awsvpcConfiguration` [#304](https://github.com/PrefectHQ/prefect-aws/pull/304)
+
 ### Changed
 - Added a check to AwsSecretsManager.load() for 'SecretString' as well as 'SecretBinary' - [#274](https://github.com/PrefectHQ/prefect-aws/pull/274)
 ### Deprecated
 
 ### Removed
 
+## 0.3.6
+
+Released July 20th, 2023.
+
+### Changed
+- Promoted workers to GA, removed beta disclaimers
+
+## 0.3.5
+
+Released on July 14th, 2023.
+
 ### Fixed
+
+- Fixed `S3Bucket.stream_from` path resolution - [#291](https://github.com/PrefectHQ/prefect-aws/pull/291)
+- Fixed `ECSWorker` debug logs from failing to parse json - [#296](https://github.com/PrefectHQ/prefect-aws/pull/296)
+
+## 0.3.4
+
+Released on June 15th, 2023.
+
+### Added
+
+- Added `S3Bucket.stream_from` to copy objects between buckets - [#276](https://github.com/PrefectHQ/prefect-aws/pull/276)
+
+### Deprecated
+
+- `prefect_aws.projects` module. Use `prefect_aws.deployments` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
+- `pull_project_from_s3` step. Use `pull_from_s3` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
+- `push_project_to_s3` step. Use `push_to_s3` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
+- `PullProjectFromS3Output` step output. Use `PullFromS3Output` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
+- `PushProjectToS3Output` step output. Use `PushToS3Output` instead. - [#278](https://github.com/PrefectHQ/prefect-aws/pull/278)
+
+## 0.3.3
+
+Released on June 13th, 2023.
+
+### Fixed
+
 - Change prefect.docker import to prefect.utilities.dockerutils to fix a crash when using custom blocks based on S3Bucket  - [#273](https://github.com/PrefectHQ/prefect-aws/pull/273)
+
 ## 0.3.2
 
 Released on May 25th, 2023.
