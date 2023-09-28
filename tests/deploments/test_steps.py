@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path, PurePath, PurePosixPath
 
 import boto3
@@ -46,8 +47,8 @@ def tmp_files_win(tmp_path: Path):
         "testfile1.txt",
         "testfile2.txt",
         "testfile3.txt",
-        "testdir1\\testfile4.txt",
-        "testdir2\\testfile5.txt",
+        r"testdir1\testfile4.txt",
+        r"testdir2\testfile5.txt",
     ]
 
     for file in files:
@@ -95,6 +96,7 @@ def test_push_to_s3(s3_setup, tmp_files, mock_aws_credentials):
     assert set(object_keys) == set(expected_keys)
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="requires Windows")
 def test_push_to_s3_as_posix(s3_setup, tmp_files_win, mock_aws_credentials):
     s3, bucket_name = s3_setup
     folder = "my-project"
