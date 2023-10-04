@@ -7,7 +7,12 @@ import boto3
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from prefect.blocks.abstract import CredentialsBlock
-from pydantic import Field, SecretStr
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import Field, SecretStr
+else:
+    from pydantic import Field, SecretStr
 
 from prefect_aws.client_parameters import AwsClientParameters
 

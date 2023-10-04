@@ -12,7 +12,13 @@ from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
-from pydantic import ValidationError
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import ValidationError
+else:
+    from pydantic import ValidationError
+
 from tenacity import RetryError
 
 from prefect_aws.workers.ecs_worker import (
