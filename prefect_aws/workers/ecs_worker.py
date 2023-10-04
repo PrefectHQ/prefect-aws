@@ -68,7 +68,13 @@ from prefect.workers.base import (
     BaseWorker,
     BaseWorkerResult,
 )
-from pydantic import Field, root_validator
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import Field, root_validator
+else:
+    from pydantic import Field, root_validator
+
 from slugify import slugify
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
 from typing_extensions import Literal

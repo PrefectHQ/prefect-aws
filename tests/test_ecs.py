@@ -16,7 +16,12 @@ from prefect.logging.configuration import setup_logging
 from prefect.server.schemas.core import Deployment, Flow, FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from prefect.utilities.dockerutils import get_prefect_image_name
-from pydantic import ValidationError
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import ValidationError
+else:
+    from pydantic import ValidationError
 
 from prefect_aws.ecs import (
     ECS_DEFAULT_CPU,
