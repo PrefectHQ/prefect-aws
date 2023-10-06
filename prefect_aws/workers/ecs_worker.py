@@ -1349,10 +1349,10 @@ class ECSWorker(BaseWorker):
                 + "Network configuration cannot be inferred."
             )
 
+        subnet_ids = [subnet["SubnetId"] for subnet in subnets]
+
         config_subnets = network_configuration.get("subnets", [])
-        if not all(
-            [conf_sn in sn.values() for conf_sn in config_subnets for sn in subnets]
-        ):
+        if not all(conf_sn in subnet_ids for conf_sn in config_subnets):
             raise ValueError(
                 f"Subnets {config_subnets} not found within {vpc_message}."
                 + "Please check that VPC is associated with supplied subnets."
