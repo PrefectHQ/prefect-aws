@@ -90,6 +90,7 @@ nav:
         - Deployments:
           - Steps: deployments/steps.md
         - Glue Job: glue_job.md
+        - Glue Job Worker: glue_job_worker.md
         - S3: s3.md
         - Secrets Manager: secrets_manager.md
 
