@@ -13,6 +13,7 @@ moto >= 3.1.16
 mypy
 pillow
 pre-commit
+pyparsing>=3.1.1
 pytest
 pytest-asyncio
 pytest-lazy-fixture
