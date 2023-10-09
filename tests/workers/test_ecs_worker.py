@@ -1847,6 +1847,7 @@ async def test_user_defined_tags_in_task_run_request_template(
         {"key": "OVERRIDE", "value": "NEW"},
     ]
 
+
 @pytest.mark.usefixtures("ecs_mocks")
 async def test_user_defined_capacity_provider_strategy_in_task_run_request_template(
     aws_credentials: AwsCredentials, flow_run: FlowRun
