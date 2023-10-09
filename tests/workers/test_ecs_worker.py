@@ -1877,6 +1877,7 @@ async def test_user_defined_capacity_provider_strategy_in_task_run_request_templ
     task = describe_task(ecs_client, task_arn)
     assert task.get("capacityProviderName") == "FOO"
 
+
 @pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize(
     "cluster", [None, "default", "second-cluster", "second-cluster-arn"]
