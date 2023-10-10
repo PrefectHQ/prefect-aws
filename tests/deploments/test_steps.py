@@ -7,6 +7,7 @@ import boto3
 import pytest
 from moto import mock_s3
 
+from prefect_aws import AwsCredentials
 from prefect_aws.deployments.steps import get_s3_client, pull_from_s3, push_to_s3
 
 
@@ -199,8 +200,23 @@ def test_s3_session_with_params():
                 "config": {"signature_version": "s3v4"},
             },
         )
+        creds_block = AwsCredentials(
+            aws_access_key_id="BlockKey",
+            aws_secret_access_key="BlockSecret",
+            aws_session_token="BlockToken",
+            profile_name="BlockProfile",
+            region_name="BlockRegion",
+            aws_client_parameters={
+                "api_version": "v1",
+                "use_ssl": True,
+                "verify": True,
+                "endpoint_url": "BlockEndpoint",
+                "config": {"connect_timeout": 123},
+            },
+        )
+        get_s3_client(credentials=creds_block.dict())
         all_calls = mock_session.mock_calls
-        assert len(all_calls) == 4
+        assert len(all_calls) == 6
         assert all_calls[0].kwargs == {
             "aws_access_key_id": "THE_KEY",
             "aws_secret_access_key": "SHHH!",
@@ -233,6 +249,22 @@ def test_s3_session_with_params():
         }.items() <= all_calls[3].kwargs.items()
         assert all_calls[3].kwargs.get("config").connect_timeout == 60
         assert all_calls[3].kwargs.get("config").signature_version == "s3v4"
+        assert all_calls[4].kwargs == {
+            "aws_access_key_id": "BlockKey",
+            "aws_secret_access_key": creds_block.aws_secret_access_key,
+            "aws_session_token": "BlockToken",
+            "profile_name": "BlockProfile",
+            "region_name": "BlockRegion",
+        }
+        assert all_calls[5].args[0] == "s3"
+        assert {
+            "api_version": "v1",
+            "use_ssl": True,
+            "verify": True,
+            "endpoint_url": "BlockEndpoint",
+        }.items() <= all_calls[5].kwargs.items()
+        assert all_calls[5].kwargs.get("config").connect_timeout == 123
+        assert all_calls[5].kwargs.get("config").signature_version is None
 
 
 def test_custom_credentials_and_client_parameters(s3_setup, tmp_files):
