@@ -1,12 +1,13 @@
 import os
 import sys
 from pathlib import Path, PurePath, PurePosixPath
+from unittest.mock import patch
 
 import boto3
 import pytest
 from moto import mock_s3
 
-from prefect_aws.deployments.steps import pull_from_s3, push_to_s3
+from prefect_aws.deployments.steps import get_s3_client, pull_from_s3, push_to_s3
 
 
 @pytest.fixture
@@ -171,6 +172,66 @@ def test_push_pull_empty_folders(s3_setup, tmp_path, mock_aws_credentials):
     # Check if the empty folders are not created
     assert not (tmp_path / "empty1_copy").exists()
     assert not (tmp_path / "empty2_copy").exists()
+
+
+def test_s3_session_with_params():
+    with patch("boto3.Session") as mock_session:
+        get_s3_client(
+            credentials={
+                "aws_access_key_id": "THE_KEY",
+                "aws_secret_access_key": "SHHH!",
+                "profile_name": "foo",
+                "region_name": "us-weast-1",
+                "aws_client_parameters": {
+                    "api_version": "v1",
+                    "config": {"connect_timeout": 300},
+                },
+            }
+        )
+        get_s3_client(
+            credentials={
+                "aws_access_key_id": "THE_KEY",
+                "aws_secret_access_key": "SHHH!",
+            },
+            client_parameters={
+                "region_name": "us-west-1",
+                "config": {"signature_version": "s3v4"},
+            },
+        )
+        all_calls = mock_session.mock_calls
+        assert len(all_calls) == 4
+        assert all_calls[0].kwargs == {
+            "aws_access_key_id": "THE_KEY",
+            "aws_secret_access_key": "SHHH!",
+            "aws_session_token": None,
+            "profile_name": "foo",
+            "region_name": "us-weast-1",
+        }
+        assert all_calls[1].args[0] == "s3"
+        assert {
+            "api_version": "v1",
+            "endpoint_url": None,
+            "use_ssl": None,
+            "verify": None,
+        }.items() <= all_calls[1].kwargs.items()
+        assert all_calls[1].kwargs.get("config").connect_timeout == 300
+        assert all_calls[1].kwargs.get("config").signature_version is None
+        assert all_calls[2].kwargs == {
+            "aws_access_key_id": "THE_KEY",
+            "aws_secret_access_key": "SHHH!",
+            "aws_session_token": None,
+            "profile_name": None,
+            "region_name": "us-west-1",
+        }
+        assert all_calls[3].args[0] == "s3"
+        assert {
+            "api_version": None,
+            "endpoint_url": None,
+            "use_ssl": None,
+            "verify": None,
+        }.items() <= all_calls[3].kwargs.items()
+        assert all_calls[3].kwargs.get("config").connect_timeout == 60
+        assert all_calls[3].kwargs.get("config").signature_version == "s3v4"
 
 
 def test_custom_credentials_and_client_parameters(s3_setup, tmp_files):
