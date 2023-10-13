@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.4">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.bd3936ea.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.6a10b989.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.356b1318.min.css">
@@ -123,7 +123,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="prefect-aws" class="md-header__button md-logo" aria-label="prefect-aws" data-md-component="logo">
       
-  <img src="../img/prefect-logo-mark-solid-white-500.png" alt="logo">
+  <img src="../img/prefect-logo-mark.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -262,7 +262,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="prefect-aws" class="md-nav__button md-logo" aria-label="prefect-aws" data-md-component="logo">
       
-  <img src="../img/prefect-logo-mark-solid-white-500.png" alt="logo">
+  <img src="../img/prefect-logo-mark.png" alt="logo">
 
     </a>
     prefect-aws
@@ -2852,7 +2852,7 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
     <span class="p">)</span>
     <span class="n">_display_name</span> <span class="o">=</span> <span class="s2">&quot;AWS Elastic Container Service&quot;</span>
     <span class="n">_documentation_url</span> <span class="o">=</span> <span class="s2">&quot;https://prefecthq.github.io/prefect-aws/ecs_worker/&quot;</span>
-    <span class="n">_logo_url</span> <span class="o">=</span> <span class="s2">&quot;https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250&quot;</span>  <span class="c1"># noqa</span>
+    <span class="n">_logo_url</span> <span class="o">=</span> <span class="s2">&quot;https://cdn.sanity.io/images/3ugk85nk/production/d74b16fe84ce626345adf235a47008fea2869a60-225x225.png&quot;</span>  <span class="c1"># noqa</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -3653,10 +3653,10 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
                 <span class="o">+</span> <span class="s2">&quot;Network configuration cannot be inferred.&quot;</span>
             <span class="p">)</span>
 
+        <span class="n">subnet_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">subnet</span><span class="p">[</span><span class="s2">&quot;SubnetId&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">subnet</span> <span class="ow">in</span> <span class="n">subnets</span><span class="p">]</span>
+
         <span class="n">config_subnets</span> <span class="o">=</span> <span class="n">network_configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;subnets&quot;</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">conf_sn</span> <span class="ow">in</span> <span class="n">sn</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">conf_sn</span> <span class="ow">in</span> <span class="n">config_subnets</span> <span class="k">for</span> <span class="n">sn</span> <span class="ow">in</span> <span class="n">subnets</span><span class="p">]</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">conf_sn</span> <span class="ow">in</span> <span class="n">subnet_ids</span> <span class="k">for</span> <span class="n">conf_sn</span> <span class="ow">in</span> <span class="n">config_subnets</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Subnets </span><span class="si">{</span><span class="n">config_subnets</span><span class="si">}</span><span class="s2"> not found within </span><span class="si">{</span><span class="n">vpc_message</span><span class="si">}</span><span class="s2">.&quot;</span>
                 <span class="o">+</span> <span class="s2">&quot;Please check that VPC is associated with supplied subnets.&quot;</span>
@@ -5440,7 +5440,7 @@ input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.94c44541.min.js"></script>
+      <script src="../assets/javascripts/bundle.aecac24b.min.js"></script>
       
     
   </body>

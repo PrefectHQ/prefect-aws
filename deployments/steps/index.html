@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.4">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.bd3936ea.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6a10b989.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.356b1318.min.css">
@@ -123,7 +123,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="prefect-aws" class="md-header__button md-logo" aria-label="prefect-aws" data-md-component="logo">
       
-  <img src="../../img/prefect-logo-mark-solid-white-500.png" alt="logo">
+  <img src="../../img/prefect-logo-mark.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -262,7 +262,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="prefect-aws" class="md-nav__button md-logo" aria-label="prefect-aws" data-md-component="logo">
       
-  <img src="../../img/prefect-logo-mark-solid-white-500.png" alt="logo">
+  <img src="../../img/prefect-logo-mark.png" alt="logo">
 
     </a>
     prefect-aws
@@ -1040,6 +1040,7 @@ PushToS3Output            (<span title="dict">dict</span>)
 
 <h2 id="prefect_aws.deployments.steps-functions">Functions</h2>
 
+
   <div class="doc doc-object doc-function">
 
 
@@ -1169,14 +1170,7 @@ boto3 client.</p></td>
 <span class="sd">                credentials: &quot;{{ prefect.blocks.aws-credentials.dev-credentials }}&quot;</span>
 <span class="sd">        ```</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">credentials</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">credentials</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="n">client_parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">client_parameters</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">advanced_config</span> <span class="o">=</span> <span class="n">client_parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="p">{})</span>
-
-    <span class="n">session</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="o">**</span><span class="n">credentials</span><span class="p">)</span>
-    <span class="n">s3</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">client_parameters</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">advanced_config</span><span class="p">))</span>
+    <span class="n">s3</span> <span class="o">=</span> <span class="n">get_s3_client</span><span class="p">(</span><span class="n">credentials</span><span class="o">=</span><span class="n">credentials</span><span class="p">,</span> <span class="n">client_parameters</span><span class="o">=</span><span class="n">client_parameters</span><span class="p">)</span>
 
     <span class="n">local_path</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
 
@@ -1403,14 +1397,7 @@ client.</p></td>
 <span class="sd">        ```</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">credentials</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">credentials</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="n">client_parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">client_parameters</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">advanced_config</span> <span class="o">=</span> <span class="n">client_parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="p">{})</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span>
-        <span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">credentials</span><span class="p">,</span> <span class="o">**</span><span class="n">client_parameters</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">advanced_config</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="n">s3</span> <span class="o">=</span> <span class="n">get_s3_client</span><span class="p">(</span><span class="n">credentials</span><span class="o">=</span><span class="n">credentials</span><span class="p">,</span> <span class="n">client_parameters</span><span class="o">=</span><span class="n">client_parameters</span><span class="p">)</span>
 
     <span class="n">local_path</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
 
@@ -1429,7 +1416,7 @@ client.</p></td>
             <span class="k">continue</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">local_file_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
             <span class="n">remote_file_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">local_file_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
-            <span class="n">client</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span>
+            <span class="n">s3</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span>
                 <span class="nb">str</span><span class="p">(</span><span class="n">local_file_path</span><span class="p">),</span> <span class="n">bucket</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">remote_file_path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span>
             <span class="p">)</span>
 
@@ -1599,7 +1586,7 @@ client.</p></td>
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.94c44541.min.js"></script>
+      <script src="../../assets/javascripts/bundle.aecac24b.min.js"></script>
       
     
   </body>
