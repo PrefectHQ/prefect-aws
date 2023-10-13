@@ -1587,7 +1587,7 @@ async def test_worker_task_definition_cache_miss_on_deregistered(
         # {"execution_role_arn": "test"},
         # {"launch_type": "EXTERNAL"},
     ],
-    ids=lambda item: str(set(item.keys())),
+    ids=lambda item: str(sorted(list(set(item.keys())))),
 )
 async def test_worker_task_definition_cache_hit_on_config_changes(
     aws_credentials: AwsCredentials,
