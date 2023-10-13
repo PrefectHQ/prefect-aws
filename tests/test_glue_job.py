@@ -11,7 +11,7 @@ from prefect_aws.glue_job import GlueJob, GlueJobResult
 @pytest.fixture(scope="function")
 def glue_job_client(aws_credentials):
     with mock_glue():
-        yield boto3.client("glue", region_name="us-east-1")
+        yield boto3.client("glue", region_name="us-west-1")
 
 
 def test_get_client(aws_credentials):
