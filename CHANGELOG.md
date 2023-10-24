@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## 0.4.2
+
+Released October 24th, 2023.
+
+### Fixed
+
+- Fixed use_ssl default for s3 client.
+
 ## 0.4.1
 
 Released October 13th, 2023.
