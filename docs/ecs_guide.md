@@ -187,9 +187,9 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
                 "memory": 1024,
                 "essential": true,
                 "command": [
-                  "/bin/sh",
-                  "-c",
-                  "pip install prefect-aws && prefect worker start --pool my-ecs-pool --type ecs"
+                    "/bin/sh",
+                    "-c",
+                    "pip install prefect-aws && prefect worker start --pool my-ecs-pool --type ecs"
                 ],
                 "environment": [
                     {
