@@ -548,7 +548,7 @@ class ECSWorker(BaseWorker):
     )
     _display_name = "AWS Elastic Container Service"
     _documentation_url = "https://prefecthq.github.io/prefect-aws/ecs_worker/"
-    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
+    _logo_url = "https://cdn.sanity.io/images/3ugk85nk/production/d74b16fe84ce626345adf235a47008fea2869a60-225x225.png"  # noqa
 
     async def run(
         self,
@@ -1349,10 +1349,10 @@ class ECSWorker(BaseWorker):
                 + "Network configuration cannot be inferred."
             )
 
+        subnet_ids = [subnet["SubnetId"] for subnet in subnets]
+
         config_subnets = network_configuration.get("subnets", [])
-        if not all(
-            [conf_sn in sn.values() for conf_sn in config_subnets for sn in subnets]
-        ):
+        if not all(conf_sn in subnet_ids for conf_sn in config_subnets):
             raise ValueError(
                 f"Subnets {config_subnets} not found within {vpc_message}."
                 + "Please check that VPC is associated with supplied subnets."
