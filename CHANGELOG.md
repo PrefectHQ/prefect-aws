@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.4.2
 
-Released October 24th, 2023.
+Released November 6th, 2023.
 
 ### Fixed
 
