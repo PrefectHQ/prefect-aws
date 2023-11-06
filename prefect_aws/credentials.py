@@ -7,7 +7,12 @@ import boto3
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from prefect.blocks.abstract import CredentialsBlock
-from pydantic import Field, SecretStr
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import Field, SecretStr
+else:
+    from pydantic import Field, SecretStr
 
 from prefect_aws.client_parameters import AwsClientParameters
 
@@ -35,7 +40,7 @@ class AwsCredentials(CredentialsBlock):
         ```
     """  # noqa E501
 
-    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
+    _logo_url = "https://cdn.sanity.io/images/3ugk85nk/production/d74b16fe84ce626345adf235a47008fea2869a60-225x225.png"  # noqa
     _block_type_name = "AWS Credentials"
     _documentation_url = "https://prefecthq.github.io/prefect-aws/credentials/#prefect_aws.credentials.AwsCredentials"  # noqa
 
@@ -159,7 +164,7 @@ class MinIOCredentials(CredentialsBlock):
         ```
     """  # noqa E501
 
-    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/22vXcxsOrVeFrUwHfSoaeT/7607b876eb589a9028c8126e78f4c7b4/imageedit_7_2837870043.png?h=250"  # noqa
+    _logo_url = "https://cdn.sanity.io/images/3ugk85nk/production/676cb17bcbdff601f97e0a02ff8bcb480e91ff40-250x250.png"  # noqa
     _block_type_name = "MinIO Credentials"
     _description = (
         "Block used to manage authentication with MinIO. Refer to the MinIO "

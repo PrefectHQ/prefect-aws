@@ -5,7 +5,12 @@ from typing import Any, Dict, Optional, Union
 
 from botocore import UNSIGNED
 from botocore.client import Config
-from pydantic import BaseModel, Field, FilePath, root_validator, validator
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import BaseModel, Field, FilePath, root_validator, validator
+else:
+    from pydantic import BaseModel, Field, FilePath, root_validator, validator
 
 
 class AwsClientParameters(BaseModel):

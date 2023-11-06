@@ -121,7 +121,13 @@ from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.dockerutils import get_prefect_image_name
 from prefect.utilities.pydantic import JsonPatch
-from pydantic import Field, root_validator, validator
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import Field, root_validator, validator
+else:
+    from pydantic import Field, root_validator, validator
+
 from slugify import slugify
 from typing_extensions import Literal, Self
 
@@ -270,7 +276,7 @@ class ECSTask(Infrastructure):
 
     _block_type_slug = "ecs-task"
     _block_type_name = "ECS Task"
-    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
+    _logo_url = "https://cdn.sanity.io/images/3ugk85nk/production/d74b16fe84ce626345adf235a47008fea2869a60-225x225.png"  # noqa
     _description = "Run a command as an ECS task."  # noqa
     _documentation_url = (
         "https://prefecthq.github.io/prefect-aws/ecs/#prefect_aws.ecs.ECSTask"  # noqa
