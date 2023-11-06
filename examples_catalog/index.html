@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.8">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6a10b989.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.4b4a2bd9.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.356b1318.min.css">
@@ -839,23 +839,36 @@ Create an S3 client from an authorized boto3 session</p>
 <span class="p">)</span>
 </code></pre></div>
 <h2 id="s3-module"><a class="autorefs autorefs-internal" href="../s3/#prefect_aws.s3">S3 Module</a></h2>
-<p>Upload contents from my_folder to new_folder.
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
+<p>List all objects in a bucket:</p>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">s3_list_objects</span>
 
-<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
-<span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_folder</span><span class="p">(</span><span class="s2">&quot;my_folder&quot;</span><span class="p">,</span> <span class="s2">&quot;new_folder&quot;</span><span class="p">)</span>
+
+<span class="nd">@flow</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">example_s3_list_objects_flow</span><span class="p">():</span>
+    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="p">(</span>
+        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;acccess_key_id&quot;</span><span class="p">,</span>
+        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;secret_access_key&quot;</span>
+    <span class="p">)</span>
+    <span class="n">objects</span> <span class="o">=</span> <span class="k">await</span> <span class="n">s3_list_objects</span><span class="p">(</span>
+        <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;data_bucket&quot;</span><span class="p">,</span>
+        <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span>
+    <span class="p">)</span>
+
+<span class="n">example_s3_list_objects_flow</span><span class="p">()</span>
 </code></pre></div>
-Download my_folder to a local folder named my_folder.
+Download my_folder/notes.txt object to notes.txt.
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
 
 <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
-<span class="n">s3_bucket</span><span class="o">.</span><span class="n">download_folder_to_path</span><span class="p">(</span><span class="s2">&quot;my_folder&quot;</span><span class="p">,</span> <span class="s2">&quot;my_folder&quot;</span><span class="p">)</span>
+<span class="n">s3_bucket</span><span class="o">.</span><span class="n">download_object_to_path</span><span class="p">(</span><span class="s2">&quot;my_folder/notes.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;notes.txt&quot;</span><span class="p">)</span>
 </code></pre></div>
-List objects under the <code>base_folder</code>.
+Upload notes.txt to my_folder/notes.txt.
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
 
 <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
-<span class="n">s3_bucket</span><span class="o">.</span><span class="n">list_objects</span><span class="p">(</span><span class="s2">&quot;base_folder&quot;</span><span class="p">)</span>
+<span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_path</span><span class="p">(</span><span class="s2">&quot;notes.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;my_folder/notes.txt&quot;</span><span class="p">)</span>
 </code></pre></div>
 Download my_folder/notes.txt object to a BytesIO object.
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
@@ -872,6 +885,24 @@ Download my_folder/notes.txt object to a BytesIO object.
 <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;notes.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">s3_bucket</span><span class="o">.</span><span class="n">download_object_to_file_object</span><span class="p">(</span><span class="s2">&quot;my_folder/notes.txt&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</code></pre></div>
+Upload BytesIO object to my_folder/notes.txt.
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+
+<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
+
+<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;notes.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_file_object</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s2">&quot;my_folder/notes.txt&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+<p>Upload BufferedReader object to my_folder/notes.txt.
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
+
+<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;notes.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_file_object</span><span class="p">(</span>
+        <span class="n">f</span><span class="p">,</span> <span class="s2">&quot;my_folder/notes.txt&quot;</span>
+    <span class="p">)</span>
 </code></pre></div>
 Download a file from an S3 bucket:</p>
 <p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
@@ -893,23 +924,11 @@ Download a file from an S3 bucket:</p>
 
 <span class="n">example_s3_download_flow</span><span class="p">()</span>
 </code></pre></div>
-Upload BytesIO object to my_folder/notes.txt.
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
-
-<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
-
-<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;notes.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_file_object</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s2">&quot;my_folder/notes.txt&quot;</span><span class="p">)</span>
-</code></pre></div></p>
-<p>Upload BufferedReader object to my_folder/notes.txt.
+Download my_folder to a local folder named my_folder.
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
 
 <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;notes.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_file_object</span><span class="p">(</span>
-        <span class="n">f</span><span class="p">,</span> <span class="s2">&quot;my_folder/notes.txt&quot;</span>
-    <span class="p">)</span>
+<span class="n">s3_bucket</span><span class="o">.</span><span class="n">download_folder_to_path</span><span class="p">(</span><span class="s2">&quot;my_folder&quot;</span><span class="p">,</span> <span class="s2">&quot;my_folder&quot;</span><span class="p">)</span>
 </code></pre></div>
 Stream notes.txt from your-bucket/notes.txt to my-bucket/landed/notes.txt.</p>
 <p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
@@ -922,18 +941,6 @@ Stream notes.txt from your-bucket/notes.txt to my-bucket/landed/notes.txt.</p>
     <span class="s2">&quot;notes.txt&quot;</span><span class="p">,</span>
     <span class="n">to_path</span><span class="o">=</span><span class="s2">&quot;landed/notes.txt&quot;</span>
 <span class="p">)</span>
-</code></pre></div>
-Download my_folder/notes.txt object to notes.txt.
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
-
-<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
-<span class="n">s3_bucket</span><span class="o">.</span><span class="n">download_object_to_path</span><span class="p">(</span><span class="s2">&quot;my_folder/notes.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;notes.txt&quot;</span><span class="p">)</span>
-</code></pre></div>
-Upload notes.txt to my_folder/notes.txt.
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
-
-<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
-<span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_path</span><span class="p">(</span><span class="s2">&quot;notes.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;my_folder/notes.txt&quot;</span><span class="p">)</span>
 </code></pre></div>
 Read and upload a file to an S3 bucket:</p>
 <p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
@@ -957,25 +964,6 @@ Read and upload a file to an S3 bucket:</p>
 
 <span class="n">example_s3_upload_flow</span><span class="p">()</span>
 </code></pre></div>
-List all objects in a bucket:</p>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
-<span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">s3_list_objects</span>
-
-
-<span class="nd">@flow</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">example_s3_list_objects_flow</span><span class="p">():</span>
-    <span class="n">aws_credentials</span> <span class="o">=</span> <span class="n">AwsCredentials</span><span class="p">(</span>
-        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;acccess_key_id&quot;</span><span class="p">,</span>
-        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;secret_access_key&quot;</span>
-    <span class="p">)</span>
-    <span class="n">objects</span> <span class="o">=</span> <span class="k">await</span> <span class="n">s3_list_objects</span><span class="p">(</span>
-        <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;data_bucket&quot;</span><span class="p">,</span>
-        <span class="n">aws_credentials</span><span class="o">=</span><span class="n">aws_credentials</span>
-    <span class="p">)</span>
-
-<span class="n">example_s3_list_objects_flow</span><span class="p">()</span>
-</code></pre></div>
 Read "subfolder/file1" contents from an S3 bucket named "bucket":
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
 <span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
@@ -992,11 +980,23 @@ Read "subfolder/file1" contents from an S3 bucket named "bucket":
 <span class="p">)</span>
 
 <span class="n">key_contents</span> <span class="o">=</span> <span class="n">s3_bucket_block</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;subfolder/file1&quot;</span><span class="p">)</span>
+</code></pre></div>
+List objects under the <code>base_folder</code>.
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
+
+<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
+<span class="n">s3_bucket</span><span class="o">.</span><span class="n">list_objects</span><span class="p">(</span><span class="s2">&quot;base_folder&quot;</span><span class="p">)</span>
+</code></pre></div>
+Upload contents from my_folder to new_folder.
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect_aws.s3</span> <span class="kn">import</span> <span class="n">S3Bucket</span>
+
+<span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">S3Bucket</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
+<span class="n">s3_bucket</span><span class="o">.</span><span class="n">upload_from_folder</span><span class="p">(</span><span class="s2">&quot;my_folder&quot;</span><span class="p">,</span> <span class="s2">&quot;new_folder&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 <h2 id="secrets-manager-module"><a class="autorefs autorefs-internal" href="../secrets_manager/#prefect_aws.secrets_manager">Secrets Manager Module</a></h2>
-<p>Write some secret data.
+<p>Deletes the secret with a recovery window of 15 days.
 <div class="highlight"><pre><span></span><code><span class="n">secrets_manager</span> <span class="o">=</span> <span class="n">SecretsManager</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK&quot;</span><span class="p">)</span>
-<span class="n">secrets_manager</span><span class="o">.</span><span class="n">write_secret</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;my_secret_data&quot;</span><span class="p">)</span>
+<span class="n">secrets_manager</span><span class="o">.</span><span class="n">delete_secret</span><span class="p">(</span><span class="n">recovery_window_in_days</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
 </code></pre></div>
 Read a secret value:</p>
 <p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
@@ -1016,6 +1016,14 @@ Read a secret value:</p>
 
 <span class="n">example_read_secret</span><span class="p">()</span>
 </code></pre></div>
+Write some secret data.
+<div class="highlight"><pre><span></span><code><span class="n">secrets_manager</span> <span class="o">=</span> <span class="n">SecretsManager</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK&quot;</span><span class="p">)</span>
+<span class="n">secrets_manager</span><span class="o">.</span><span class="n">write_secret</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;my_secret_data&quot;</span><span class="p">)</span>
+</code></pre></div>
+Reads a secret.
+<div class="highlight"><pre><span></span><code><span class="n">secrets_manager</span> <span class="o">=</span> <span class="n">SecretsManager</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK&quot;</span><span class="p">)</span>
+<span class="n">secrets_manager</span><span class="o">.</span><span class="n">read_secret</span><span class="p">()</span>
+</code></pre></div>
 Update a secret value:</p>
 <p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
 <span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
@@ -1034,10 +1042,6 @@ Update a secret value:</p>
     <span class="p">)</span>
 
 <span class="n">example_update_secret</span><span class="p">()</span>
-</code></pre></div>
-Reads a secret.
-<div class="highlight"><pre><span></span><code><span class="n">secrets_manager</span> <span class="o">=</span> <span class="n">SecretsManager</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK&quot;</span><span class="p">)</span>
-<span class="n">secrets_manager</span><span class="o">.</span><span class="n">read_secret</span><span class="p">()</span>
 </code></pre></div>
 Delete a secret immediately:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
@@ -1059,7 +1063,7 @@ Delete a secret immediately:</p>
 <span class="n">example_delete_secret_immediately</span><span class="p">()</span>
 </code></pre></div>
 <p>Delete a secret with a 90 day recovery window:</p>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
 <span class="kn">from</span> <span class="nn">prefect_aws</span> <span class="kn">import</span> <span class="n">AwsCredentials</span>
 <span class="kn">from</span> <span class="nn">prefect_aws.secrets_manager</span> <span class="kn">import</span> <span class="n">delete_secret</span>
 
@@ -1077,10 +1081,6 @@ Delete a secret immediately:</p>
 
 <span class="n">example_delete_secret_with_recovery_window</span><span class="p">()</span>
 </code></pre></div>
-Deletes the secret with a recovery window of 15 days.
-<div class="highlight"><pre><span></span><code><span class="n">secrets_manager</span> <span class="o">=</span> <span class="n">SecretsManager</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK&quot;</span><span class="p">)</span>
-<span class="n">secrets_manager</span><span class="o">.</span><span class="n">delete_secret</span><span class="p">(</span><span class="n">recovery_window_in_days</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
-</code></pre></div></p>
 
 
   
@@ -1227,7 +1227,7 @@ Deletes the secret with a recovery window of 15 days.
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.aecac24b.min.js"></script>
+      <script src="../assets/javascripts/bundle.81fa17fe.min.js"></script>
       
     
   </body>
