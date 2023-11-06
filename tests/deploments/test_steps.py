@@ -228,7 +228,7 @@ def test_s3_session_with_params():
         assert {
             "api_version": "v1",
             "endpoint_url": None,
-            "use_ssl": None,
+            "use_ssl": True,
             "verify": None,
         }.items() <= all_calls[1].kwargs.items()
         assert all_calls[1].kwargs.get("config").connect_timeout == 300
@@ -244,7 +244,7 @@ def test_s3_session_with_params():
         assert {
             "api_version": None,
             "endpoint_url": None,
-            "use_ssl": None,
+            "use_ssl": True,
             "verify": None,
         }.items() <= all_calls[3].kwargs.items()
         assert all_calls[3].kwargs.get("config").connect_timeout == 60
