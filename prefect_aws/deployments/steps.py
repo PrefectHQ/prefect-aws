@@ -220,7 +220,7 @@ def get_s3_client(
     aws_client_parameters = credentials.get("aws_client_parameters", client_parameters)
     api_version = aws_client_parameters.get("api_version", None)
     endpoint_url = aws_client_parameters.get("endpoint_url", None)
-    use_ssl = aws_client_parameters.get("use_ssl", None)
+    use_ssl = aws_client_parameters.get("use_ssl", True)
     verify = aws_client_parameters.get("verify", None)
     config_params = aws_client_parameters.get("config", {})
     config = Config(**config_params)
