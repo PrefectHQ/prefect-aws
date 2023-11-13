@@ -1085,7 +1085,10 @@ AwsSecret            (<span title="prefect.blocks.abstract.SecretBlock">SecretBl
         <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
             <span class="n">client</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">,</span> <span class="n">SecretId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">secret_name</span><span class="p">,</span> <span class="o">**</span><span class="n">read_kwargs</span>
         <span class="p">)</span>
-        <span class="n">secret</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;SecretBinary&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;SecretBinary&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+            <span class="n">secret</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;SecretBinary&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s2">&quot;SecretString&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+            <span class="n">secret</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;SecretString&quot;</span><span class="p">]</span>
         <span class="n">arn</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;ARN&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The secret </span><span class="si">{</span><span class="n">arn</span><span class="si">!r}</span><span class="s2"> data was successfully read.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">secret</span>
@@ -1503,7 +1506,10 @@ the latest version will be read.</p></td>
     <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
         <span class="n">client</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">,</span> <span class="n">SecretId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">secret_name</span><span class="p">,</span> <span class="o">**</span><span class="n">read_kwargs</span>
     <span class="p">)</span>
-    <span class="n">secret</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;SecretBinary&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;SecretBinary&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+        <span class="n">secret</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;SecretBinary&quot;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="s2">&quot;SecretString&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+        <span class="n">secret</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;SecretString&quot;</span><span class="p">]</span>
     <span class="n">arn</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;ARN&quot;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The secret </span><span class="si">{</span><span class="n">arn</span><span class="si">!r}</span><span class="s2"> data was successfully read.&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">secret</span>
