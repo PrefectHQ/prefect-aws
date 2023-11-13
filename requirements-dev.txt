@@ -9,12 +9,15 @@ mkdocs-gen-files
 mkdocs-material
 mkdocstrings-python-legacy
 mock; python_version < '3.8'
-moto >= 3.1.16
+# moto 4.2.5 broke something fairly deep in our test suite
+# https://github.com/PrefectHQ/prefect-aws/issues/318
+moto >= 3.1.16, < 4.2.5
 mypy
 pillow
 pre-commit
 pytest
 pytest-asyncio
+pytest-cov
 pytest-lazy-fixture
 pytest-xdist
 types-boto3 >= 1.0.2

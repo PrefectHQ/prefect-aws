@@ -12,7 +12,14 @@ from pytest_lazyfixture import lazy_fixture
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.client_parameters import AwsClientParameters
-from prefect_aws.s3 import S3Bucket, s3_download, s3_list_objects, s3_upload
+from prefect_aws.s3 import (
+    S3Bucket,
+    s3_copy,
+    s3_download,
+    s3_list_objects,
+    s3_move,
+    s3_upload,
+)
 
 aws_clients = [
     (lazy_fixture("aws_client_parameters_custom_endpoint")),
@@ -39,6 +46,18 @@ def client_parameters(request):
 def bucket(s3_mock, request):
     s3 = boto3.resource("s3")
     bucket = s3.Bucket("bucket")
+    marker = request.node.get_closest_marker("is_public", None)
+    if marker and marker.args[0]:
+        bucket.create(ACL="public-read")
+    else:
+        bucket.create()
+    return bucket
+
+
+@pytest.fixture
+def bucket_2(s3_mock, request):
+    s3 = boto3.resource("s3")
+    bucket = s3.Bucket("bucket_2")
     marker = request.node.get_closest_marker("is_public", None)
     if marker and marker.args[0]:
         bucket.create(ACL="public-read")
@@ -203,6 +222,151 @@ async def test_s3_upload(bucket, client_parameters, tmp_path, aws_credentials):
     output = stream.read()
 
     assert output == b"NEW OBJECT"
+
+
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
+async def test_s3_copy(object, bucket, bucket_2, aws_credentials):
+    def read(bucket, key):
+        stream = io.BytesIO()
+        bucket.download_fileobj(key, stream)
+        stream.seek(0)
+        return stream.read()
+
+    @flow
+    async def test_flow():
+        # Test cross-bucket copy
+        await s3_copy(
+            source_path="object",
+            target_path="subfolder/new_object",
+            source_bucket_name="bucket",
+            aws_credentials=aws_credentials,
+            target_bucket_name="bucket_2",
+        )
+
+        # Test within-bucket copy
+        await s3_copy(
+            source_path="object",
+            target_path="subfolder/new_object",
+            source_bucket_name="bucket",
+            aws_credentials=aws_credentials,
+        )
+
+    await test_flow()
+    assert read(bucket_2, "subfolder/new_object") == b"TEST"
+    assert read(bucket, "subfolder/new_object") == b"TEST"
+
+
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
+async def test_s3_move(object, bucket, bucket_2, aws_credentials):
+    def read(bucket, key):
+        stream = io.BytesIO()
+        bucket.download_fileobj(key, stream)
+        stream.seek(0)
+        return stream.read()
+
+    @flow
+    async def test_flow():
+        # Test within-bucket move
+        await s3_move(
+            source_path="object",
+            target_path="subfolder/object_copy",
+            source_bucket_name="bucket",
+            aws_credentials=aws_credentials,
+        )
+
+        # Test cross-bucket move
+        await s3_move(
+            source_path="subfolder/object_copy",
+            target_path="object_copy_2",
+            source_bucket_name="bucket",
+            target_bucket_name="bucket_2",
+            aws_credentials=aws_credentials,
+        )
+
+    await test_flow()
+
+    assert read(bucket_2, "object_copy_2") == b"TEST"
+
+    with pytest.raises(ClientError):
+        read(bucket, "object")
+
+    with pytest.raises(ClientError):
+        read(bucket, "subfolder/object_copy")
+
+
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
+async def test_move_object_to_nonexistent_bucket_fails(
+    object,
+    bucket,
+    aws_credentials,
+):
+    def read(bucket, key):
+        stream = io.BytesIO()
+        bucket.download_fileobj(key, stream)
+        stream.seek(0)
+        return stream.read()
+
+    @flow
+    async def test_flow():
+        # Test cross-bucket move
+        await s3_move(
+            source_path="object",
+            target_path="subfolder/new_object",
+            source_bucket_name="bucket",
+            aws_credentials=aws_credentials,
+            target_bucket_name="nonexistent-bucket",
+        )
+
+    with pytest.raises(ClientError):
+        await test_flow()
+
+    assert read(bucket, "object") == b"TEST"
+
+
+@pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
+async def test_move_object_fail_cases(
+    object,
+    bucket,
+    aws_credentials,
+):
+    def read(bucket, key):
+        stream = io.BytesIO()
+        bucket.download_fileobj(key, stream)
+        stream.seek(0)
+        return stream.read()
+
+    @flow
+    async def test_flow(
+        source_path, target_path, source_bucket_name, target_bucket_name
+    ):
+        # Test cross-bucket move
+        await s3_move(
+            source_path=source_path,
+            target_path=target_path,
+            source_bucket_name=source_bucket_name,
+            aws_credentials=aws_credentials,
+            target_bucket_name=target_bucket_name,
+        )
+
+    # Move to non-existent bucket
+    with pytest.raises(ClientError):
+        await test_flow(
+            source_path="object",
+            target_path="subfolder/new_object",
+            source_bucket_name="bucket",
+            target_bucket_name="nonexistent-bucket",
+        )
+    assert read(bucket, "object") == b"TEST"
+
+    # Move onto self
+    with pytest.raises(ClientError):
+        await test_flow(
+            source_path="object",
+            target_path="object",
+            source_bucket_name="bucket",
+            target_bucket_name="bucket",
+        )
+    assert read(bucket, "object") == b"TEST"
 
 
 @pytest.mark.parametrize("client_parameters", aws_clients, indirect=True)
@@ -623,9 +787,9 @@ class TestS3Bucket:
         return _s3_bucket
 
     @pytest.fixture
-    def s3_bucket_2_empty(self, credentials, bucket):
+    def s3_bucket_2_empty(self, credentials, bucket_2):
         _s3_bucket = S3Bucket(
-            bucket_name="bucket",
+            bucket_name="bucket_2",
             credentials=credentials,
             bucket_folder="subfolder",
         )
@@ -811,3 +975,71 @@ class TestS3Bucket:
                 break
         else:
             raise AssertionError("Files did upload")
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_copy_object(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        s3_bucket_2_empty: S3Bucket,
+    ):
+        s3_bucket_with_object.copy_object("object", "object_copy_1")
+        assert s3_bucket_with_object.read_path("object_copy_1") == b"TEST"
+
+        s3_bucket_with_object.copy_object("object", "folder/object_copy_2")
+        assert s3_bucket_with_object.read_path("folder/object_copy_2") == b"TEST"
+
+        # S3Bucket for second bucket has a basepath
+        s3_bucket_with_object.copy_object(
+            "object",
+            s3_bucket_2_empty._resolve_path("object_copy_3"),
+            to_bucket="bucket_2",
+        )
+        assert s3_bucket_2_empty.read_path("object_copy_3") == b"TEST"
+
+        s3_bucket_with_object.copy_object("object", "object_copy_4", s3_bucket_2_empty)
+        assert s3_bucket_2_empty.read_path("object_copy_4") == b"TEST"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_move_object_within_bucket(
+        self,
+        s3_bucket_with_object: S3Bucket,
+    ):
+        s3_bucket_with_object.move_object("object", "object_copy_1")
+        assert s3_bucket_with_object.read_path("object_copy_1") == b"TEST"
+
+        with pytest.raises(ClientError):
+            assert s3_bucket_with_object.read_path("object") == b"TEST"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_move_object_to_nonexistent_bucket_fails(
+        self,
+        s3_bucket_with_object: S3Bucket,
+    ):
+        with pytest.raises(ClientError):
+            s3_bucket_with_object.move_object(
+                "object", "object_copy_1", to_bucket="nonexistent-bucket"
+            )
+        assert s3_bucket_with_object.read_path("object") == b"TEST"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_move_object_onto_itself_fails(
+        self,
+        s3_bucket_with_object: S3Bucket,
+    ):
+        with pytest.raises(ClientError):
+            s3_bucket_with_object.move_object("object", "object")
+        assert s3_bucket_with_object.read_path("object") == b"TEST"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_move_object_between_buckets(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        s3_bucket_2_empty: S3Bucket,
+    ):
+        s3_bucket_with_object.move_object(
+            "object", "object_copy_1", to_bucket=s3_bucket_2_empty
+        )
+        assert s3_bucket_2_empty.read_path("object_copy_1") == b"TEST"
+
+        with pytest.raises(ClientError):
+            assert s3_bucket_with_object.read_path("object") == b"TEST"

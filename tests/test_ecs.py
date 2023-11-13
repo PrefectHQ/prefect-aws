@@ -16,7 +16,12 @@ from prefect.logging.configuration import setup_logging
 from prefect.server.schemas.core import Deployment, Flow, FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from prefect.utilities.dockerutils import get_prefect_image_name
-from pydantic import ValidationError
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import ValidationError
+else:
+    from pydantic import ValidationError
 
 from prefect_aws.ecs import (
     ECS_DEFAULT_CPU,
@@ -1363,7 +1368,7 @@ async def test_latest_task_definition_not_used_if_inequal(
         # {"execution_role_arn": "test"},
         # {"launch_type": "EXTERNAL"},
     ],
-    ids=lambda item: str(set(item.keys())),
+    ids=lambda item: str(sorted(list(set(item.keys())))),
 )
 async def test_latest_task_definition_with_overrides_that_do_not_require_copy(
     aws_credentials, overrides, launch_type
@@ -1531,7 +1536,7 @@ async def test_task_definition_arn_with_overrides_requiring_copy_shows_diff(
         # from the base task definition
         {"env": {"FOO": None}},
     ],
-    ids=lambda item: str(set(item.keys())),
+    ids=lambda item: str(sorted(list(set(item.keys())))),
 )
 async def test_task_definition_arn_with_overrides_that_do_not_require_copy(
     aws_credentials, overrides
