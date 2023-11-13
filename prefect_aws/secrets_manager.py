@@ -411,7 +411,10 @@ class AwsSecret(SecretBlock):
         response = await run_sync_in_worker_thread(
             client.get_secret_value, SecretId=self.secret_name, **read_kwargs
         )
-        secret = response["SecretBinary"]
+        if "SecretBinary" in response:
+            secret = response["SecretBinary"]
+        elif "SecretString" in response:
+            secret = response["SecretString"]
         arn = response["ARN"]
         self.logger.info(f"The secret {arn!r} data was successfully read.")
         return secret

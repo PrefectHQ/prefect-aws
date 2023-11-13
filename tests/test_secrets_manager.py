@@ -199,3 +199,10 @@ class TestAwsSecret:
             ValueError, match="Recovery window must be between 7 and 30 days"
         ):
             aws_secret.delete_secret(recovery_window_in_days=42)
+
+    async def test_read_secret(self, secret_under_test, aws_credentials):
+        secret = AwsSecret(
+            aws_credentials=aws_credentials,
+            secret_name=secret_under_test["secret_name"],
+        )
+        assert await secret.read_secret() == secret_under_test["expected_value"]
