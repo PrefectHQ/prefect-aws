@@ -11,7 +11,7 @@ mkdocstrings-python-legacy
 mock; python_version < '3.8'
 # moto 4.2.5 broke something fairly deep in our test suite
 # https://github.com/PrefectHQ/prefect-aws/issues/318
-moto >= 3.1.16, < 4.2.5
+moto >= 3.1.16, < 4.2.9
 mypy
 pillow
 pre-commit
