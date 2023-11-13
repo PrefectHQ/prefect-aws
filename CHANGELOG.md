@@ -10,12 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Added 'SecretBrinary' suport to `AwsSecret` block - [#274](https://github.com/PrefectHQ/prefect-aws/pull/274)
 
 ### Fixed
 
 ### Deprecated
 
 ### Removed
+
+## 0.4.2
+
+Released November 6th, 2023.
+
+### Fixed
+
+- Fixed use_ssl default for s3 client.
 
 ## 0.4.1
 
