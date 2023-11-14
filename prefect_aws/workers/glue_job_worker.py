@@ -45,7 +45,7 @@ class GlueJobWorkerConfiguration(BaseJobConfiguration):
             "state of an Glue Job."
         ),
     )
-    aws_credentials: Optional[AwsCredentials] = Field(default_factory=AwsCredentials)
+    aws_credentials: AwsCredentials = Field(default_factory=AwsCredentials)
     error_states = ["FAILED", "STOPPED", "ERROR", "TIMEOUT"]
 
 
