@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-import boto3
 import pytest
 from moto import mock_glue
 from prefect.server.schemas.core import FlowRun
@@ -16,7 +15,8 @@ from prefect_aws.workers.glue_job_worker import (
 @pytest.fixture(scope="function")
 def glue_job_client(aws_credentials):
     with mock_glue():
-        yield boto3.client("glue", region_name="us-east-1")
+        boto_session = aws_credentials.get_boto3_session()
+        yield boto_session.client("glue")
 
 
 @pytest.fixture
