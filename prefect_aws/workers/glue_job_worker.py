@@ -1,3 +1,35 @@
+"""
+Prefect worker for executing flow runs as AWS Glue jobs.
+You can get started by creating a GlueJobWorker instance and passing
+in the necessary configuration.
+Here is an example:
+```python
+from prefect_aws import GlueJobWorker, GlueJobWorkerConfiguration
+
+configuration = GlueJobWorkerConfiguration(
+    job_name='my-glue-job',
+    arguments={'--arg1': 'value1'}
+)
+worker = GlueJobWorker()
+result = worker.run(flow_run, configuration)
+```
+
+The GlueJobWorkerConfiguration class is used to configure the Glue job.
+It includes the Glue job name, any arguments for the job, a poll interval
+for checking the job status, and AWS credentials.
+
+The GlueJobWorker class is the main worker class that executes
+the flow runs as Glue jobs. It has a run method that takes a FlowRun instance
+and a GlueJobWorkerConfiguration instance and starts the Glue job.
+The run method returns a GlueJobWorkerResult instance which contains
+the job run ID and the exit code.
+The worker will create a new Glue client for each job run.
+If the job fails,
+an exception will be raised with the error message from AWS Glue.
+
+The worker can be configured to use an existing Glue job by setting the job name
+in the GlueJobWorkerConfiguration.
+"""
 import logging
 import time
 from typing import Any, Dict, Optional
