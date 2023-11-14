@@ -16,7 +16,9 @@ def glue_job_client(aws_credentials):
 
 def test_get_client(aws_credentials):
     with mock_glue():
-        glue_client = GlueJob(job_name="test_job_name", arguments={})._get_client()
+        glue_client = GlueJob(
+            job_name="test_job_name", arguments={}, aws_credentials=aws_credentials
+        )._get_client()
         assert hasattr(glue_client, "get_job_run")
 
 

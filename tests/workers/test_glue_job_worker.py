@@ -27,7 +27,7 @@ def flow_run():
 def test_get_client(aws_credentials):
     with mock_glue():
         job_worker_configuration = GlueJobWorkerConfiguration(
-            job_name="test_glue_job_name"
+            job_name="test_glue_job_name", aws_credentials=aws_credentials
         )
         glue_job_worker = GlueJobWorker(work_pool_name="test")
         glue_client = glue_job_worker._get_client(job_worker_configuration)
