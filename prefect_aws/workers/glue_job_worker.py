@@ -51,6 +51,10 @@ class GlueJobWorkerResult(BaseWorkerResult):
 
 
 class GlueJobWorker(BaseWorker):
+    """
+    A Prefect worker to execute flow runs as AWS Glue jobs.
+    """
+
     type = "glue-job"
     job_configuration = GlueJobWorkerConfiguration
     job_configuration_variables = BaseVariables
