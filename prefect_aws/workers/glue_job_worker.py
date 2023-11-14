@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import anyio
 from prefect.server.schemas.core import FlowRun
@@ -33,7 +33,7 @@ class GlueJobWorkerConfiguration(BaseJobConfiguration):
         title="AWS Glue Job Name",
         description="The name of the job definition to use.",
     )
-    arguments: Optional[dict] = Field(
+    arguments: Optional[Dict[str, str]] = Field(
         default=None,
         title="AWS Glue Job Arguments",
         description="The job arguments associated with this run.",
