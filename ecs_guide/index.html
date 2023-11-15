@@ -918,22 +918,14 @@
 <span class="w">    </span><span class="nt">&quot;containerDefinitions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prefect-worker&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prefecthq/prefect&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prefecthq/prefect:2-latest&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;cpu&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;memory&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;essential&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">                </span><span class="s2">&quot;pip&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;install&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;prefect-aws&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;&amp;&amp;&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;prefect&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;worker&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;start&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;--pool&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;my-ecs-pool&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;--type&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="s2">&quot;ecs&quot;</span>
+<span class="w">                </span><span class="s2">&quot;/bin/sh&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="s2">&quot;-c&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="s2">&quot;pip install prefect-aws &amp;&amp; prefect worker start --pool my-ecs-pool --type ecs&quot;</span>
 <span class="w">            </span><span class="p">],</span>
 <span class="w">            </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">                </span><span class="p">{</span>
@@ -957,7 +949,7 @@
 <p>For the <code>PREFECT_API_KEY</code>, individuals on the organization tier can create a <a href="https://docs.prefect.io/latest/cloud/users/service-accounts/">service account</a> for the worker. If on a personal tier, you can pass a user’s API key.</p>
 </li>
 <li>
-<p>Replace <code>&lt;your-ecs-task-role-arn&gt;</code> with the ARN of the IAM role you created in Step 1.</p>
+<p>Replace both instances of <code>&lt;your-ecs-task-role-arn&gt;</code> with the ARN of the IAM role you created in Step 2.</p>
 </li>
 <li>
 <p>Notice that the CPU and Memory allocations are relatively small. The worker's main responsibility is to submit work through API calls to AWS, <em>not</em> to execute your Prefect flow code.</p>
