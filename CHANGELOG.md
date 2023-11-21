@@ -9,16 +9,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added retries to ECS task run creation for ECS worker - [#303](https://github.com/PrefectHQ/prefect-aws/pull/303)
-- Added support to `ECSWorker` for `awsvpcConfiguration` [#304](https://github.com/PrefectHQ/prefect-aws/pull/304)
-
 ### Changed
+- Added 'SecretBrinary' suport to `AwsSecret` block - [#274](https://github.com/PrefectHQ/prefect-aws/pull/274)
 
-- Changed `push_to_s3` deployment step function to write paths `as_posix()` to allow support for deploying from windows [#314](https://github.com/PrefectHQ/prefect-aws/pull/314)
+### Fixed
 
 ### Deprecated
 
 ### Removed
+
+## 0.4.2
+
+Released November 6th, 2023.
+
+### Fixed
+
+- Fixed use_ssl default for s3 client.
+
+## 0.4.1
+
+Released October 13th, 2023.
+
+### Added
+
+- AWS S3 copy and move tasks and `S3Bucket` methods - [#316](https://github.com/PrefectHQ/prefect-aws/pull/316)
+
+### Fixed
+
+- `ECSWorker` issue where defining a custom network configuration with a subnet would erroneously report it as missing from the VPC when more than one subnet exists in the VPC. [#321](https://github.com/PrefectHQ/prefect-aws/pull/321)
+- Updated `push_to_s3` and `pull_from_s3` deployment steps to properly create a boto3 session client if the passed credentials are a referenced `AwsCredentials` block [#322](https://github.com/PrefectHQ/prefect-aws/pull/322)
+
+## 0.4.0
+
+Released October 5th, 2023.
+
+### Changed
+
+- Changed `push_to_s3` deployment step function to write paths `as_posix()` to allow support for deploying from windows [#314](https://github.com/PrefectHQ/prefect-aws/pull/314)
+- Conditional imports to support operating with pydantic>2 installed - [#317](https://github.com/PrefectHQ/prefect-aws/pull/317)
+
+## 0.3.7
+
+Released August 31st, 2023.
+
+### Added
+
+- Added retries to ECS task run creation for ECS worker - [#303](https://github.com/PrefectHQ/prefect-aws/pull/303)
+- Added support to `ECSWorker` for `awsvpcConfiguration` [#304](https://github.com/PrefectHQ/prefect-aws/pull/304)
 
 ## 0.3.6
 
