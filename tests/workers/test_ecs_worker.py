@@ -2034,7 +2034,7 @@ async def test_retry_on_failed_task_start(
     assert run_task_mock.call_count == 3
 
 
-async def test_replace_env_values():
+async def test_mask_sensitive_env_values():
     task_run_request = {
         "overrides": {
             "containerOverrides": [
