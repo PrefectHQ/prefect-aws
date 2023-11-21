@@ -216,7 +216,7 @@ def parse_identifier(identifier: str) -> ECSIdentifier:
 
 
 def mask_sensitive_env_values(
-    task_run_request: dict, values: list[str], keep_length=3, replace_with="***"
+    task_run_request: dict, values: List[str], keep_length=3, replace_with="***"
 ):
     for container in task_run_request.get("overrides", {}).get(
         "containerOverrides", []
