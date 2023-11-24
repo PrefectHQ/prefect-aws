@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## 0.4.3
+
+Released November 24th, 2023.
+
+### Fixed
+
+- Fix downloading folders with same prefix
+
 ## 0.4.2
 
 Released November 6th, 2023.

@@ -170,7 +170,7 @@ def pull_from_s3(
     s3 = get_s3_client(credentials=credentials, client_parameters=client_parameters)
 
     local_path = Path.cwd()
-
+    folder = folder.rstrip("/") + "/"
     paginator = s3.get_paginator("list_objects_v2")
     for result in paginator.paginate(Bucket=bucket, Prefix=folder):
         for obj in result.get("Contents", []):
