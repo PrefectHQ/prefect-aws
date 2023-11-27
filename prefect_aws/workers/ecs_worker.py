@@ -221,6 +221,31 @@ def parse_identifier(identifier: str) -> ECSIdentifier:
     return ECSIdentifier(cluster, task)
 
 
+def mask_sensitive_env_values(
+    task_run_request: dict, values: List[str], keep_length=3, replace_with="***"
+):
+    for container in task_run_request.get("overrides", {}).get(
+        "containerOverrides", []
+    ):
+        for env_var in container.get("environment", []):
+            if (
+                "name" not in env_var
+                or "value" not in env_var
+                or env_var["name"] not in values
+            ):
+                continue
+            if len(env_var["value"]) > keep_length:
+                # Replace characters beyond the keep length
+                env_var["value"] = env_var["value"][:keep_length] + replace_with
+    return task_run_request
+
+
+def mask_api_key(task_run_request):
+    return mask_sensitive_env_values(
+        task_run_request, ["PREFECT_API_KEY"], keep_length=6
+    )
+
+
 class ECSJobConfiguration(BaseJobConfiguration):
     """
     Job configuration for an ECS worker.
@@ -724,8 +749,10 @@ class ECSWorker(BaseWorker):
 
         logger.info("Creating ECS task run...")
         logger.debug(
-            f"Task run request {json.dumps(task_run_request, indent=2, default=str)}"
+            "Task run request"
+            f"{json.dumps(mask_api_key(task_run_request), indent=2, default=str)}"
         )
+
         try:
             task = self._create_task_run(ecs_client, task_run_request)
             task_arn = task["taskArn"]
