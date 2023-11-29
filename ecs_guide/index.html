@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.8">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.14">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.4b4a2bd9.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.fad675c6.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.356b1318.min.css">
@@ -285,6 +285,7 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href=".." class="md-nav__link">
         
@@ -304,6 +305,7 @@
   
   
     
+  
   
   
     <li class="md-nav__item md-nav__item--active">
@@ -352,14 +354,18 @@
       
         <li class="md-nav__item">
   <a href="#why-use-ecs-for-flow-run-execution" class="md-nav__link">
-    Why use ECS for flow run execution?
+    <span class="md-ellipsis">
+      Why use ECS for flow run execution?
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#ecs-flow-run-execution" class="md-nav__link">
-    ECS Flow Run Execution
+    <span class="md-ellipsis">
+      ECS Flow Run Execution
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="ECS Flow Run Execution">
@@ -367,14 +373,18 @@
         
           <li class="md-nav__item">
   <a href="#architecture-diagram" class="md-nav__link">
-    Architecture Diagram
+    <span class="md-ellipsis">
+      Architecture Diagram
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#ecs-in-prefect-terms" class="md-nav__link">
-    ECS in Prefect Terms
+    <span class="md-ellipsis">
+      ECS in Prefect Terms
+    </span>
   </a>
   
 </li>
@@ -397,6 +407,7 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="../blocks_catalog/" class="md-nav__link">
         
@@ -413,6 +424,7 @@
     
       
       
+  
   
   
   
@@ -435,6 +447,7 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="../contributing/" class="md-nav__link">
         
@@ -451,6 +464,7 @@
     
       
       
+  
   
   
   
@@ -490,6 +504,7 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="../batch/" class="md-nav__link">
         
@@ -507,6 +522,7 @@
             
               
                 
+  
   
   
   
@@ -530,6 +546,7 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="../credentials/" class="md-nav__link">
         
@@ -547,6 +564,7 @@
             
               
                 
+  
   
   
   
@@ -570,6 +588,7 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="../ecs/" class="md-nav__link">
         
@@ -587,6 +606,7 @@
             
               
                 
+  
   
   
   
@@ -626,6 +646,7 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="../deployments/steps/" class="md-nav__link">
         
@@ -654,6 +675,7 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="../s3/" class="md-nav__link">
         
@@ -671,6 +693,7 @@
             
               
                 
+  
   
   
   
@@ -724,14 +747,18 @@
       
         <li class="md-nav__item">
   <a href="#why-use-ecs-for-flow-run-execution" class="md-nav__link">
-    Why use ECS for flow run execution?
+    <span class="md-ellipsis">
+      Why use ECS for flow run execution?
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#ecs-flow-run-execution" class="md-nav__link">
-    ECS Flow Run Execution
+    <span class="md-ellipsis">
+      ECS Flow Run Execution
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="ECS Flow Run Execution">
@@ -739,14 +766,18 @@
         
           <li class="md-nav__item">
   <a href="#architecture-diagram" class="md-nav__link">
-    Architecture Diagram
+    <span class="md-ellipsis">
+      Architecture Diagram
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#ecs-in-prefect-terms" class="md-nav__link">
-    ECS in Prefect Terms
+    <span class="md-ellipsis">
+      ECS in Prefect Terms
+    </span>
   </a>
   
 </li>
@@ -784,7 +815,7 @@
 <li><strong>Containerization</strong>: ECS supports Docker containers and offers managed execution. Containerization encourages reproducible deployments.</li>
 </ol>
 <h2 id="ecs-flow-run-execution">ECS Flow Run Execution</h2>
-<p>Prefect enables remote flow execution via <a href="https://docs.prefect.io/2.11.1/concepts/work-pools/#worker-overview">workers</a> and <a href="https://docs.prefect.io/2.11.1/concepts/work-pools/#work-pool-overview">work pools</a>. To learn more about these concepts please see our <a href="https://docs.prefect.io/2.11.1/tutorial/deployments/">deployment tutorial</a>.</p>
+<p>Prefect enables remote flow execution via <a href="https://docs.prefect.io/concepts/work-pools/#worker-overview">workers</a> and <a href="https://docs.prefect.io/concepts/work-pools/#work-pool-overview">work pools</a>. To learn more about these concepts please see our <a href="https://docs.prefect.io/tutorial/deployments/">deployment tutorial</a>.</p>
 <p>For details on how workers and work pools are implemented for ECS, see the diagram below:</p>
 <h4 id="architecture-diagram">Architecture Diagram</h4>
 <pre class="mermaid"><code>graph TB
@@ -1024,10 +1055,10 @@
 <li>Do your flow runs require higher <code>CPU</code>?</li>
 <li>Would an EC2 <code>Launch Type</code> speed up your flow run execution?</li>
 </ul>
-<p>These infrastructure configuration values can be set on your ECS work pool or they can be overridden on the deployment level through <a href="https://docs.prefect.io/2.11.0/concepts/infrastructure/#kubernetesjob-overrides-and-customizations">job_variables</a> if desired.</p>
+<p>These infrastructure configuration values can be set on your ECS work pool or they can be overridden on the deployment level through <a href="https://docs.prefect.io/concepts/infrastructure/#kubernetesjob-overrides-and-customizations">job_variables</a> if desired.</p>
 </li>
 <li>
-<p>Consider adding a <a href="https://docs.prefect.io/2.11.0/concepts/deployments-ux/#the-build-action">build action</a> to your Prefect Project <a href="https://docs.prefect.io/2.11.0/concepts/deployments-ux/#the-prefect-yaml-file"><code>prefect.yaml</code></a> if you want to automatically build a Docker image and push it to an image registry <code>prefect deploy</code> is run.</p>
+<p>Consider adding a <a href="https://docs.prefect.io/concepts/deployments-ux/#the-build-action">build action</a> to your Prefect Project <a href="https://docs.prefect.io/concepts/deployments-ux/#the-prefect-yaml-file"><code>prefect.yaml</code></a> if you want to automatically build a Docker image and push it to an image registry <code>prefect deploy</code> is run.</p>
 </li>
 </ol>
 <p>Here is an example build action for ECR:
@@ -1194,7 +1225,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.81fa17fe.min.js"></script>
+      <script src="../assets/javascripts/bundle.cd18aaf1.min.js"></script>
       
     
   </body>
