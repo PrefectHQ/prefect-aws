@@ -10,13 +10,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
-- Added 'SecretBrinary' suport to `AwsSecret` block - [#274](https://github.com/PrefectHQ/prefect-aws/pull/274)
 
 ### Fixed
 
 ### Deprecated
 
 ### Removed
+
+## 0.4.5
+
+### Fixed
+
+- Bug where Prefect API key provided to ECS tasks was masked - [#347](https://github.com/PrefectHQ/prefect-aws/pull/347)
+
+## 0.4.4
+
+### Changed
+
+- Mask Prefect API key in logs - [#341](https://github.com/PrefectHQ/prefect-aws/pull/341)
+
+## 0.4.3
+
+Released November 13th, 2023.
+
+### Added
+
+- `SecretBrinary` suport to `AwsSecret` block - [#274](https://github.com/PrefectHQ/prefect-aws/pull/274)
 
 ## 0.4.2
 
