@@ -19,11 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.4.5
 
+Released November 30th, 2023.
+
 ### Fixed
 
 - Bug where Prefect API key provided to ECS tasks was masked - [#347](https://github.com/PrefectHQ/prefect-aws/pull/347)
 
 ## 0.4.4
+
+Released November 29th, 2023.
 
 ### Changed
 
