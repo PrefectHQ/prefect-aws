@@ -242,7 +242,7 @@ def mask_sensitive_env_values(
 
 def mask_api_key(task_run_request):
     return mask_sensitive_env_values(
-        task_run_request, ["PREFECT_API_KEY"], keep_length=6
+        deepcopy(task_run_request), ["PREFECT_API_KEY"], keep_length=6
     )
 
 
