@@ -9,13 +9,13 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - "3.7"
           - "3.8"
           - "3.9"
           - "3.10"
+          - "3.11"
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -33,9 +33,7 @@ jobs:
         env:
           PREFECT_SERVER_DATABASE_CONNECTION_URL: "sqlite+aiosqlite:///./collection-tests.db"
         run: |
-          prefect server database reset -y
-          coverage run --branch -m pytest tests -vv
-          coverage report
+          pytest --cov=prefect_aws --no-cov-on-fail --cov-report=term-missing --cov-branch tests -n auto -vv
 
       - name: Run mkdocs build
         run: |

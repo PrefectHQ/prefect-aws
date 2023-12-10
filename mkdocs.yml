@@ -28,7 +28,7 @@ theme:
   icon:
     repo: fontawesome/brands/github
   logo:
-    img/prefect-logo-mark-solid-white-500.png
+    img/prefect-logo-mark.png
   font:
     text: Inter
     code: Source Code Pro

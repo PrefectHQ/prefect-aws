@@ -91,14 +91,7 @@ def push_to_s3(
         ```
 
     """
-    if credentials is None:
-        credentials = {}
-    if client_parameters is None:
-        client_parameters = {}
-    advanced_config = client_parameters.pop("config", {})
-    client = boto3.client(
-        "s3", **credentials, **client_parameters, config=Config(**advanced_config)
-    )
+    s3 = get_s3_client(credentials=credentials, client_parameters=client_parameters)
 
     local_path = Path.cwd()
 
@@ -117,7 +110,9 @@ def push_to_s3(
             continue
         elif not local_file_path.is_dir():
             remote_file_path = Path(folder) / local_file_path.relative_to(local_path)
-            client.upload_file(str(local_file_path), bucket, str(remote_file_path))
+            s3.upload_file(
+                str(local_file_path), bucket, str(remote_file_path.as_posix())
+            )
 
     return {
         "bucket": bucket,
@@ -172,14 +167,7 @@ def pull_from_s3(
                 credentials: "{{ prefect.blocks.aws-credentials.dev-credentials }}"
         ```
     """
-    if credentials is None:
-        credentials = {}
-    if client_parameters is None:
-        client_parameters = {}
-    advanced_config = client_parameters.pop("config", {})
-
-    session = boto3.Session(**credentials)
-    s3 = session.client("s3", **client_parameters, config=Config(**advanced_config))
+    s3 = get_s3_client(credentials=credentials, client_parameters=client_parameters)
 
     local_path = Path.cwd()
 
@@ -204,3 +192,51 @@ def pull_from_s3(
         "folder": folder,
         "directory": str(local_path),
     }
+
+
+def get_s3_client(
+    credentials: Optional[Dict] = None,
+    client_parameters: Optional[Dict] = None,
+) -> dict:
+    if credentials is None:
+        credentials = {}
+    if client_parameters is None:
+        client_parameters = {}
+
+    # Get credentials from credentials (regardless if block or not)
+    aws_access_key_id = credentials.get("aws_access_key_id", None)
+    aws_secret_access_key = credentials.get("aws_secret_access_key", None)
+    aws_session_token = credentials.get("aws_session_token", None)
+
+    # Get remaining session info from credentials, or client_parameters
+    profile_name = credentials.get(
+        "profile_name", client_parameters.get("profile_name", None)
+    )
+    region_name = credentials.get(
+        "region_name", client_parameters.get("region_name", None)
+    )
+
+    # Get additional info from client_parameters, otherwise credentials input (if block)
+    aws_client_parameters = credentials.get("aws_client_parameters", client_parameters)
+    api_version = aws_client_parameters.get("api_version", None)
+    endpoint_url = aws_client_parameters.get("endpoint_url", None)
+    use_ssl = aws_client_parameters.get("use_ssl", True)
+    verify = aws_client_parameters.get("verify", None)
+    config_params = aws_client_parameters.get("config", {})
+    config = Config(**config_params)
+
+    session = boto3.Session(
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+        aws_session_token=aws_session_token,
+        profile_name=profile_name,
+        region_name=region_name,
+    )
+    return session.client(
+        "s3",
+        api_version=api_version,
+        endpoint_url=endpoint_url,
+        use_ssl=use_ssl,
+        verify=verify,
+        config=config,
+    )

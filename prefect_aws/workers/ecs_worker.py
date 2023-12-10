@@ -68,7 +68,13 @@ from prefect.workers.base import (
     BaseWorker,
     BaseWorkerResult,
 )
-from pydantic import Field, root_validator
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import Field, root_validator
+else:
+    from pydantic import Field, root_validator
+
 from slugify import slugify
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
 from typing_extensions import Literal
@@ -213,6 +219,31 @@ def parse_identifier(identifier: str) -> ECSIdentifier:
     """
     cluster, task = identifier.split("::", maxsplit=1)
     return ECSIdentifier(cluster, task)
+
+
+def mask_sensitive_env_values(
+    task_run_request: dict, values: List[str], keep_length=3, replace_with="***"
+):
+    for container in task_run_request.get("overrides", {}).get(
+        "containerOverrides", []
+    ):
+        for env_var in container.get("environment", []):
+            if (
+                "name" not in env_var
+                or "value" not in env_var
+                or env_var["name"] not in values
+            ):
+                continue
+            if len(env_var["value"]) > keep_length:
+                # Replace characters beyond the keep length
+                env_var["value"] = env_var["value"][:keep_length] + replace_with
+    return task_run_request
+
+
+def mask_api_key(task_run_request):
+    return mask_sensitive_env_values(
+        deepcopy(task_run_request), ["PREFECT_API_KEY"], keep_length=6
+    )
 
 
 class ECSJobConfiguration(BaseJobConfiguration):
@@ -542,7 +573,7 @@ class ECSWorker(BaseWorker):
     )
     _display_name = "AWS Elastic Container Service"
     _documentation_url = "https://prefecthq.github.io/prefect-aws/ecs_worker/"
-    _logo_url = "https://images.ctfassets.net/gm98wzqotmnx/1jbV4lceHOjGgunX15lUwT/db88e184d727f721575aeb054a37e277/aws.png?h=250"  # noqa
+    _logo_url = "https://cdn.sanity.io/images/3ugk85nk/production/d74b16fe84ce626345adf235a47008fea2869a60-225x225.png"  # noqa
 
     async def run(
         self,
@@ -718,8 +749,10 @@ class ECSWorker(BaseWorker):
 
         logger.info("Creating ECS task run...")
         logger.debug(
-            f"Task run request {json.dumps(task_run_request, indent=2, default=str)}"
+            "Task run request"
+            f"{json.dumps(mask_api_key(task_run_request), indent=2, default=str)}"
         )
+
         try:
             task = self._create_task_run(ecs_client, task_run_request)
             task_arn = task["taskArn"]
@@ -1343,10 +1376,10 @@ class ECSWorker(BaseWorker):
                 + "Network configuration cannot be inferred."
             )
 
+        subnet_ids = [subnet["SubnetId"] for subnet in subnets]
+
         config_subnets = network_configuration.get("subnets", [])
-        if not all(
-            [conf_sn in sn.values() for conf_sn in config_subnets for sn in subnets]
-        ):
+        if not all(conf_sn in subnet_ids for conf_sn in config_subnets):
             raise ValueError(
                 f"Subnets {config_subnets} not found within {vpc_message}."
                 + "Please check that VPC is associated with supplied subnets."
