@@ -55,7 +55,12 @@ from typing import Any, Literal, Optional, Tuple
 import boto3
 from prefect.blocks.core import Block
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
-from pydantic import Field
+from pydantic import VERSION as PYDANTIC_VERSION
+
+if PYDANTIC_VERSION.startswith("2."):
+    from pydantic.v1 import Field
+else:
+    from pydantic import Field
 
 from prefect_aws.credentials import AwsCredentials
 
