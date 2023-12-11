@@ -50,7 +50,7 @@ Examples:
 
 """
 import json
-from typing import Any, Literal, Tuple
+from typing import Any, Literal, Optional, Tuple
 
 import boto3
 from prefect.blocks.core import Block
@@ -89,7 +89,7 @@ class LambdaFunction(Block):
             " Lambda."
         ),
     )
-    qualifier: str | None = Field(
+    qualifier: Optional[str] = Field(
         default=None,
         title="Qualifier",
         description=(
