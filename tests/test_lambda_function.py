@@ -1,6 +1,7 @@
 import io
 import json
 import zipfile
+from typing import Optional
 
 import boto3
 import pytest
@@ -141,7 +142,7 @@ class TestLambdaFunction:
     )
     def test_invoke_lambda_payloads(
         self,
-        payload: dict | None,
+        payload: Optional[dict],
         expected: dict,
         mock_lambda_function,
         lambda_function: LambdaFunction,
