@@ -105,6 +105,8 @@ class LambdaFunction(Block):
     )
 
     class Config:
+        """Lambda's pydantic configuration."""
+
         smart_union = True
 
     def _get_session_and_client(self) -> Tuple[boto3.Session, Any]:
