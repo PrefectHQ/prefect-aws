@@ -130,7 +130,7 @@ class LambdaFunction(Block):
             "RequestResponse", "Event", "DryRun"
         ] = "RequestResponse",
         tail: bool = False,
-        client_context: dict | None = None,
+        client_context: Optional[dict] = None,
     ) -> dict:
         """
         [Invoke](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda/client/invoke.html)
