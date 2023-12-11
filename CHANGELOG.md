@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## 0.4.6
+
+Released December 11th, 2023.
+
+### Added
+
+Ability to publish `ECSTask`` block as an ecs work pool - [#353](https://github.com/PrefectHQ/prefect-aws/pull/353)
+
 ## 0.4.5
 
 Released November 30th, 2023.
