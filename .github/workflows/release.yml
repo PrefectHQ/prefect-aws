@@ -27,7 +27,7 @@ jobs:
           python -m build --sdist --wheel --outdir dist/
 
       - name: Publish build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: built-package
           path: "./dist"
