@@ -573,6 +573,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                     content=local_file_content,
                 )
                 uploaded_file_count += 1
+                print(uploaded_file_count)  # TODO remove print
 
         return uploaded_file_count
 
