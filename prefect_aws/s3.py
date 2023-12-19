@@ -551,6 +551,8 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
             included_files = filter_files(local_path, ignore_patterns)
 
+        s3_client = self._get_s3_client()
+
         uploaded_file_count = 0
         for local_file_path in Path(local_path).expanduser().rglob("*"):
             if (
@@ -566,7 +568,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
                     local_file_content = local_file.read()
 
                 await self.write_path(
-                    remote_file_path.as_posix(), content=local_file_content
+                    s3_client,
+                    remote_file_path.as_posix(),
+                    content=local_file_content,
                 )
                 uploaded_file_count += 1
 
@@ -620,7 +624,9 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             return output
 
     @sync_compatible
-    async def write_path(self, path: str, content: bytes) -> str:
+    async def write_path(
+        self, s3_client: boto3.client, path: str, content: bytes
+    ) -> str:
         """
         Writes to an S3 bucket.
 
@@ -654,11 +660,11 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
         path = self._resolve_path(path)
 
-        await run_sync_in_worker_thread(self._write_sync, path, content)
+        await run_sync_in_worker_thread(self._write_sync, s3_client, path, content)
 
         return path
 
-    def _write_sync(self, key: str, data: bytes) -> None:
+    def _write_sync(self, s3_client: boto3.client, key: str, data: bytes) -> None:
         """
         Called by write_path(). Creates an S3 client and uploads a file
         object.
