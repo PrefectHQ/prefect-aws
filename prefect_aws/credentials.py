@@ -75,6 +75,8 @@ class AwsCredentials(CredentialsBlock):
         title="AWS Client Parameters",
     )
 
+    _s3_client: Optional[S3Client] = None
+
     def get_boto3_session(self) -> boto3.Session:
         """
         Returns an authenticated boto3 session that can be used to create clients
@@ -132,7 +134,12 @@ class AwsCredentials(CredentialsBlock):
         Returns:
             An authenticated S3 client.
         """
-        return self.get_client(client_type=ClientType.S3)
+        if self._s3_client is not None:
+            return self._s3_client
+
+        self._s3_client = self.get_client(client_type=ClientType.S3)
+
+        return self._s3_client
 
     def get_secrets_manager_client(self) -> SecretsManagerClient:
         """
