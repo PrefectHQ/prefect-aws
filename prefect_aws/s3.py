@@ -670,8 +670,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         object.
         """
 
-        s3_client = self._get_s3_client()
-
         with io.BytesIO(data) as stream:
             s3_client.upload_fileobj(Fileobj=stream, Bucket=self.bucket_name, Key=key)
 
