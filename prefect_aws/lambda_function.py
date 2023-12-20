@@ -151,20 +151,24 @@ class LambdaFunction(Block):
 
         Examples:
 
-            >>> from prefect_aws.lambda_function import LambdaFunction
-            >>> from prefect_aws.credentials import AwsCredentials
-            >>>
-            >>> credentials = AwsCredentials()
-            >>> lambda_function = LambdaFunction(
-            ...     function_name="test_lambda_function",
-            ...     aws_credentials=credentials,
-            ... )
-            >>> response = lambda_function.invoke(
-            ...     payload={"foo": "bar"},
-            ...     invocation_type="RequestResponse",
-            ... )
-            >>> response["Payload"].read()
+            ```py
+            from prefect_aws.lambda_function import LambdaFunction
+            from prefect_aws.credentials import AwsCredentials
+
+            credentials = AwsCredentials()
+            lambda_function = LambdaFunction(
+                function_name="test_lambda_function",
+                aws_credentials=credentials,
+            )
+            response = lambda_function.invoke(
+                payload={"foo": "bar"},
+                invocation_type="RequestResponse",
+            )
+            response["Payload"].read()
+            ```
+            ```txt
             b'{"foo": "bar"}'
+            ```
 
         """
         # Add invocation arguments
