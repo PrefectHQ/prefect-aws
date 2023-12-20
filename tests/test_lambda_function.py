@@ -1,3 +1,4 @@
+import inspect
 import io
 import json
 import zipfile
@@ -5,6 +6,7 @@ from typing import Optional
 
 import boto3
 import pytest
+from botocore.response import StreamingBody
 from moto import mock_iam, mock_lambda
 from pytest_lazyfixture import lazy_fixture
 
@@ -49,8 +51,7 @@ def mock_iam_rule(iam_mock):
     )
 
 
-LAMBDA_TEST_CODE = """
-def handler(event, context):
+def handler_a(event, context):
     if isinstance(event, dict):
         if "error" in event:
             raise Exception(event["error"])
@@ -58,7 +59,9 @@ def handler(event, context):
     else:
         event = {"foo": "bar"}
     return event
-"""
+
+
+LAMBDA_TEST_CODE = inspect.getsource(handler_a)
 
 
 @pytest.fixture
@@ -86,11 +89,12 @@ def mock_lambda_function(lambda_mock, mock_iam_rule, mock_lambda_code):
     yield r
 
 
-LAMBDA_TEST_CODE_V2 = """
-def handler(event, context):
+def handler_b(event, context):
     event = {"data": [1, 2, 3]}
     return event
-"""
+
+
+LAMBDA_TEST_CODE_V2 = inspect.getsource(handler_b)
 
 
 @pytest.fixture
@@ -124,6 +128,57 @@ def lambda_function(aws_credentials):
     )
 
 
+def make_patched_invocation(client, handler):
+    """Creates a patched invoke method for moto lambda. The method replaces
+    the response 'Payload' with the result of the handler function.
+    """
+    true_invoke = client.invoke
+
+    def invoke(*args, **kwargs):
+        """Calls the true invoke and replaces the Payload with its result."""
+        result = true_invoke(*args, **kwargs)
+        blob = json.dumps(
+            handler(
+                event=kwargs.get("Payload"),
+                context=kwargs.get("ClientContext"),
+            )
+        ).encode()
+        result["Payload"] = StreamingBody(io.BytesIO(blob), len(blob))
+        return result
+
+    return invoke
+
+
+@pytest.fixture
+def mock_invoke(
+    lambda_function: LambdaFunction, handler, monkeypatch: pytest.MonkeyPatch
+):
+    """Fixture to patch the invocation response's 'Payload' field.
+
+    When `result["Payload"].read` is called, moto attempts to run the function
+    in a Docker container and return the result. This is total overkill, so
+    we actually call the handler with the given arguments.
+    """
+    session, client = lambda_function._get_session_and_client()
+
+    monkeypatch.setattr(
+        client,
+        "invoke",
+        make_patched_invocation(client, handler),
+    )
+
+    def _get_session_and_client():
+        return session, client
+
+    monkeypatch.setattr(
+        lambda_function,
+        "_get_session_and_client",
+        _get_session_and_client,
+    )
+
+    yield
+
+
 class TestLambdaFunction:
     def test_init(self, aws_credentials):
         function = LambdaFunction(
@@ -134,26 +189,29 @@ class TestLambdaFunction:
         assert function.qualifier is None
 
     @pytest.mark.parametrize(
-        "payload,expected",
+        "payload,expected,handler",
         [
-            ({"foo": "baz"}, {"foo": "bar"}),
-            (None, {"foo": "bar"}),
+            ({"foo": "baz"}, {"foo": "bar"}, handler_a),
+            (None, {"foo": "bar"}, handler_a),
         ],
     )
     def test_invoke_lambda_payloads(
         self,
         payload: Optional[dict],
         expected: dict,
+        handler,
         mock_lambda_function,
         lambda_function: LambdaFunction,
+        mock_invoke,
     ):
         result = lambda_function.invoke(payload)
         assert result["StatusCode"] == 200
         response_payload = json.loads(result["Payload"].read())
         assert response_payload == expected
 
+    @pytest.mark.parametrize("handler", [handler_a])
     def test_invoke_lambda_tail(
-        self, lambda_function: LambdaFunction, mock_lambda_function
+        self, lambda_function: LambdaFunction, mock_lambda_function, mock_invoke
     ):
         result = lambda_function.invoke(tail=True)
         assert result["StatusCode"] == 200
@@ -161,8 +219,9 @@ class TestLambdaFunction:
         assert response_payload == {"foo": "bar"}
         assert "LogResult" in result
 
+    @pytest.mark.parametrize("handler", [handler_a])
     def test_invoke_lambda_client_context(
-        self, lambda_function: LambdaFunction, mock_lambda_function
+        self, lambda_function: LambdaFunction, mock_lambda_function, mock_invoke
     ):
         # Just making sure boto doesn't throw an error
         result = lambda_function.invoke(client_context={"bar": "foo"})
@@ -171,14 +230,18 @@ class TestLambdaFunction:
         assert response_payload == {"foo": "bar"}
 
     @pytest.mark.parametrize(
-        "func_fixture,expected",
+        "func_fixture,expected,handler",
         [
-            (lazy_fixture("mock_lambda_function"), {"foo": "bar"}),
-            (lazy_fixture("add_lambda_version"), {"data": [1, 2, 3]}),
+            (lazy_fixture("mock_lambda_function"), {"foo": "bar"}, handler_a),
+            (lazy_fixture("add_lambda_version"), {"data": [1, 2, 3]}, handler_b),
         ],
     )
     def test_invoke_lambda_qualifier(
-        self, func_fixture, expected, lambda_function: LambdaFunction
+        self,
+        func_fixture,
+        expected,
+        lambda_function: LambdaFunction,
+        mock_invoke,
     ):
         try:
             lambda_function.qualifier = func_fixture["Version"]
