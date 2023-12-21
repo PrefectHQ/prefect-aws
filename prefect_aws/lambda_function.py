@@ -151,7 +151,7 @@ class LambdaFunction(Block):
 
         Examples:
 
-            ```py
+            ```python
             from prefect_aws.lambda_function import LambdaFunction
             from prefect_aws.credentials import AwsCredentials
 
