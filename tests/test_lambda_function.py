@@ -159,7 +159,7 @@ def mock_invoke(
     in a Docker container and return the result. This is total overkill, so
     we actually call the handler with the given arguments.
     """
-    session, client = lambda_function._get_session_and_client()
+    client = lambda_function._get_lambda_client()
 
     monkeypatch.setattr(
         client,
@@ -167,13 +167,13 @@ def mock_invoke(
         make_patched_invocation(client, handler),
     )
 
-    def _get_session_and_client():
-        return session, client
+    def _get_lambda_client():
+        return client
 
     monkeypatch.setattr(
         lambda_function,
-        "_get_session_and_client",
-        _get_session_and_client,
+        "_get_lambda_client",
+        _get_lambda_client,
     )
 
     yield
