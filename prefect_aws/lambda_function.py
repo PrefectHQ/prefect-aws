@@ -50,9 +50,8 @@ Examples:
 
 """
 import json
-from typing import Any, Literal, Optional, Tuple
+from typing import Literal, Optional
 
-import boto3
 from prefect.blocks.core import Block
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from pydantic import VERSION as PYDANTIC_VERSION
@@ -191,5 +190,5 @@ class LambdaFunction(Block):
             kwargs["ClientContext"] = json.dumps(client_context)
 
         # Get client and invoke
-        _, lambda_client = await run_sync_in_worker_thread(self._get_session_and_client)
+        lambda_client = await run_sync_in_worker_thread(self._get_lambda_client)
         return await run_sync_in_worker_thread(lambda_client.invoke, **kwargs)
