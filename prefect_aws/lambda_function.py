@@ -114,13 +114,13 @@ class LambdaFunction(Block):
 
         smart_union = True
 
-    def _get_session_and_client(self) -> Tuple[boto3.Session, Any]:
+    def _get_lambda_client(self):
         """
         Retrieve a boto3 session and Lambda client
         """
         boto_session = self.aws_credentials.get_boto3_session()
         lambda_client = boto_session.client("lambda")
-        return boto_session, lambda_client
+        return lambda_client
 
     @sync_compatible
     async def invoke(
