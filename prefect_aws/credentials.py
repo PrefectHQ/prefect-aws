@@ -1,6 +1,7 @@
 """Module handling AWS credentials"""
 
 from enum import Enum
+from functools import lru_cache
 from typing import Any, Optional, Union
 
 import boto3
@@ -22,6 +23,18 @@ class ClientType(Enum):
     ECS = "ecs"
     BATCH = "batch"
     SECRETS_MANAGER = "secretsmanager"
+
+
+@lru_cache
+def get_client_cached(ctx, client_type: Union[str, ClientType]) -> Any:
+    if isinstance(client_type, ClientType):
+        client_type = client_type.value
+
+    client = ctx.get_boto3_session().client(
+        service_name=client_type,
+        **ctx.aws_client_parameters.get_params_override(),
+    )
+    return client
 
 
 class AwsCredentials(CredentialsBlock):
@@ -75,7 +88,11 @@ class AwsCredentials(CredentialsBlock):
         title="AWS Client Parameters",
     )
 
-    _s3_client: Optional[S3Client] = None
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __hash__(self):
+        return id(self)
 
     def get_boto3_session(self) -> boto3.Session:
         """
@@ -119,13 +136,7 @@ class AwsCredentials(CredentialsBlock):
         Raises:
             ValueError: if the client is not supported.
         """
-        if isinstance(client_type, ClientType):
-            client_type = client_type.value
-
-        client = self.get_boto3_session().client(
-            service_name=client_type, **self.aws_client_parameters.get_params_override()
-        )
-        return client
+        return get_client_cached(ctx=self, client_type=client_type)
 
     def get_s3_client(self) -> S3Client:
         """
@@ -134,12 +145,7 @@ class AwsCredentials(CredentialsBlock):
         Returns:
             An authenticated S3 client.
         """
-        if self._s3_client is not None:
-            return self._s3_client
-
-        self._s3_client = self.get_client(client_type=ClientType.S3)
-
-        return self._s3_client
+        return self.get_client(client_type=ClientType.S3)
 
     def get_secrets_manager_client(self) -> SecretsManagerClient:
         """
