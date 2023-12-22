@@ -27,7 +27,7 @@ class ClientType(Enum):
     SECRETS_MANAGER = "secretsmanager"
 
 
-@lru_cache
+@lru_cache(maxsize=8, typed=True)
 def _get_client_cached(ctx, client_type: Union[str, ClientType]) -> Any:
     """
     Helper method to cache and dynamically get a client type.
@@ -103,7 +103,7 @@ class AwsCredentials(CredentialsBlock):
     )
 
     class Config:
-        """pydantic config"""
+        """Config class for pydantic model."""
 
         arbitrary_types_allowed = True
 
@@ -216,7 +216,7 @@ class MinIOCredentials(CredentialsBlock):
     )
 
     class Config:
-        """pydantic config"""
+        """Config class for pydantic model."""
 
         arbitrary_types_allowed = True
 
