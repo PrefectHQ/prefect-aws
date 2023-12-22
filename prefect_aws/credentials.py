@@ -19,7 +19,7 @@ from prefect_aws.client_parameters import AwsClientParameters
 
 
 class ClientType(Enum):
-    """Boto3 Client Types"""
+    """The supported boto3 clients."""
 
     S3 = "s3"
     ECS = "ecs"
