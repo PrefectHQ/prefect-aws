@@ -30,7 +30,7 @@ class ClientType(Enum):
 @lru_cache
 def _get_client_cached(ctx, client_type: Union[str, ClientType]) -> Any:
     """
-    Helper method to cache and  dynamically get a client type.
+    Helper method to cache and dynamically get a client type.
 
     Args:
         client_type: The client's service name.
