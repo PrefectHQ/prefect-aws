@@ -19,6 +19,8 @@ from prefect_aws.client_parameters import AwsClientParameters
 
 
 class ClientType(Enum):
+    """Boto3 Client Types"""
+
     S3 = "s3"
     ECS = "ecs"
     BATCH = "batch"
@@ -26,7 +28,19 @@ class ClientType(Enum):
 
 
 @lru_cache
-def get_client_cached(ctx, client_type: Union[str, ClientType]) -> Any:
+def _get_client_cached(ctx, client_type: Union[str, ClientType]) -> Any:
+    """
+    Helper method to cache and  dynamically get a client type.
+
+    Args:
+        client_type: The client's service name.
+
+    Returns:
+        An authenticated client.
+
+    Raises:
+        ValueError: if the client is not supported.
+    """
     if isinstance(client_type, ClientType):
         client_type = client_type.value
 
@@ -89,6 +103,8 @@ class AwsCredentials(CredentialsBlock):
     )
 
     class Config:
+        """pydantic config"""
+
         arbitrary_types_allowed = True
 
     def __hash__(self):
@@ -136,7 +152,7 @@ class AwsCredentials(CredentialsBlock):
         Raises:
             ValueError: if the client is not supported.
         """
-        return get_client_cached(ctx=self, client_type=client_type)
+        return _get_client_cached(ctx=self, client_type=client_type)
 
     def get_s3_client(self) -> S3Client:
         """
@@ -199,6 +215,14 @@ class MinIOCredentials(CredentialsBlock):
         description="Extra parameters to initialize the Client.",
     )
 
+    class Config:
+        """pydantic config"""
+
+        arbitrary_types_allowed = True
+
+    def __hash__(self):
+        return id(self)
+
     def get_boto3_session(self) -> boto3.Session:
         """
         Returns an authenticated boto3 session that can be used to create clients
@@ -244,13 +268,7 @@ class MinIOCredentials(CredentialsBlock):
         Raises:
             ValueError: if the client is not supported.
         """
-        if isinstance(client_type, ClientType):
-            client_type = client_type.value
-
-        client = self.get_boto3_session().client(
-            service_name=client_type, **self.aws_client_parameters.get_params_override()
-        )
-        return client
+        return _get_client_cached(ctx=self, client_type=client_type)
 
     def get_s3_client(self) -> S3Client:
         """
