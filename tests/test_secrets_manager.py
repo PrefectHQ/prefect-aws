@@ -158,10 +158,10 @@ async def test_delete_secret(
 
         if not force_delete_without_recovery:
             assert deletion_date.date() == (
-                datetime.utcnow().date() + timedelta(days=recovery_window_in_days)
+                datetime.now(datetime.UTC).date() + timedelta(days=recovery_window_in_days)
             )
         else:
-            assert deletion_date.date() == datetime.utcnow().date()
+            assert deletion_date.date() == datetime.now(datetime.UTC).date()
 
 
 class TestAwsSecret:
