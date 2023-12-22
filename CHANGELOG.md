@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Handle `boto3` clients more efficiently with `lru_cache` - [#361](https://github.com/PrefectHQ/prefect-aws/pull/361)
+
 ### Fixed
 
 - Bug where `S3Bucket.load()` constructed `AwsCredentials` instead of `MinIOCredentials` - [#359](https://github.com/PrefectHQ/prefect-aws/pull/359)
@@ -95,6 +97,7 @@ Released August 31st, 2023.
 Released July 20th, 2023.
 
 ### Changed
+
 - Promoted workers to GA, removed beta disclaimers
 
 ## 0.3.5
@@ -283,6 +286,7 @@ Released on October 28th, 2022.
 - `ECSTask` is no longer experimental — [#137](https://github.com/PrefectHQ/prefect-aws/pull/137)
 
 ### Fixed
+
 - Fix ignore_file option in `S3Bucket` skipping files which should be included — [#139](https://github.com/PrefectHQ/prefect-aws/pull/139)
 - Fixed bug where `basepath` is used twice in the path when using `S3Bucket.put_directory` - [#143](https://github.com/PrefectHQ/prefect-aws/pull/143)
 
