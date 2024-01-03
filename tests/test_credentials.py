@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 from boto3.session import Session
 from botocore.client import BaseClient
@@ -53,25 +51,31 @@ def test_credentials_get_client(credentials, client_type):
         assert isinstance(credentials.get_client(client_type), BaseClient)
 
 
-@patch("prefect_aws.credentials._get_client_cached")
-def test_get_client_cached(mock_get_client_cached):
+@pytest.mark.parametrize("credentials", [AwsCredentials()])
+def test_get_client_cached(credentials):
     """
     Test to ensure that _get_client_cached function returns the same instance
     for multiple calls with the same parameters and properly utilizes lru_cache.
     """
 
-    # Create a mock AwsCredentials instance
-    aws_credentials_block = AwsCredentials()
+    # Clear cache
+    _get_client_cached.cache_clear()
 
-    # Call _get_client_cached multiple times with the same parameters
-    _get_client_cached(aws_credentials_block, ClientType.S3)
-    _get_client_cached(aws_credentials_block, ClientType.S3)
+    assert _get_client_cached.cache_info().hits == 0, "Initial call count should be 0"
+
+    # Call get_client multiple times with the same parameters
+    credentials.get_client(ClientType.S3)
+    credentials.get_client(ClientType.S3)
+    credentials.get_client(ClientType.S3)
 
     # Verify that _get_client_cached is called only once due to caching
-    mock_get_client_cached.assert_called_once_with(aws_credentials_block, ClientType.S3)
+    assert _get_client_cached.cache_info().misses == 1
+    assert _get_client_cached.cache_info().hits == 2
 
     # Test with different parameters to ensure they are cached separately
-    _get_client_cached(aws_credentials_block, ClientType.ECS)
-    assert (
-        mock_get_client_cached.call_count == 2
-    ), "Should be called twice with different parameters"
+    credentials.get_client(ClientType.ECS)
+    credentials.get_client(ClientType.ECS)
+
+    # "Should be called again with different parameters"
+    assert _get_client_cached.cache_info().misses == 2
+    assert _get_client_cached.cache_info().hits == 3
