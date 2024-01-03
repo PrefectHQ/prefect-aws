@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.3">
     
     
       
@@ -532,6 +532,27 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../lambda_function/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lambda
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
     
@@ -542,10 +563,10 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_7" >
         
           
-          <label class="md-nav__link" for="__nav_6_6" id="__nav_6_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_7" id="__nav_6_7_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -556,8 +577,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_7">
             <span class="md-nav__icon md-icon"></span>
             Deployments
           </label>
@@ -1369,7 +1390,7 @@ S3Bucket            (<span title="prefect.filesystems.WritableFileSystem">Writab
       </tr>
       <tr>
         <td><code>credentials</code></td>
-        <td><code>Union[prefect_aws.credentials.AwsCredentials, prefect_aws.credentials.MinIOCredentials]</code></td>
+        <td><code>Union[prefect_aws.credentials.MinIOCredentials, prefect_aws.credentials.AwsCredentials]</code></td>
         <td><p>A block containing your credentials to AWS or MinIO.</p></td>
       </tr>
       <tr>
@@ -1402,7 +1423,7 @@ for reading and writing objects.</p></td>
 
     <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Name of your bucket.&quot;</span><span class="p">)</span>
 
-    <span class="n">credentials</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">AwsCredentials</span><span class="p">,</span> <span class="n">MinIOCredentials</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+    <span class="n">credentials</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">MinIOCredentials</span><span class="p">,</span> <span class="n">AwsCredentials</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="n">default_factory</span><span class="o">=</span><span class="n">AwsCredentials</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;A block containing your credentials to AWS or MinIO.&quot;</span><span class="p">,</span>
     <span class="p">)</span>
@@ -1414,9 +1435,6 @@ for reading and writing objects.</p></td>
             <span class="s2">&quot;for reading and writing objects.&quot;</span>
         <span class="p">),</span>
     <span class="p">)</span>
-
-    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
-        <span class="n">smart_union</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="c1"># Property to maintain compatibility with storage block based deployments</span>
     <span class="nd">@property</span>
@@ -2454,7 +2472,7 @@ for reading and writing objects.</p></td>
 
 
 <h5 id="prefect_aws.s3.S3Bucket.credentials" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">credentials</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">prefect_aws</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">AwsCredentials</span><span class="p">,</span> <span class="n">prefect_aws</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">MinIOCredentials</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">credentials</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">prefect_aws</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">MinIOCredentials</span><span class="p">,</span> <span class="n">prefect_aws</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">AwsCredentials</span><span class="p">]</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
@@ -2468,7 +2486,6 @@ for reading and writing objects.</p></td>
     </div>
 
   </div>
-
 
 
 

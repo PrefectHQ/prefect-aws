@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.3">
     
     
       
@@ -378,6 +378,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#lambda-function-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lambda Function Module
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#s3-module" class="md-nav__link">
     <span class="md-ellipsis">
       S3 Module
@@ -600,6 +609,27 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../lambda_function/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lambda
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
     
@@ -610,10 +640,10 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_7" >
         
           
-          <label class="md-nav__link" for="__nav_6_6" id="__nav_6_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_7" id="__nav_6_7_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -624,8 +654,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_7">
             <span class="md-nav__icon md-icon"></span>
             Deployments
           </label>
@@ -743,6 +773,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#lambda-function-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lambda Function Module
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#s3-module" class="md-nav__link">
     <span class="md-ellipsis">
       S3 Module
@@ -824,6 +863,22 @@ for more info about the possible credential configurations.</p>
 <span class="n">my_flow</span><span class="p">()</span>
 </code></pre></div>
 For additional examples, check out the <a href="../examples_catalog/#credentials-module">Credentials Module</a> under Examples Catalog.</p>
+<h2 id="lambda-function-module"><a class="autorefs autorefs-internal" href="../lambda_function/#prefect_aws.lambda_function">Lambda Function Module</a></h2>
+<p><a class="autorefs autorefs-internal" href="../lambda_function/#prefect_aws.lambda_function.LambdaFunction">LambdaFunction</a></p>
+<p>Invoke a Lambda function. This block is part of the prefect-aws
+collection. Install prefect-aws with <code>pip install prefect-aws</code> to use this
+block.</p>
+<p>To load the LambdaFunction:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.lambda_function</span> <span class="kn">import</span> <span class="n">LambdaFunction</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">LambdaFunction</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
+
+<span class="n">my_flow</span><span class="p">()</span>
+</code></pre></div>
+For additional examples, check out the <a href="../examples_catalog/#lambda_function-module">Lambda Function Module</a> under Examples Catalog.</p>
 <h2 id="s3-module"><a class="autorefs autorefs-internal" href="../s3/#prefect_aws.s3">S3 Module</a></h2>
 <p><a class="autorefs autorefs-internal" href="../s3/#prefect_aws.s3.S3Bucket">S3Bucket</a></p>
 <p>Block used to store data using AWS S3 or S3-compatible object storage like MinIO.</p>
