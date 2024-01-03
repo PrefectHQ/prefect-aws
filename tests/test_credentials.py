@@ -51,12 +51,14 @@ def test_credentials_get_client(credentials, client_type):
         assert isinstance(credentials.get_client(client_type), BaseClient)
 
 
-@pytest.mark.parametrize("credentials", [AwsCredentials()])
-def test_get_client_cached(credentials):
+def test_get_client_cached():
     """
     Test to ensure that _get_client_cached function returns the same instance
     for multiple calls with the same parameters and properly utilizes lru_cache.
     """
+
+    # Create a mock AwsCredentials instance
+    aws_credentials_block = AwsCredentials()
 
     # Clear cache
     _get_client_cached.cache_clear()
@@ -64,17 +66,17 @@ def test_get_client_cached(credentials):
     assert _get_client_cached.cache_info().hits == 0, "Initial call count should be 0"
 
     # Call get_client multiple times with the same parameters
-    credentials.get_client(ClientType.S3)
-    credentials.get_client(ClientType.S3)
-    credentials.get_client(ClientType.S3)
+    aws_credentials_block.get_client(ClientType.S3)
+    aws_credentials_block.get_client(ClientType.S3)
+    aws_credentials_block.get_client(ClientType.S3)
 
     # Verify that _get_client_cached is called only once due to caching
     assert _get_client_cached.cache_info().misses == 1
     assert _get_client_cached.cache_info().hits == 2
 
     # Test with different parameters to ensure they are cached separately
-    credentials.get_client(ClientType.ECS)
-    credentials.get_client(ClientType.ECS)
+    aws_credentials_block.get_client(ClientType.SECRETS_MANAGER)
+    aws_credentials_block.get_client(ClientType.SECRETS_MANAGER)
 
     # "Should be called again with different parameters"
     assert _get_client_cached.cache_info().misses == 2
