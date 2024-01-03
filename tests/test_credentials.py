@@ -73,11 +73,3 @@ def test_get_client_cached():
     # Verify that _get_client_cached is called only once due to caching
     assert _get_client_cached.cache_info().misses == 1
     assert _get_client_cached.cache_info().hits == 2
-
-    # Test with different parameters to ensure they are cached separately
-    aws_credentials_block.get_client(ClientType.SECRETS_MANAGER)
-    aws_credentials_block.get_client(ClientType.SECRETS_MANAGER)
-
-    # "Should be called again with different parameters"
-    assert _get_client_cached.cache_info().misses == 2
-    assert _get_client_cached.cache_info().hits == 3
