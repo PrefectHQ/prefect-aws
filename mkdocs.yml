@@ -87,6 +87,7 @@ nav:
         - Credentials: credentials.md
         - ECS Worker: ecs_worker.md
         - ECS: ecs.md
+        - Lambda: lambda_function.md
         - Deployments:
           - Steps: deployments/steps.md
         - S3: s3.md
