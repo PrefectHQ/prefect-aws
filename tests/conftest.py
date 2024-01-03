@@ -22,11 +22,13 @@ def prefect_db():
 
 @pytest.fixture
 def aws_credentials():
-    return AwsCredentials(
+    block = AwsCredentials(
         aws_access_key_id="access_key_id",
         aws_secret_access_key="secret_access_key",
         region_name="us-east-1",
     )
+    block.save("test-creds-block", overwrite=True)
+    return block
 
 
 @pytest.fixture

@@ -412,7 +412,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     bucket_name: str = Field(default=..., description="Name of your bucket.")
 
-    credentials: Union[AwsCredentials, MinIOCredentials] = Field(
+    credentials: Union[MinIOCredentials, AwsCredentials] = Field(
         default_factory=AwsCredentials,
         description="A block containing your credentials to AWS or MinIO.",
     )
@@ -424,9 +424,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             "for reading and writing objects."
         ),
     )
-
-    class Config:
-        smart_union = True
 
     # Property to maintain compatibility with storage block based deployments
     @property

@@ -108,6 +108,7 @@ import difflib
 import json
 import logging
 import pprint
+import shlex
 import sys
 import time
 import warnings
@@ -116,6 +117,8 @@ from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Tuple, U
 import boto3
 import yaml
 from anyio.abc import TaskStatus
+from jsonpointer import JsonPointerException
+from prefect.blocks.core import BlockNotSavedError
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
@@ -132,7 +135,7 @@ from slugify import slugify
 from typing_extensions import Literal, Self
 
 from prefect_aws import AwsCredentials
-from prefect_aws.workers.ecs_worker import _TAG_REGEX
+from prefect_aws.workers.ecs_worker import _TAG_REGEX, ECSWorker
 
 # Internal type alias for ECS clients which are generated dynamically in botocore
 _ECSClient = Any
@@ -680,6 +683,75 @@ class ECSTask(Infrastructure):
             )
         cluster, task = parse_task_identifier(identifier)
         await run_sync_in_worker_thread(self._stop_task, cluster, task)
+
+    @staticmethod
+    def get_corresponding_worker_type() -> str:
+        """Return the corresponding worker type for this infrastructure block."""
+        return ECSWorker.type
+
+    async def generate_work_pool_base_job_template(self) -> dict:
+        """
+        Generate a base job template for a cloud-run work pool with the same
+        configuration as this block.
+
+        Returns:
+            - dict: a base job template for a cloud-run work pool
+        """
+        base_job_template = copy.deepcopy(ECSWorker.get_default_base_job_template())
+        for key, value in self.dict(exclude_unset=True, exclude_defaults=True).items():
+            if key == "command":
+                base_job_template["variables"]["properties"]["command"]["default"] = (
+                    shlex.join(value)
+                )
+            elif key in [
+                "type",
+                "block_type_slug",
+                "_block_document_id",
+                "_block_document_name",
+                "_is_anonymous",
+                "task_customizations",
+            ]:
+                continue
+            elif key == "aws_credentials":
+                if not self.aws_credentials._block_document_id:
+                    raise BlockNotSavedError(
+                        "It looks like you are trying to use a block that"
+                        " has not been saved. Please call `.save` on your block"
+                        " before publishing it as a work pool."
+                    )
+                base_job_template["variables"]["properties"]["aws_credentials"][
+                    "default"
+                ] = {
+                    "$ref": {
+                        "block_document_id": str(
+                            self.aws_credentials._block_document_id
+                        )
+                    }
+                }
+            elif key == "task_definition":
+                base_job_template["job_configuration"]["task_definition"] = value
+            elif key in base_job_template["variables"]["properties"]:
+                base_job_template["variables"]["properties"][key]["default"] = value
+            else:
+                self.logger.warning(
+                    f"Variable {key!r} is not supported by Cloud Run work pools."
+                    " Skipping."
+                )
+
+        if self.task_customizations:
+            try:
+                base_job_template["job_configuration"]["task_run_request"] = (
+                    self.task_customizations.apply(
+                        base_job_template["job_configuration"]["task_run_request"]
+                    )
+                )
+            except JsonPointerException:
+                self.logger.warning(
+                    "Unable to apply task customizations to the base job template."
+                    "You may need to update the template manually."
+                )
+
+        return base_job_template
 
     def _stop_task(self, cluster: str, task: str) -> None:
         """
