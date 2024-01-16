@@ -206,12 +206,12 @@ def get_s3_client(
         client_parameters = {}
 
     # Get credentials from credentials (regardless if block or not)
-    aws_access_key_id = credentials.get("aws_access_key_id", None) or credentials.get(
-        "minio_root_user", None
+    aws_access_key_id = credentials.get(
+        "aws_access_key_id", credentials.get("minio_root_user", None)
     )
     aws_secret_access_key = credentials.get(
-        "aws_secret_access_key", None
-    ) or credentials.get("minio_root_password", None)
+        "aws_secret_access_key", credentials.get("minio_root_password", None)
+    )
     aws_session_token = credentials.get("aws_session_token", None)
 
     # Get remaining session info from credentials, or client_parameters
