@@ -108,7 +108,16 @@ class AwsCredentials(CredentialsBlock):
         arbitrary_types_allowed = True
 
     def __hash__(self):
-        return hash(self.json())
+        return hash(
+            (
+                self.aws_access_key_id,
+                self.aws_secret_access_key,
+                self.aws_session_token,
+                self.profile_name,
+                self.region_name,
+                self.aws_client_parameters,
+            )
+        )
 
     def get_boto3_session(self) -> boto3.Session:
         """
@@ -221,7 +230,14 @@ class MinIOCredentials(CredentialsBlock):
         arbitrary_types_allowed = True
 
     def __hash__(self):
-        return hash(self.json())
+        return hash(
+            (
+                self.minio_root_user,
+                self.minio_root_password,
+                self.region_name,
+                self.aws_client_parameters,
+            )
+        )
 
     def get_boto3_session(self) -> boto3.Session:
         """
