@@ -148,7 +148,7 @@ class AwsCredentials(CredentialsBlock):
             region_name=self.region_name,
         )
 
-    def get_client(self, client_type: Union[str, ClientType]) -> Any:
+    def get_client(self, client_type: Union[str, ClientType], use_cache: bool = False):
         """
         Helper method to dynamically get a client type.
 
@@ -161,6 +161,15 @@ class AwsCredentials(CredentialsBlock):
         Raises:
             ValueError: if the client is not supported.
         """
+        if isinstance(client_type, ClientType):
+            client_type = client_type.value
+
+        if not use_cache:
+            return self.get_boto3_session().client(
+                service_name=client_type,
+                **self.aws_client_parameters.get_params_override()
+            )
+    
         return _get_client_cached(ctx=self, client_type=client_type)
 
     def get_s3_client(self) -> S3Client:
@@ -271,7 +280,7 @@ class MinIOCredentials(CredentialsBlock):
             region_name=self.region_name,
         )
 
-    def get_client(self, client_type: Union[str, ClientType]) -> Any:
+    def get_client(self, client_type: Union[str, ClientType], use_cache: bool = False):
         """
         Helper method to dynamically get a client type.
 
@@ -284,6 +293,15 @@ class MinIOCredentials(CredentialsBlock):
         Raises:
             ValueError: if the client is not supported.
         """
+        if isinstance(client_type, ClientType):
+            client_type = client_type.value
+
+        if not use_cache:
+            return self.get_boto3_session().client(
+                service_name=client_type,
+                **self.aws_client_parameters.get_params_override()
+            )
+    
         return _get_client_cached(ctx=self, client_type=client_type)
 
     def get_s3_client(self) -> S3Client:

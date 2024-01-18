@@ -50,8 +50,10 @@ def test_credentials_get_client(credentials, client_type):
     with mock_s3():
         assert isinstance(credentials.get_client(client_type), BaseClient)
 
-
-def test_get_client_cached():
+@pytest.mark.parametrize(
+    "client_type", [member.value for member in ClientType]
+)
+def test_get_client_cached(client_type):
     """
     Test to ensure that _get_client_cached function returns the same instance
     for multiple calls with the same parameters and properly utilizes lru_cache.
@@ -65,10 +67,14 @@ def test_get_client_cached():
 
     assert _get_client_cached.cache_info().hits == 0, "Initial call count should be 0"
 
+    assert aws_credentials_block.get_client(client_type) is not None
+    
+    assert _get_client_cached.cache_info().hits == 0, "Cache should not yet be used"
+
     # Call get_client multiple times with the same parameters
-    aws_credentials_block.get_client(ClientType.S3)
-    aws_credentials_block.get_client(ClientType.S3)
-    aws_credentials_block.get_client(ClientType.S3)
+    aws_credentials_block.get_client(client_type, use_cache=True)
+    aws_credentials_block.get_client(client_type, use_cache=True)
+    aws_credentials_block.get_client(client_type, use_cache=True)
 
     # Verify that _get_client_cached is called only once due to caching
     assert _get_client_cached.cache_info().misses == 1
