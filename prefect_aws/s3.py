@@ -424,7 +424,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             "for reading and writing objects."
         ),
     )
-    
+
     cache_client: bool = Field(
         default=False,
         description=(

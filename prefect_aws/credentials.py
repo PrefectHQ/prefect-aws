@@ -167,9 +167,9 @@ class AwsCredentials(CredentialsBlock):
         if not use_cache:
             return self.get_boto3_session().client(
                 service_name=client_type,
-                **self.aws_client_parameters.get_params_override()
+                **self.aws_client_parameters.get_params_override(),
             )
-    
+
         return _get_client_cached(ctx=self, client_type=client_type)
 
     def get_s3_client(self) -> S3Client:
@@ -299,9 +299,9 @@ class MinIOCredentials(CredentialsBlock):
         if not use_cache:
             return self.get_boto3_session().client(
                 service_name=client_type,
-                **self.aws_client_parameters.get_params_override()
+                **self.aws_client_parameters.get_params_override(),
             )
-    
+
         return _get_client_cached(ctx=self, client_type=client_type)
 
     def get_s3_client(self) -> S3Client:

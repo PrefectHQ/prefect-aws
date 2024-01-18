@@ -50,9 +50,8 @@ def test_credentials_get_client(credentials, client_type):
     with mock_s3():
         assert isinstance(credentials.get_client(client_type), BaseClient)
 
-@pytest.mark.parametrize(
-    "client_type", [member.value for member in ClientType]
-)
+
+@pytest.mark.parametrize("client_type", [member.value for member in ClientType])
 def test_get_client_cached(client_type):
     """
     Test to ensure that _get_client_cached function returns the same instance
@@ -68,7 +67,7 @@ def test_get_client_cached(client_type):
     assert _get_client_cached.cache_info().hits == 0, "Initial call count should be 0"
 
     assert aws_credentials_block.get_client(client_type) is not None
-    
+
     assert _get_client_cached.cache_info().hits == 0, "Cache should not yet be used"
 
     # Call get_client multiple times with the same parameters
