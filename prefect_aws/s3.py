@@ -429,8 +429,8 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         default=False,
         description=(
             "If True, the S3 client will be cached. This is useful for "
-            "performance, but can cause issues if the S3 client is used "
-            "in multiple threads."
+            "performance, but could cause issues if the S3 client is used "
+            "in multi-threaded environments."
         ),
     )
 
