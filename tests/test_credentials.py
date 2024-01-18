@@ -59,7 +59,7 @@ def test_get_client_cached(client_type):
     """
 
     # Create a mock AwsCredentials instance
-    aws_credentials_block = AwsCredentials()
+    aws_credentials_block = AwsCredentials(region_name="us-east-1")
 
     # Clear cache
     _get_client_cached.cache_clear()
