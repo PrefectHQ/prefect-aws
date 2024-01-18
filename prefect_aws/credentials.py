@@ -108,7 +108,8 @@ class AwsCredentials(CredentialsBlock):
         arbitrary_types_allowed = True
 
     def __hash__(self):
-        return hash(self.json())
+        return id(self)
+        # return hash(self.json())
 
     def get_boto3_session(self) -> boto3.Session:
         """
@@ -221,7 +222,8 @@ class MinIOCredentials(CredentialsBlock):
         arbitrary_types_allowed = True
 
     def __hash__(self):
-        return hash(self.json())
+        return id(self)
+        # return hash(self.json())
 
     def get_boto3_session(self) -> boto3.Session:
         """
