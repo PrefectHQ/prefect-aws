@@ -238,10 +238,10 @@ class MinIOCredentials(CredentialsBlock):
     def __hash__(self):
         return hash(
             (
-                self.minio_root_user,
-                self.minio_root_password,
-                self.region_name,
-                self.aws_client_parameters,
+                hash(self.minio_root_user),
+                hash(self.minio_root_password),
+                hash(self.region_name),
+                hash(frozenset(self.aws_client_parameters.dict().items())),
             )
         )
 

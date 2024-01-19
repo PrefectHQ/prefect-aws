@@ -56,7 +56,9 @@ def test_credentials_get_client(credentials, client_type):
     [
         AwsCredentials(region_name="us-east-1"),
         MinIOCredentials(
-            minio_root_user="root_user", minio_root_password="root_password"
+            minio_root_user="root_user",
+            minio_root_password="root_password",
+            region_name="us-east-1",
         ),
     ],
 )
@@ -113,7 +115,9 @@ def test_minio_credentials_change_causes_cache_miss(client_type):
     _get_client_cached.cache_clear()
 
     credentials = MinIOCredentials(
-        minio_root_user="root_user", minio_root_password="root_password"
+        minio_root_user="root_user",
+        minio_root_password="root_password",
+        region_name="us-east-1",
     )
 
     initial_client = credentials.get_client(client_type)
