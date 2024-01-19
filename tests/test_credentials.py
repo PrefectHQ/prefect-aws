@@ -133,11 +133,34 @@ def test_minio_credentials_change_causes_cache_miss(client_type):
     assert _get_client_cached.cache_info().misses == 2, "Cache should miss twice"
 
 
-def test_aws_credentials_hash_changes():
-    credentials = AwsCredentials(region_name="us-east-1")
+@pytest.mark.parametrize(
+    "credentials_type, initial_field, new_field",
+    [
+        (
+            AwsCredentials,
+            {"region_name": "us-east-1"},
+            {"region_name": "us-east-2"},
+        ),
+        (
+            MinIOCredentials,
+            {
+                "region_name": "us-east-1",
+                "minio_root_user": "root_user",
+                "minio_root_password": "root_password",
+            },
+            {
+                "region_name": "us-east-2",
+                "minio_root_user": "root_user",
+                "minio_root_password": "root_password",
+            },
+        ),
+    ],
+)
+def test_aws_credentials_hash_changes(credentials_type, initial_field, new_field):
+    credentials = credentials_type(**initial_field)
     initial_hash = hash(credentials)
 
-    credentials.region_name = "us-west-2"
+    setattr(credentials, list(new_field.keys())[0], list(new_field.values())[0])
     new_hash = hash(credentials)
 
     assert initial_hash != new_hash, "Hash should change when region_name changes"
