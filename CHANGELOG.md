@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support MinIO Credentials as `credentials` dict for `push_to_s3` and `pull_from_s3` - [#366](https://github.com/PrefectHQ/prefect-aws/pull/366)
+
 ### Changed
 
 - Handle `boto3` clients more efficiently with `lru_cache` - [#361](https://github.com/PrefectHQ/prefect-aws/pull/361)
@@ -141,7 +143,7 @@ Released on June 13th, 2023.
 
 ### Fixed
 
-- Change prefect.docker import to prefect.utilities.dockerutils to fix a crash when using custom blocks based on S3Bucket  - [#273](https://github.com/PrefectHQ/prefect-aws/pull/273)
+- Change prefect.docker import to prefect.utilities.dockerutils to fix a crash when using custom blocks based on S3Bucket - [#273](https://github.com/PrefectHQ/prefect-aws/pull/273)
 
 ## 0.3.2
 
@@ -230,7 +232,7 @@ Released on January 4th, 2023.
 
 - `list_objects`, `download_object_to_path`, `download_object_to_file_object`, `download_folder_to_path`, `upload_from_path`, `upload_from_file_object`, `upload_from_folder` methods in `S3Bucket` - [#85](https://github.com/PrefectHQ/prefect-aws/pull/175)
 - `aws_client_parameters` as a field in `AwsCredentials` and `MinioCredentials` blocks - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
-- `get_client` and `get_s3_client` methods to `AwsCredentials` and `MinioCredentials` blocks  - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+- `get_client` and `get_s3_client` methods to `AwsCredentials` and `MinioCredentials` blocks - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
 
 ### Changed
 
@@ -242,7 +244,7 @@ Released on January 4th, 2023.
 
 - `endpoint_url` field in S3Bucket; specify `aws_client_parameters` in `AwsCredentials` or `MinIOCredentials` instead - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
 - `basepath` field in S3Bucket; specify `bucket_folder` instead - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
-- `minio_credentials` and `aws_credentials` field in S3Bucket; use the `credentials` field instead  - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
+- `minio_credentials` and `aws_credentials` field in S3Bucket; use the `credentials` field instead - [#175](https://github.com/PrefectHQ/prefect-aws/pull/175)
 
 ## 0.2.1
 
