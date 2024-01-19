@@ -10,7 +10,15 @@ from moto import mock_s3
 from prefect_aws import AwsCredentials
 from prefect_aws.deployments.steps import get_s3_client, pull_from_s3, push_to_s3
 
-os.environ["MOTO_S3_CUSTOM_ENDPOINTS"] = "http://custom.minio.endpoint:9000"
+
+@pytest.fixture(scope="module", autouse=True)
+def set_custom_endpoint():
+    original = os.environ.get("MOTO_S3_CUSTOM_ENDPOINTS")
+    os.environ["MOTO_S3_CUSTOM_ENDPOINTS"] = "http://custom.minio.endpoint:9000"
+    yield
+    os.environ.pop("MOTO_S3_CUSTOM_ENDPOINTS")
+    if original is not None:
+        os.environ["MOTO_S3_CUSTOM_ENDPOINTS"] = original
 
 
 @pytest.fixture
