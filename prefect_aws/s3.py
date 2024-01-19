@@ -425,15 +425,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         ),
     )
 
-    cache_client: bool = Field(
-        default=False,
-        description=(
-            "If True, the S3 client will be cached. This is useful for "
-            "performance, but could cause issues if the S3 client is used "
-            "in multi-threaded environments."
-        ),
-    )
-
     # Property to maintain compatibility with storage block based deployments
     @property
     def basepath(self) -> str:
@@ -475,7 +466,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         Authenticate MinIO credentials or AWS credentials and return an S3 client.
         This is a helper function called by read_path() or write_path().
         """
-        return self.credentials.get_client("s3", use_cache=self.cache_client)
+        return self.credentials.get_client("s3")
 
     def _get_bucket_resource(self) -> boto3.resource:
         """

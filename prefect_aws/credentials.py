@@ -2,6 +2,7 @@
 
 from enum import Enum
 from functools import lru_cache
+from threading import Lock
 from typing import Any, Optional, Union
 
 import boto3
@@ -16,6 +17,8 @@ else:
     from pydantic import Field, SecretStr
 
 from prefect_aws.client_parameters import AwsClientParameters
+
+_LOCK = Lock()
 
 
 class ClientType(Enum):
@@ -41,13 +44,14 @@ def _get_client_cached(ctx, client_type: Union[str, ClientType]) -> Any:
     Raises:
         ValueError: if the client is not supported.
     """
-    if isinstance(client_type, ClientType):
-        client_type = client_type.value
+    with _LOCK:
+        if isinstance(client_type, ClientType):
+            client_type = client_type.value
 
-    client = ctx.get_boto3_session().client(
-        service_name=client_type,
-        **ctx.aws_client_parameters.get_params_override(),
-    )
+        client = ctx.get_boto3_session().client(
+            service_name=client_type,
+            **ctx.aws_client_parameters.get_params_override(),
+        )
     return client
 
 
@@ -108,16 +112,15 @@ class AwsCredentials(CredentialsBlock):
         arbitrary_types_allowed = True
 
     def __hash__(self):
-        return hash(
-            (
-                self.aws_access_key_id,
-                self.aws_secret_access_key,
-                self.aws_session_token,
-                self.profile_name,
-                self.region_name,
-                self.aws_client_parameters,
-            )
+        field_hashes = (
+            hash(self.aws_access_key_id),
+            hash(self.aws_secret_access_key),
+            hash(self.aws_session_token),
+            hash(self.profile_name),
+            hash(self.region_name),
+            hash(frozenset(self.aws_client_parameters.dict().items())),
         )
+        return hash(field_hashes)
 
     def get_boto3_session(self) -> boto3.Session:
         """
@@ -148,7 +151,7 @@ class AwsCredentials(CredentialsBlock):
             region_name=self.region_name,
         )
 
-    def get_client(self, client_type: Union[str, ClientType], use_cache: bool = False):
+    def get_client(self, client_type: Union[str, ClientType]):
         """
         Helper method to dynamically get a client type.
 
@@ -163,12 +166,6 @@ class AwsCredentials(CredentialsBlock):
         """
         if isinstance(client_type, ClientType):
             client_type = client_type.value
-
-        if not use_cache:
-            return self.get_boto3_session().client(
-                service_name=client_type,
-                **self.aws_client_parameters.get_params_override(),
-            )
 
         return _get_client_cached(ctx=self, client_type=client_type)
 
@@ -280,7 +277,7 @@ class MinIOCredentials(CredentialsBlock):
             region_name=self.region_name,
         )
 
-    def get_client(self, client_type: Union[str, ClientType], use_cache: bool = False):
+    def get_client(self, client_type: Union[str, ClientType]):
         """
         Helper method to dynamically get a client type.
 
@@ -295,12 +292,6 @@ class MinIOCredentials(CredentialsBlock):
         """
         if isinstance(client_type, ClientType):
             client_type = client_type.value
-
-        if not use_cache:
-            return self.get_boto3_session().client(
-                service_name=client_type,
-                **self.aws_client_parameters.get_params_override(),
-            )
 
         return _get_client_cached(ctx=self, client_type=client_type)
 

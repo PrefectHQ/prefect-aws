@@ -12,7 +12,6 @@ from pytest_lazyfixture import lazy_fixture
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.client_parameters import AwsClientParameters
-from prefect_aws.credentials import _get_client_cached
 from prefect_aws.s3 import (
     S3Bucket,
     s3_copy,
@@ -1048,16 +1047,3 @@ class TestS3Bucket:
 
         with pytest.raises(ClientError):
             assert s3_bucket_with_object.read_path("object") == b"TEST"
-
-    def test_client_is_cached_when_specified(self, aws_creds_block):
-        s3_bucket = S3Bucket(
-            bucket_name="bucket", credentials=aws_creds_block, cache_client=True
-        )
-
-        _get_client_cached.cache_clear()
-
-        s3_bucket._get_s3_client()
-        s3_bucket._get_s3_client()
-
-        assert _get_client_cached.cache_info().hits == 1
-        assert _get_client_cached.cache_info().misses == 1

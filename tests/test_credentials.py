@@ -51,30 +51,89 @@ def test_credentials_get_client(credentials, client_type):
         assert isinstance(credentials.get_client(client_type), BaseClient)
 
 
+@pytest.mark.parametrize(
+    "credentials",
+    [
+        AwsCredentials(region_name="us-east-1"),
+        MinIOCredentials(
+            minio_root_user="root_user", minio_root_password="root_password"
+        ),
+    ],
+)
 @pytest.mark.parametrize("client_type", [member.value for member in ClientType])
-def test_get_client_cached(client_type):
+def test_get_client_cached(credentials, client_type):
     """
     Test to ensure that _get_client_cached function returns the same instance
     for multiple calls with the same parameters and properly utilizes lru_cache.
     """
 
-    # Create a mock AwsCredentials instance
-    aws_credentials_block = AwsCredentials(region_name="us-east-1")
-
-    # Clear cache
     _get_client_cached.cache_clear()
 
     assert _get_client_cached.cache_info().hits == 0, "Initial call count should be 0"
 
-    assert aws_credentials_block.get_client(client_type) is not None
+    credentials.get_client(client_type)
+    credentials.get_client(client_type)
+    credentials.get_client(client_type)
 
-    assert _get_client_cached.cache_info().hits == 0, "Cache should not yet be used"
-
-    # Call get_client multiple times with the same parameters
-    aws_credentials_block.get_client(client_type, use_cache=True)
-    aws_credentials_block.get_client(client_type, use_cache=True)
-    aws_credentials_block.get_client(client_type, use_cache=True)
-
-    # Verify that _get_client_cached is called only once due to caching
     assert _get_client_cached.cache_info().misses == 1
     assert _get_client_cached.cache_info().hits == 2
+
+
+@pytest.mark.parametrize("client_type", [member.value for member in ClientType])
+def test_aws_credentials_change_causes_cache_miss(client_type):
+    """
+    Test to ensure that changing configuration on an AwsCredentials instance
+    after fetching a client causes a cache miss.
+    """
+
+    _get_client_cached.cache_clear()
+
+    credentials = AwsCredentials(region_name="us-east-1")
+
+    initial_client = credentials.get_client(client_type)
+
+    credentials.region_name = "us-west-2"
+
+    new_client = credentials.get_client(client_type)
+
+    assert (
+        initial_client is not new_client
+    ), "Client should be different after configuration change"
+
+    assert _get_client_cached.cache_info().misses == 2, "Cache should miss twice"
+
+
+@pytest.mark.parametrize("client_type", [member.value for member in ClientType])
+def test_minio_credentials_change_causes_cache_miss(client_type):
+    """
+    Test to ensure that changing configuration on an AwsCredentials instance
+    after fetching a client causes a cache miss.
+    """
+
+    _get_client_cached.cache_clear()
+
+    credentials = MinIOCredentials(
+        minio_root_user="root_user", minio_root_password="root_password"
+    )
+
+    initial_client = credentials.get_client(client_type)
+
+    credentials.region_name = "us-west-2"
+
+    new_client = credentials.get_client(client_type)
+
+    assert (
+        initial_client is not new_client
+    ), "Client should be different after configuration change"
+
+    assert _get_client_cached.cache_info().misses == 2, "Cache should miss twice"
+
+
+def test_aws_credentials_hash_changes():
+    credentials = AwsCredentials(region_name="us-east-1")
+    initial_hash = hash(credentials)
+
+    credentials.region_name = "us-west-2"
+    new_hash = hash(credentials)
+
+    assert initial_hash != new_hash, "Hash should change when region_name changes"
