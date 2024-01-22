@@ -1423,7 +1423,6 @@ async def test_match_latest_revision_in_family(
 
     configuration_1 = await construct_configuration(
         aws_credentials=aws_credentials,
-        match_latest_revision_in_family=True,
     )
 
     configuration_2 = await construct_configuration(
