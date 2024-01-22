@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support MinIO Credentials as `credentials` dict for `push_to_s3` and `pull_from_s3` - [#366](https://github.com/PrefectHQ/prefect-aws/pull/366)
+- Add ECS worker option to use most recent revision in task definition family - [#370](https://github.com/PrefectHQ/prefect-aws/pull/370)
 
 ### Changed
 
