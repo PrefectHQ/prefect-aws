@@ -466,7 +466,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         Authenticate MinIO credentials or AWS credentials and return an S3 client.
         This is a helper function called by read_path() or write_path().
         """
-        return self.credentials.get_s3_client()
+        return self.credentials.get_client("s3")
 
     def _get_bucket_resource(self) -> boto3.resource:
         """

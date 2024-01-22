@@ -407,7 +407,7 @@ class ECSTask(Infrastructure):
             description=(
                 "The type of ECS task run infrastructure that should be used. Note that"
                 " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
-                " the proper capacity provider stategy if set here."
+                " the proper capacity provider strategy if set here."
             ),
         )
     )
