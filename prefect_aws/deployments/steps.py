@@ -62,7 +62,8 @@ def push_to_s3(
         bucket: The name of the S3 bucket where files will be uploaded.
         folder: The folder in the S3 bucket where files will be uploaded.
         credentials: A dictionary of AWS credentials (aws_access_key_id,
-            aws_secret_access_key, aws_session_token).
+            aws_secret_access_key, aws_session_token) or MinIO credentials
+            (minio_root_user, minio_root_password).
         client_parameters: A dictionary of additional parameters to pass to the boto3
             client.
         ignore_file: The name of the file containing ignore patterns.
@@ -139,7 +140,8 @@ def pull_from_s3(
         bucket: The name of the S3 bucket where files are stored.
         folder: The folder in the S3 bucket where files are stored.
         credentials: A dictionary of AWS credentials (aws_access_key_id,
-            aws_secret_access_key, aws_session_token).
+            aws_secret_access_key, aws_session_token) or MinIO credentials
+            (minio_root_user, minio_root_password).
         client_parameters: A dictionary of additional parameters to pass to the
             boto3 client.
 
@@ -204,8 +206,12 @@ def get_s3_client(
         client_parameters = {}
 
     # Get credentials from credentials (regardless if block or not)
-    aws_access_key_id = credentials.get("aws_access_key_id", None)
-    aws_secret_access_key = credentials.get("aws_secret_access_key", None)
+    aws_access_key_id = credentials.get(
+        "aws_access_key_id", credentials.get("minio_root_user", None)
+    )
+    aws_secret_access_key = credentials.get(
+        "aws_secret_access_key", credentials.get("minio_root_password", None)
+    )
     aws_session_token = credentials.get("aws_session_token", None)
 
     # Get remaining session info from credentials, or client_parameters
