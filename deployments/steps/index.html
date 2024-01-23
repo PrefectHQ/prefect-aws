@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.3">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.4">
     
     
       
@@ -1158,7 +1158,8 @@ PushToS3Output            (<span title="dict">dict</span>)
         <td><code>credentials</code></td>
         <td><code>Optional[Dict]</code></td>
         <td><p>A dictionary of AWS credentials (aws_access_key_id,
-aws_secret_access_key, aws_session_token).</p></td>
+aws_secret_access_key, aws_session_token) or MinIO credentials
+(minio_root_user, minio_root_password).</p></td>
         <td><code>None</code></td>
       </tr>
       <tr>
@@ -1218,7 +1219,8 @@ boto3 client.</p></td>
 <span class="sd">        bucket: The name of the S3 bucket where files are stored.</span>
 <span class="sd">        folder: The folder in the S3 bucket where files are stored.</span>
 <span class="sd">        credentials: A dictionary of AWS credentials (aws_access_key_id,</span>
-<span class="sd">            aws_secret_access_key, aws_session_token).</span>
+<span class="sd">            aws_secret_access_key, aws_session_token) or MinIO credentials</span>
+<span class="sd">            (minio_root_user, minio_root_password).</span>
 <span class="sd">        client_parameters: A dictionary of additional parameters to pass to the</span>
 <span class="sd">            boto3 client.</span>
 
@@ -1377,7 +1379,8 @@ excluding files and folders specified in the ignore_file.</p>
         <td><code>credentials</code></td>
         <td><code>Optional[Dict]</code></td>
         <td><p>A dictionary of AWS credentials (aws_access_key_id,
-aws_secret_access_key, aws_session_token).</p></td>
+aws_secret_access_key, aws_session_token) or MinIO credentials
+(minio_root_user, minio_root_password).</p></td>
         <td><code>None</code></td>
       </tr>
       <tr>
@@ -1444,7 +1447,8 @@ client.</p></td>
 <span class="sd">        bucket: The name of the S3 bucket where files will be uploaded.</span>
 <span class="sd">        folder: The folder in the S3 bucket where files will be uploaded.</span>
 <span class="sd">        credentials: A dictionary of AWS credentials (aws_access_key_id,</span>
-<span class="sd">            aws_secret_access_key, aws_session_token).</span>
+<span class="sd">            aws_secret_access_key, aws_session_token) or MinIO credentials</span>
+<span class="sd">            (minio_root_user, minio_root_password).</span>
 <span class="sd">        client_parameters: A dictionary of additional parameters to pass to the boto3</span>
 <span class="sd">            client.</span>
 <span class="sd">        ignore_file: The name of the file containing ignore patterns.</span>
@@ -1670,10 +1674,10 @@ client.</p></td>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.c011b7c0.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      <script src="../../assets/javascripts/bundle.7389ff0e.min.js"></script>
       
     
   </body>
