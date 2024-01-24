@@ -118,7 +118,7 @@ class AwsCredentials(CredentialsBlock):
             hash(self.aws_session_token),
             hash(self.profile_name),
             hash(self.region_name),
-            hash(frozenset(self.aws_client_parameters.dict().items())),
+            hash(self.aws_client_parameters),
         )
         return hash(field_hashes)
 
