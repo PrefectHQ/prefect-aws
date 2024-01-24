@@ -182,22 +182,14 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
         "containerDefinitions": [
             {
                 "name": "prefect-worker",
-                "image": "prefecthq/prefect",
+                "image": "prefecthq/prefect:2-latest",
                 "cpu": 512,
                 "memory": 1024,
                 "essential": true,
                 "command": [
-                    "pip",
-                    "install",
-                    "prefect-aws",
-                    "&&",
-                    "prefect",
-                    "worker",
-                    "start",
-                    "--pool",
-                    "my-ecs-pool",
-                    "--type",
-                    "ecs"
+                    "/bin/sh",
+                    "-c",
+                    "pip install prefect-aws && prefect worker start --pool my-ecs-pool --type ecs"
                 ],
                 "environment": [
                     {
@@ -218,7 +210,7 @@ To create an [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_role
 
     - For the `PREFECT_API_KEY`, individuals on the organization tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
 
-    - Replace `<your-ecs-task-role-arn>` with the ARN of the IAM role you created in Step 1.
+    - Replace both instances of `<your-ecs-task-role-arn>` with the ARN of the IAM role you created in Step 2.
 
     - Notice that the CPU and Memory allocations are relatively small. The worker's main responsibility is to submit work through API calls to AWS, _not_ to execute your Prefect flow code.
 
