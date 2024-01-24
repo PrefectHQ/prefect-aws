@@ -412,7 +412,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
     bucket_name: str = Field(default=..., description="Name of your bucket.")
 
-    credentials: Union[AwsCredentials, MinIOCredentials] = Field(
+    credentials: Union[MinIOCredentials, AwsCredentials] = Field(
         default_factory=AwsCredentials,
         description="A block containing your credentials to AWS or MinIO.",
     )
@@ -424,9 +424,6 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             "for reading and writing objects."
         ),
     )
-
-    class Config:
-        smart_union = True
 
     # Property to maintain compatibility with storage block based deployments
     @property
@@ -469,7 +466,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         Authenticate MinIO credentials or AWS credentials and return an S3 client.
         This is a helper function called by read_path() or write_path().
         """
-        return self.credentials.get_s3_client()
+        return self.credentials.get_client("s3")
 
     def _get_bucket_resource(self) -> boto3.resource:
         """
