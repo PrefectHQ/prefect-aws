@@ -116,7 +116,7 @@ def test_watch_job_fail(aws_credentials, glue_job_client):
             glue_job_run._watch_job()
 
 
-def test_get_client():
+def test_get_client(aws_credentials):
     with mock_glue():
         glue_job_run = GlueJobRun(
             job_name="test_job_name", arguments={"arg1": "value1"}
