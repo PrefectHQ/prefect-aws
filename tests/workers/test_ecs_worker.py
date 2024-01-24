@@ -34,6 +34,7 @@ from prefect_aws.workers.ecs_worker import (
     InfrastructureNotFound,
     _get_container,
     get_prefect_image_name,
+    mask_sensitive_env_values,
     parse_identifier,
 )
 
@@ -2180,3 +2181,27 @@ async def test_retry_on_failed_task_start(
             await run_then_stop_task(worker, configuration, flow_run)
 
     assert run_task_mock.call_count == 3
+
+
+async def test_mask_sensitive_env_values():
+    task_run_request = {
+        "overrides": {
+            "containerOverrides": [
+                {
+                    "environment": [
+                        {"name": "PREFECT_API_KEY", "value": "SeNsItiVe VaLuE"},
+                        {"name": "PREFECT_API_URL", "value": "NORMAL_VALUE"},
+                    ]
+                }
+            ]
+        }
+    }
+
+    res = mask_sensitive_env_values(task_run_request, ["PREFECT_API_KEY"], 3, "***")
+    assert (
+        res["overrides"]["containerOverrides"][0]["environment"][0]["value"] == "SeN***"
+    )
+    assert (
+        res["overrides"]["containerOverrides"][0]["environment"][1]["value"]
+        == "NORMAL_VALUE"
+    )

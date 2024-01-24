@@ -1,6 +1,7 @@
 from . import _version
 from .credentials import AwsCredentials, MinIOCredentials
 from .client_parameters import AwsClientParameters
+from .lambda_function import LambdaFunction
 from .s3 import S3Bucket
 from .ecs import ECSTask
 from .secrets_manager import AwsSecret
@@ -17,6 +18,7 @@ register_renamed_module(
 __all__ = [
     "AwsCredentials",
     "AwsClientParameters",
+    "LambdaFunction",
     "MinIOCredentials",
     "S3Bucket",
     "ECSTask",

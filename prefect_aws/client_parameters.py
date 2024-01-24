@@ -70,6 +70,18 @@ class AwsClientParameters(BaseModel):
         title="Botocore Config",
     )
 
+    def __hash__(self):
+        return hash(
+            (
+                self.api_version,
+                self.use_ssl,
+                self.verify,
+                self.verify_cert_path,
+                self.endpoint_url,
+                self.config,
+            )
+        )
+
     @validator("config", pre=True)
     def instantiate_config(cls, value: Union[Config, Dict[str, Any]]) -> Dict[str, Any]:
         """
