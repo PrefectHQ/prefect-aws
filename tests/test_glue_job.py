@@ -121,7 +121,6 @@ def test_get_client(aws_credentials):
         glue_job_run = GlueJobRun(
             job_name="test_job_name",
             arguments={"arg1": "value1"},
-            aws_credentials=aws_credentials,
         )
         glue_job_run._get_client()
         assert hasattr(glue_job_run.client, "get_job_run")
