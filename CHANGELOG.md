@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Use cached boto3 clients in `ECSWorker` - [#375](https://github.com/PrefectHQ/prefect-aws/pull/375)
+
 ### Fixed
 
 ### Deprecated
@@ -18,15 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ## 0.4.9
-Released January 24rd, 2024;
+
+Released January 24rd, 2024.
 
 ### Fixed
 
 - Hashing of nested objects within `AwsClientParameters` - [#373](https://github.com/PrefectHQ/prefect-aws/pull/373)
 
-
 ## 0.4.8
-Released January 23rd, 2024;
+
+Released January 23rd, 2024.
 
 ### Added
 
