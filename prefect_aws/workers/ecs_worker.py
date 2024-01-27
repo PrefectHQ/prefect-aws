@@ -1424,6 +1424,8 @@ class ECSWorker(BaseWorker):
         ):
             task_run_request["networkConfiguration"] = (
                 self._custom_network_configuration(
+                    configuration.vpc_id,
+                    configuration.network_configuration,
                     configuration,
                 )
             )
