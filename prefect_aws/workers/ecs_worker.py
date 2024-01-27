@@ -1337,15 +1337,14 @@ class ECSWorker(BaseWorker):
 
     def _custom_network_configuration(
         self,
+        vpc_id: str,
+        network_configuration: dict,
         configuration: ECSJobConfiguration,
     ) -> dict:
         """
         Load settings from a specific VPC or the default VPC and generate a task
         run request's network configuration.
         """
-        vpc_id = configuration.vpc_id
-        network_configuration = configuration.network_configuration
-
         ec2_client = self._get_client(configuration, "ec2")
         vpc_message = f"VPC with ID {vpc_id}"
 
