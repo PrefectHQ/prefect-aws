@@ -637,7 +637,7 @@ class ECSWorker(BaseWorker):
         self, configuration: ECSJobConfiguration, client_type: Union[str, ClientType]
     ) -> _ECSClient:
         """
-        Get an ECS client from a boto3 session.
+        Get a boto3 client of client_type. Will use a cached client if one exists.
         """
         return configuration.aws_credentials.get_client(client_type)
 
