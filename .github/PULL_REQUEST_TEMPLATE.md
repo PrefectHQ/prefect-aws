@@ -25,4 +25,3 @@ Any relevant screenshots
   - Run `pre-commit install && pre-commit run --all` locally for formatting and linting.
 - [ ] Includes screenshots of documentation updates.
   - Run `mkdocs serve` view documentation locally.
-- [ ] Summarizes PR's changes in [CHANGELOG.md](https://github.com/PrefectHQ/prefect-aws/blob/main/CHANGELOG.md)
