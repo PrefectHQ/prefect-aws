@@ -1234,17 +1234,21 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         """
         s3_client = self.credentials.get_s3_client()
 
-        source_path = self._resolve_path(Path(from_path).as_posix())
-        target_path = self._resolve_path(Path(to_path).as_posix())
-
         source_bucket_name = self.bucket_name
-        target_bucket_name = self.bucket_name
+        source_path = self._resolve_path(Path(from_path).as_posix())
+
+        # Use given to_bucket or self otherwise
+        to_bucket = to_bucket or self
+
+        target_bucket_name: str
+        target_path: str
         if isinstance(to_bucket, S3Bucket):
             target_bucket_name = to_bucket.bucket_name
-            target_path = to_bucket._resolve_path(target_path)
+            target_path = to_bucket._resolve_path(Path(to_path).as_posix())
         elif isinstance(to_bucket, str):
             target_bucket_name = to_bucket
-        elif to_bucket is not None:
+            target_path = Path(to_path).as_posix()
+        else:
             raise TypeError(
                 "to_bucket must be a string or S3Bucket, not"
                 f" {type(target_bucket_name)}"
