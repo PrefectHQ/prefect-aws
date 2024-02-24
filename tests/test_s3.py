@@ -1004,6 +1004,21 @@ class TestS3Bucket:
         assert s3_bucket_2_empty.read_path("object_copy_4") == b"TEST"
 
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    def test_copy_object_subpaths(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        s3_bucket_2_empty: S3Bucket,
+    ):
+        s3_bucket_2_empty.bucket_folder = "bucket_folder"
+        # S3Bucket for second bucket has a basepath
+        key = s3_bucket_with_object.copy_object(
+            "object",
+            "object_copy_1",
+            to_bucket=s3_bucket_2_empty,
+        )
+        assert key == "bucket_folder/object_copy_1"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
     def test_move_object_within_bucket(
         self,
         s3_bucket_with_object: S3Bucket,
