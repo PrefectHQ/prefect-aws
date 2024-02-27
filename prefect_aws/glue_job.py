@@ -10,9 +10,9 @@ from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from pydantic import VERSION as PYDANTIC_VERSION
 
 if PYDANTIC_VERSION.startswith("2."):
-    from pydantic.v1 import Field, BaseModel
+    from pydantic.v1 import BaseModel, Field
 else:
-    from pydantic import Field, BaseModel
+    from pydantic import BaseModel, Field
 
 from prefect_aws import AwsCredentials
 
