@@ -8,7 +8,6 @@ import boto3
 import pytest
 from botocore.response import StreamingBody
 from moto import mock_iam, mock_lambda
-from pytest_lazyfixture import lazy_fixture
 
 from prefect_aws.credentials import AwsCredentials
 from prefect_aws.lambda_function import LambdaFunction
@@ -232,8 +231,8 @@ class TestLambdaFunction:
     @pytest.mark.parametrize(
         "func_fixture,expected,handler",
         [
-            (lazy_fixture("mock_lambda_function"), {"foo": "bar"}, handler_a),
-            (lazy_fixture("add_lambda_version"), {"data": [1, 2, 3]}, handler_b),
+            ("mock_lambda_function", {"foo": "bar"}, handler_a),
+            ("add_lambda_version", {"data": [1, 2, 3]}, handler_b),
         ],
     )
     def test_invoke_lambda_qualifier(
@@ -242,7 +241,9 @@ class TestLambdaFunction:
         expected,
         lambda_function: LambdaFunction,
         mock_invoke,
+        request,
     ):
+        func_fixture = request.getfixturevalue(func_fixture)
         try:
             lambda_function.qualifier = func_fixture["Version"]
             result = lambda_function.invoke()
