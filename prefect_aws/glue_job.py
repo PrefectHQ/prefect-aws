@@ -8,16 +8,13 @@ from typing import Any, Optional
 from prefect.blocks.abstract import JobBlock, JobRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from pydantic import VERSION as PYDANTIC_VERSION
-from pydantic import BaseModel
 
 if PYDANTIC_VERSION.startswith("2."):
-    from pydantic.v1 import Field
+    from pydantic.v1 import Field, BaseModel
 else:
-    from pydantic import Field
+    from pydantic import Field, BaseModel
 
 from prefect_aws import AwsCredentials
-
-_GlueJobClient = Any
 
 
 class GlueJobRun(JobRun, BaseModel):
