@@ -21,6 +21,7 @@ else:
 
 from tenacity import RetryError
 
+from prefect_aws.credentials import _get_client_cached
 from prefect_aws.workers.ecs_worker import (
     _TASK_DEFINITION_CACHE,
     ECS_DEFAULT_CONTAINER_NAME,
@@ -2272,6 +2273,25 @@ async def test_retry_on_failed_task_start(
             await run_then_stop_task(worker, configuration, flow_run)
 
     assert run_task_mock.call_count == 3
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_worker_uses_cached_boto3_client(aws_credentials: AwsCredentials):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+    )
+
+    _get_client_cached.cache_clear()
+
+    assert _get_client_cached.cache_info().hits == 0, "Initial call count should be 0"
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        worker._get_client(configuration, "ecs")
+        worker._get_client(configuration, "ecs")
+        worker._get_client(configuration, "ecs")
+
+    assert _get_client_cached.cache_info().misses == 1
+    assert _get_client_cached.cache_info().hits == 2
 
 
 async def test_mask_sensitive_env_values():
