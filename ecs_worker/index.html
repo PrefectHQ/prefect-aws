@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.5">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.12">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e359304.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -394,10 +394,8 @@
     
     
     
-    
     <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
-        
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
@@ -807,6 +805,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#prefect_aws.workers.ecs_worker.ECSVariables.match_latest_revision_in_family" class="md-nav__link">
+    <span class="md-ellipsis">
+      match_latest_revision_in_family
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.workers.ecs_worker.ECSVariables.memory" class="md-nav__link">
     <span class="md-ellipsis">
       memory
@@ -1098,10 +1105,8 @@
     
     
     
-    
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_7" >
@@ -1494,6 +1499,15 @@
   <a href="#prefect_aws.workers.ecs_worker.ECSVariables.launch_type" class="md-nav__link">
     <span class="md-ellipsis">
       launch_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prefect_aws.workers.ecs_worker.ECSVariables.match_latest_revision_in_family" class="md-nav__link">
+    <span class="md-ellipsis">
+      match_latest_revision_in_family
     </span>
   </a>
   
@@ -1997,6 +2011,7 @@ ECSJobConfiguration            (<span title="prefect.workers.base.BaseJobConfigu
     <span class="n">vpc_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">container_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">cluster</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">match_latest_revision_in_family</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="nd">@root_validator</span>
     <span class="k">def</span> <span class="nf">task_run_request_requires_arn_if_no_task_definition_given</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -2099,6 +2114,7 @@ ECSJobConfiguration            (<span title="prefect.workers.base.BaseJobConfigu
 
 
   <div class="doc doc-children">
+
 
 
 
@@ -2611,6 +2627,16 @@ ECSVariables            (<span title="prefect.workers.base.BaseVariables">BaseVa
             <span class="s2">&quot;your AWS account, instead it will be marked as INACTIVE.&quot;</span>
         <span class="p">),</span>
     <span class="p">)</span>
+    <span class="n">match_latest_revision_in_family</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;If enabled, the most recent active revision in the task definition &quot;</span>
+            <span class="s2">&quot;family will be compared against the desired ECS task configuration. &quot;</span>
+            <span class="s2">&quot;If they are equal, the existing task definition will be used instead &quot;</span>
+            <span class="s2">&quot;of registering a new one. If no family is specified the default family &quot;</span>
+            <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">ECS_DEFAULT_FAMILY</span><span class="si">}</span><span class="s1">&quot; will be used.&#39;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
 
@@ -2882,6 +2908,28 @@ ECSVariables            (<span title="prefect.workers.base.BaseVariables">BaseVa
 
 
 
+<h5 id="prefect_aws.workers.ecs_worker.ECSVariables.match_latest_revision_in_family" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">match_latest_revision_in_family</span><span class="p">:</span> <span class="nb">bool</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>If enabled, the most recent active revision in the task definition family will be compared against the desired ECS task configuration. If they are equal, the existing task definition will be used instead of registering a new one. If no family is specified the default family "prefect" will be used.</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
 <h5 id="prefect_aws.workers.ecs_worker.ECSVariables.memory" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">memory</span><span class="p">:</span> <span class="nb">int</span></code>
 
@@ -3113,8 +3161,8 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Runs a given flow run on the current worker.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">boto_session</span><span class="p">,</span> <span class="n">ecs_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_session_and_client</span><span class="p">,</span> <span class="n">configuration</span>
+        <span class="n">ecs_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">,</span> <span class="n">configuration</span><span class="p">,</span> <span class="s2">&quot;ecs&quot;</span>
         <span class="p">)</span>
 
         <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flow_run_logger</span><span class="p">(</span><span class="n">flow_run</span><span class="p">)</span>
@@ -3127,7 +3175,6 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
         <span class="p">)</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_create_task_and_wait_for_start</span><span class="p">,</span>
             <span class="n">logger</span><span class="p">,</span>
-            <span class="n">boto_session</span><span class="p">,</span>
             <span class="n">ecs_client</span><span class="p">,</span>
             <span class="n">configuration</span><span class="p">,</span>
             <span class="n">flow_run</span><span class="p">,</span>
@@ -3154,7 +3201,6 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
             <span class="n">cluster_arn</span><span class="p">,</span>
             <span class="n">task_definition</span><span class="p">,</span>
             <span class="n">is_new_task_definition</span> <span class="ow">and</span> <span class="n">configuration</span><span class="o">.</span><span class="n">auto_deregister_task_definition</span><span class="p">,</span>
-            <span class="n">boto_session</span><span class="p">,</span>
             <span class="n">ecs_client</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -3165,21 +3211,17 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
             <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span> <span class="k">if</span> <span class="n">status_code</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_session_and_client</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">configuration</span><span class="p">:</span> <span class="n">ECSJobConfiguration</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span> <span class="n">_ECSClient</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_get_client</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">configuration</span><span class="p">:</span> <span class="n">ECSJobConfiguration</span><span class="p">,</span> <span class="n">client_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ClientType</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ECSClient</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieve a boto3 session and ECS client</span>
+<span class="sd">        Get a boto3 client of client_type. Will use a cached client if one exists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">boto_session</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span>
-        <span class="n">ecs_client</span> <span class="o">=</span> <span class="n">boto_session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;ecs&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">boto_session</span><span class="p">,</span> <span class="n">ecs_client</span>
+        <span class="k">return</span> <span class="n">configuration</span><span class="o">.</span><span class="n">aws_credentials</span><span class="o">.</span><span class="n">get_client</span><span class="p">(</span><span class="n">client_type</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_create_task_and_wait_for_start</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">logger</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">,</span>
-        <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span>
         <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span>
         <span class="n">configuration</span><span class="p">:</span> <span class="n">ECSJobConfiguration</span><span class="p">,</span>
         <span class="n">flow_run</span><span class="p">:</span> <span class="n">FlowRun</span><span class="p">,</span>
@@ -3197,55 +3239,15 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
         <span class="n">new_task_definition_registered</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">task_definition_arn</span><span class="p">:</span>
-            <span class="n">cached_task_definition_arn</span> <span class="o">=</span> <span class="n">_TASK_DEFINITION_CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="n">flow_run</span><span class="o">.</span><span class="n">deployment_id</span>
-            <span class="p">)</span>
             <span class="n">task_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_task_definition</span><span class="p">(</span>
                 <span class="n">configuration</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">ecs_client</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">region_name</span>
             <span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">cached_task_definition_arn</span><span class="p">:</span>
-                <span class="c1"># Read the task definition to see if the cached task definition is valid</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">cached_task_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_task_definition</span><span class="p">(</span>
-                        <span class="n">logger</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">,</span> <span class="n">cached_task_definition_arn</span>
-                    <span class="p">)</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Failed to retrieve cached task definition&quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">cached_task_definition_arn</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">exc</span><span class="si">!r}</span><span class="s2">&quot;</span>
-                    <span class="p">)</span>
-                    <span class="c1"># Clear from cache</span>
-                    <span class="n">_TASK_DEFINITION_CACHE</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">flow_run</span><span class="o">.</span><span class="n">deployment_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="n">cached_task_definition_arn</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">cached_task_definition</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;ACTIVE&quot;</span><span class="p">:</span>
-                        <span class="c1"># Cached task definition is not active</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                            <span class="s2">&quot;Cached task definition&quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">cached_task_definition_arn</span><span class="si">!r}</span><span class="s2"> is not active&quot;</span>
-                        <span class="p">)</span>
-                        <span class="n">_TASK_DEFINITION_CACHE</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">flow_run</span><span class="o">.</span><span class="n">deployment_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                        <span class="n">cached_task_definition_arn</span> <span class="o">=</span> <span class="kc">None</span>
-                    <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task_definitions_equal</span><span class="p">(</span>
-                        <span class="n">task_definition</span><span class="p">,</span> <span class="n">cached_task_definition</span>
-                    <span class="p">):</span>
-                        <span class="c1"># Cached task definition is not valid</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                            <span class="s2">&quot;Cached task definition&quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">cached_task_definition_arn</span><span class="si">!r}</span><span class="s2"> does not meet&quot;</span>
-                            <span class="s2">&quot; requirements&quot;</span>
-                        <span class="p">)</span>
-                        <span class="n">_TASK_DEFINITION_CACHE</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">flow_run</span><span class="o">.</span><span class="n">deployment_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                        <span class="n">cached_task_definition_arn</span> <span class="o">=</span> <span class="kc">None</span>
-
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">cached_task_definition_arn</span><span class="p">:</span>
-                <span class="n">task_definition_arn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register_task_definition</span><span class="p">(</span>
-                    <span class="n">logger</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">,</span> <span class="n">task_definition</span>
-                <span class="p">)</span>
-                <span class="n">new_task_definition_registered</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">task_definition_arn</span> <span class="o">=</span> <span class="n">cached_task_definition_arn</span>
+            <span class="p">(</span>
+                <span class="n">task_definition_arn</span><span class="p">,</span>
+                <span class="n">new_task_definition_registered</span><span class="p">,</span>
+            <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_or_register_task_definition</span><span class="p">(</span>
+                <span class="n">logger</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">,</span> <span class="n">configuration</span><span class="p">,</span> <span class="n">flow_run</span><span class="p">,</span> <span class="n">task_definition</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">task_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_task_definition</span><span class="p">(</span>
                 <span class="n">logger</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">,</span> <span class="n">task_definition_arn</span>
@@ -3258,9 +3260,6 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_validate_task_definition</span><span class="p">(</span><span class="n">task_definition</span><span class="p">,</span> <span class="n">configuration</span><span class="p">)</span>
 
-        <span class="c1"># Update the cached task definition ARN to avoid re-registering the task</span>
-        <span class="c1"># definition on this worker unless necessary; registration is agressively</span>
-        <span class="c1"># rate limited by AWS</span>
         <span class="n">_TASK_DEFINITION_CACHE</span><span class="p">[</span><span class="n">flow_run</span><span class="o">.</span><span class="n">deployment_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">task_definition_arn</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using ECS task definition </span><span class="si">{</span><span class="n">task_definition_arn</span><span class="si">!r}</span><span class="s2">...&quot;</span><span class="p">)</span>
@@ -3268,9 +3267,7 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
             <span class="sa">f</span><span class="s2">&quot;Task definition </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">task_definition</span><span class="p">,</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
 
-        <span class="c1"># Prepare the task run request</span>
         <span class="n">task_run_request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_task_run_request</span><span class="p">(</span>
-            <span class="n">boto_session</span><span class="p">,</span>
             <span class="n">configuration</span><span class="p">,</span>
             <span class="n">task_definition</span><span class="p">,</span>
             <span class="n">task_definition_arn</span><span class="p">,</span>
@@ -3290,7 +3287,6 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
             <span class="bp">self</span><span class="o">.</span><span class="n">_report_task_run_creation_failure</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span> <span class="n">task_run_request</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
             <span class="k">raise</span>
 
-        <span class="c1"># Raises an exception if the task does not start</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for ECS task run to start...&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_task_start</span><span class="p">(</span>
             <span class="n">logger</span><span class="p">,</span>
@@ -3303,6 +3299,65 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
 
         <span class="k">return</span> <span class="n">task_arn</span><span class="p">,</span> <span class="n">cluster_arn</span><span class="p">,</span> <span class="n">task_definition</span><span class="p">,</span> <span class="n">new_task_definition_registered</span>
 
+    <span class="k">def</span> <span class="nf">_get_or_register_task_definition</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">logger</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">,</span>
+        <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span>
+        <span class="n">configuration</span><span class="p">:</span> <span class="n">ECSJobConfiguration</span><span class="p">,</span>
+        <span class="n">flow_run</span><span class="p">:</span> <span class="n">FlowRun</span><span class="p">,</span>
+        <span class="n">task_definition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get or register a task definition for the given flow run.</span>
+
+<span class="sd">        Returns a tuple of the task definition ARN and a bool indicating if the task</span>
+<span class="sd">        definition is newly registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">cached_task_definition_arn</span> <span class="o">=</span> <span class="n">_TASK_DEFINITION_CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow_run</span><span class="o">.</span><span class="n">deployment_id</span><span class="p">)</span>
+        <span class="n">new_task_definition_registered</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">cached_task_definition_arn</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cached_task_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_task_definition</span><span class="p">(</span>
+                    <span class="n">logger</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">,</span> <span class="n">cached_task_definition_arn</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">cached_task_definition</span><span class="p">[</span>
+                    <span class="s2">&quot;status&quot;</span>
+                <span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;ACTIVE&quot;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task_definitions_equal</span><span class="p">(</span>
+                    <span class="n">task_definition</span><span class="p">,</span> <span class="n">cached_task_definition</span>
+                <span class="p">):</span>
+                    <span class="n">cached_task_definition_arn</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">cached_task_definition_arn</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">cached_task_definition_arn</span>
+            <span class="ow">and</span> <span class="n">configuration</span><span class="o">.</span><span class="n">match_latest_revision_in_family</span>
+        <span class="p">):</span>
+            <span class="n">family_name</span> <span class="o">=</span> <span class="n">task_definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;family&quot;</span><span class="p">,</span> <span class="n">ECS_DEFAULT_FAMILY</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">task_definition_from_family</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_task_definition_by_family</span><span class="p">(</span>
+                    <span class="n">logger</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">,</span> <span class="n">family_name</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">task_definition_from_family</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task_definitions_equal</span><span class="p">(</span>
+                    <span class="n">task_definition</span><span class="p">,</span> <span class="n">task_definition_from_family</span>
+                <span class="p">):</span>
+                    <span class="n">cached_task_definition_arn</span> <span class="o">=</span> <span class="n">task_definition_from_family</span><span class="p">[</span>
+                        <span class="s2">&quot;taskDefinitionArn&quot;</span>
+                    <span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cached_task_definition_arn</span><span class="p">:</span>
+            <span class="n">task_definition_arn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register_task_definition</span><span class="p">(</span>
+                <span class="n">logger</span><span class="p">,</span> <span class="n">ecs_client</span><span class="p">,</span> <span class="n">task_definition</span>
+            <span class="p">)</span>
+            <span class="n">new_task_definition_registered</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">task_definition_arn</span> <span class="o">=</span> <span class="n">cached_task_definition_arn</span>
+
+        <span class="k">return</span> <span class="n">task_definition_arn</span><span class="p">,</span> <span class="n">new_task_definition_registered</span>
+
     <span class="k">def</span> <span class="nf">_watch_task_and_get_exit_code</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">logger</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">,</span>
@@ -3311,7 +3366,6 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
         <span class="n">cluster_arn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">task_definition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">deregister_task_definition</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span>
         <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -3327,7 +3381,6 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
             <span class="n">cluster_arn</span><span class="p">,</span>
             <span class="n">task_definition</span><span class="p">,</span>
             <span class="n">ecs_client</span><span class="p">,</span>
-            <span class="n">boto_session</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">deregister_task_definition</span><span class="p">:</span>
@@ -3467,15 +3520,19 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">logger</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">,</span>
         <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span>
-        <span class="n">task_definition_arn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">task_definition</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieve an existing task definition from AWS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieving ECS task definition </span><span class="si">{</span><span class="n">task_definition_arn</span><span class="si">!r}</span><span class="s2">...&quot;</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">ecs_client</span><span class="o">.</span><span class="n">describe_task_definition</span><span class="p">(</span>
-            <span class="n">taskDefinition</span><span class="o">=</span><span class="n">task_definition_arn</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">task_definition</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;arn:aws:ecs:&quot;</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieving ECS task definition </span><span class="si">{</span><span class="n">task_definition</span><span class="si">!r}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;Retrieving most recent active revision from &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;ECS task family </span><span class="si">{</span><span class="n">task_definition</span><span class="si">!r}</span><span class="s2">...&quot;</span>
+            <span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">ecs_client</span><span class="o">.</span><span class="n">describe_task_definition</span><span class="p">(</span><span class="n">taskDefinition</span><span class="o">=</span><span class="n">task_definition</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;taskDefinition&quot;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_wait_for_task_start</span><span class="p">(</span>
@@ -3521,7 +3578,6 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
         <span class="n">cluster_arn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">task_definition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">ecs_client</span><span class="p">:</span> <span class="n">_ECSClient</span><span class="p">,</span>
-        <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Watch an ECS task until it reaches a STOPPED status.</span>
@@ -3560,7 +3616,7 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Prepare to stream the output</span>
                 <span class="n">log_config</span> <span class="o">=</span> <span class="n">container_def</span><span class="p">[</span><span class="s2">&quot;logConfiguration&quot;</span><span class="p">][</span><span class="s2">&quot;options&quot;</span><span class="p">]</span>
-                <span class="n">logs_client</span> <span class="o">=</span> <span class="n">boto_session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;logs&quot;</span><span class="p">)</span>
+                <span class="n">logs_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span> <span class="s2">&quot;logs&quot;</span><span class="p">)</span>
                 <span class="n">can_stream_output</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="c1"># Track the last log timestamp to prevent double display</span>
                 <span class="n">last_log_timestamp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -3829,13 +3885,13 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
         <span class="k">return</span> <span class="n">task_definition</span>
 
     <span class="k">def</span> <span class="nf">_load_network_configuration</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">vpc_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">vpc_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">configuration</span><span class="p">:</span> <span class="n">ECSJobConfiguration</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load settings from a specific VPC or the default VPC and generate a task</span>
 <span class="sd">        run request&#39;s network configuration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ec2_client</span> <span class="o">=</span> <span class="n">boto_session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;ec2&quot;</span><span class="p">)</span>
+        <span class="n">ec2_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span> <span class="s2">&quot;ec2&quot;</span><span class="p">)</span>
         <span class="n">vpc_message</span> <span class="o">=</span> <span class="s2">&quot;the default VPC&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">vpc_id</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;VPC with ID </span><span class="si">{</span><span class="n">vpc_id</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">vpc_id</span><span class="p">:</span>
@@ -3876,13 +3932,16 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_custom_network_configuration</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">vpc_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">network_configuration</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">vpc_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">network_configuration</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">configuration</span><span class="p">:</span> <span class="n">ECSJobConfiguration</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load settings from a specific VPC or the default VPC and generate a task</span>
 <span class="sd">        run request&#39;s network configuration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ec2_client</span> <span class="o">=</span> <span class="n">boto_session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;ec2&quot;</span><span class="p">)</span>
+        <span class="n">ec2_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span> <span class="s2">&quot;ec2&quot;</span><span class="p">)</span>
         <span class="n">vpc_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;VPC with ID </span><span class="si">{</span><span class="n">vpc_id</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="n">vpcs</span> <span class="o">=</span> <span class="n">ec2_client</span><span class="o">.</span><span class="n">describe_vpcs</span><span class="p">(</span><span class="n">VpcIds</span><span class="o">=</span><span class="p">[</span><span class="n">vpc_id</span><span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Vpcs&quot;</span><span class="p">)</span>
@@ -3918,7 +3977,6 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
 
     <span class="k">def</span> <span class="nf">_prepare_task_run_request</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">boto_session</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span>
         <span class="n">configuration</span><span class="p">:</span> <span class="n">ECSJobConfiguration</span><span class="p">,</span>
         <span class="n">task_definition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">task_definition_arn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -3951,7 +4009,7 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
             <span class="ow">and</span> <span class="ow">not</span> <span class="n">configuration</span><span class="o">.</span><span class="n">network_configuration</span>
         <span class="p">):</span>
             <span class="n">task_run_request</span><span class="p">[</span><span class="s2">&quot;networkConfiguration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_network_configuration</span><span class="p">(</span>
-                <span class="n">configuration</span><span class="o">.</span><span class="n">vpc_id</span><span class="p">,</span> <span class="n">boto_session</span>
+                <span class="n">configuration</span><span class="o">.</span><span class="n">vpc_id</span><span class="p">,</span> <span class="n">configuration</span>
             <span class="p">)</span>
 
         <span class="c1"># Use networkConfiguration if supplied by user</span>
@@ -3964,7 +4022,7 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
                 <span class="bp">self</span><span class="o">.</span><span class="n">_custom_network_configuration</span><span class="p">(</span>
                     <span class="n">configuration</span><span class="o">.</span><span class="n">vpc_id</span><span class="p">,</span>
                     <span class="n">configuration</span><span class="o">.</span><span class="n">network_configuration</span><span class="p">,</span>
-                    <span class="n">boto_session</span><span class="p">,</span>
+                    <span class="n">configuration</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="p">)</span>
 
@@ -4157,7 +4215,7 @@ ECSWorker            (<span title="prefect.workers.base.BaseWorker">BaseWorker</
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster</span><span class="si">!r}</span><span class="s2">.&quot;</span>
             <span class="p">)</span>
 
-        <span class="n">_</span><span class="p">,</span> <span class="n">ecs_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_session_and_client</span><span class="p">(</span><span class="n">configuration</span><span class="p">)</span>
+        <span class="n">ecs_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span> <span class="s2">&quot;ecs&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ecs_client</span><span class="o">.</span><span class="n">stop_task</span><span class="p">(</span><span class="n">cluster</span><span class="o">=</span><span class="n">cluster</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
@@ -4238,6 +4296,7 @@ job_configuration            (<span title="prefect.workers.base.BaseJobConfigura
     <span class="n">vpc_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">container_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">cluster</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">match_latest_revision_in_family</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="nd">@root_validator</span>
     <span class="k">def</span> <span class="nf">task_run_request_requires_arn_if_no_task_definition_given</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -4340,6 +4399,7 @@ job_configuration            (<span title="prefect.workers.base.BaseJobConfigura
 
 
   <div class="doc doc-children">
+
 
 
 
@@ -4852,6 +4912,16 @@ job_configuration_variables            (<span title="prefect.workers.base.BaseVa
             <span class="s2">&quot;your AWS account, instead it will be marked as INACTIVE.&quot;</span>
         <span class="p">),</span>
     <span class="p">)</span>
+    <span class="n">match_latest_revision_in_family</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;If enabled, the most recent active revision in the task definition &quot;</span>
+            <span class="s2">&quot;family will be compared against the desired ECS task configuration. &quot;</span>
+            <span class="s2">&quot;If they are equal, the existing task definition will be used instead &quot;</span>
+            <span class="s2">&quot;of registering a new one. If no family is specified the default family &quot;</span>
+            <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">ECS_DEFAULT_FAMILY</span><span class="si">}</span><span class="s1">&quot; will be used.&#39;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
 
@@ -5113,6 +5183,28 @@ job_configuration_variables            (<span title="prefect.workers.base.BaseVa
     <div class="doc doc-contents ">
 
       <p>The type of ECS task run infrastructure that should be used. Note that 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure the proper capacity provider strategy if set here.</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h7 id="prefect_aws.workers.ecs_worker.ECSWorker.job_configuration_variables.match_latest_revision_in_family" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">match_latest_revision_in_family</span><span class="p">:</span> <span class="nb">bool</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+</h7>
+
+    <div class="doc doc-contents ">
+
+      <p>If enabled, the most recent active revision in the task definition family will be compared against the desired ECS task configuration. If they are equal, the existing task definition will be used instead of registering a new one. If no family is specified the default family "prefect" will be used.</p>
     </div>
 
   </div>
@@ -5408,8 +5500,8 @@ value yielded by <code>ECSWorker.run</code>.</p></td>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs a given flow run on the current worker.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">boto_session</span><span class="p">,</span> <span class="n">ecs_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_get_session_and_client</span><span class="p">,</span> <span class="n">configuration</span>
+    <span class="n">ecs_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_client</span><span class="p">,</span> <span class="n">configuration</span><span class="p">,</span> <span class="s2">&quot;ecs&quot;</span>
     <span class="p">)</span>
 
     <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flow_run_logger</span><span class="p">(</span><span class="n">flow_run</span><span class="p">)</span>
@@ -5422,7 +5514,6 @@ value yielded by <code>ECSWorker.run</code>.</p></td>
     <span class="p">)</span> <span class="o">=</span> <span class="k">await</span> <span class="n">run_sync_in_worker_thread</span><span class="p">(</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_create_task_and_wait_for_start</span><span class="p">,</span>
         <span class="n">logger</span><span class="p">,</span>
-        <span class="n">boto_session</span><span class="p">,</span>
         <span class="n">ecs_client</span><span class="p">,</span>
         <span class="n">configuration</span><span class="p">,</span>
         <span class="n">flow_run</span><span class="p">,</span>
@@ -5449,7 +5540,6 @@ value yielded by <code>ECSWorker.run</code>.</p></td>
         <span class="n">cluster_arn</span><span class="p">,</span>
         <span class="n">task_definition</span><span class="p">,</span>
         <span class="n">is_new_task_definition</span> <span class="ow">and</span> <span class="n">configuration</span><span class="o">.</span><span class="n">auto_deregister_task_definition</span><span class="p">,</span>
-        <span class="n">boto_session</span><span class="p">,</span>
         <span class="n">ecs_client</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -5743,7 +5833,7 @@ input "cluster_name::task_arn" outputs ("cluster_name", "task_arn").</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c18c5fb9.min.js"></script>
+      <script src="../assets/javascripts/bundle.c8d2eff1.min.js"></script>
       
     
   </body>
