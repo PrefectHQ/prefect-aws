@@ -126,6 +126,8 @@ from prefect.utilities.dockerutils import get_prefect_image_name
 from prefect.utilities.pydantic import JsonPatch
 from pydantic import VERSION as PYDANTIC_VERSION
 
+from prefect_aws.utilities import assemble_document_for_patches
+
 if PYDANTIC_VERSION.startswith("2."):
     from pydantic.v1 import Field, root_validator, validator
 else:
@@ -739,6 +741,23 @@ class ECSTask(Infrastructure):
                 )
 
         if self.task_customizations:
+            network_config_patches = JsonPatch(
+                [
+                    patch
+                    for patch in self.task_customizations
+                    if "networkConfiguration" in patch["path"]
+                ]
+            )
+            minimal_network_config = assemble_document_for_patches(
+                network_config_patches
+            )
+            if minimal_network_config:
+                minimal_network_config_with_patches = network_config_patches.apply(
+                    minimal_network_config
+                )
+                base_job_template["variables"]["properties"]["network_configuration"][
+                    "default"
+                ] = minimal_network_config_with_patches["networkConfiguration"]
             try:
                 base_job_template["job_configuration"]["task_run_request"] = (
                     self.task_customizations.apply(
