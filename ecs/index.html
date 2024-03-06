@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.12">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.13">
     
     
       
@@ -2415,6 +2415,23 @@ calls while monitoring the state of an ECS task.</p></td>
                 <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span><span class="p">:</span>
+            <span class="n">network_config_patches</span> <span class="o">=</span> <span class="n">JsonPatch</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">patch</span>
+                    <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span>
+                    <span class="k">if</span> <span class="s2">&quot;networkConfiguration&quot;</span> <span class="ow">in</span> <span class="n">patch</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">minimal_network_config</span> <span class="o">=</span> <span class="n">assemble_document_for_patches</span><span class="p">(</span>
+                <span class="n">network_config_patches</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">minimal_network_config</span><span class="p">:</span>
+                <span class="n">minimal_network_config_with_patches</span> <span class="o">=</span> <span class="n">network_config_patches</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                    <span class="n">minimal_network_config</span>
+                <span class="p">)</span>
+                <span class="n">base_job_template</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">][</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;network_configuration&quot;</span><span class="p">][</span>
+                    <span class="s2">&quot;default&quot;</span>
+                <span class="p">]</span> <span class="o">=</span> <span class="n">minimal_network_config_with_patches</span><span class="p">[</span><span class="s2">&quot;networkConfiguration&quot;</span><span class="p">]</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">base_job_template</span><span class="p">[</span><span class="s2">&quot;job_configuration&quot;</span><span class="p">][</span><span class="s2">&quot;task_run_request&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
@@ -4011,6 +4028,23 @@ configuration as this block.</p>
             <span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span><span class="p">:</span>
+        <span class="n">network_config_patches</span> <span class="o">=</span> <span class="n">JsonPatch</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">patch</span>
+                <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span>
+                <span class="k">if</span> <span class="s2">&quot;networkConfiguration&quot;</span> <span class="ow">in</span> <span class="n">patch</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">minimal_network_config</span> <span class="o">=</span> <span class="n">assemble_document_for_patches</span><span class="p">(</span>
+            <span class="n">network_config_patches</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">minimal_network_config</span><span class="p">:</span>
+            <span class="n">minimal_network_config_with_patches</span> <span class="o">=</span> <span class="n">network_config_patches</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="n">minimal_network_config</span>
+            <span class="p">)</span>
+            <span class="n">base_job_template</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">][</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;network_configuration&quot;</span><span class="p">][</span>
+                <span class="s2">&quot;default&quot;</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="n">minimal_network_config_with_patches</span><span class="p">[</span><span class="s2">&quot;networkConfiguration&quot;</span><span class="p">]</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">base_job_template</span><span class="p">[</span><span class="s2">&quot;job_configuration&quot;</span><span class="p">][</span><span class="s2">&quot;task_run_request&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">task_customizations</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>

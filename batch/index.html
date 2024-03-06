@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.12">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.13">
     
     
       
@@ -851,15 +851,15 @@
         <td><em>required</em></td>
       </tr>
       <tr>
-        <td><code>job_definition</code></td>
-        <td><code>str</code></td>
-        <td><p>The AWS batch job definition.</p></td>
-        <td><em>required</em></td>
-      </tr>
-      <tr>
         <td><code>job_queue</code></td>
         <td><code>str</code></td>
         <td><p>Name of the AWS batch job queue.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>job_definition</code></td>
+        <td><code>str</code></td>
+        <td><p>The AWS batch job definition.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
@@ -909,8 +909,8 @@ for more details.</p></td>
     <span class="p">)</span>
     <span class="n">job_id</span> <span class="o">=</span> <span class="n">batch_submit</span><span class="p">(</span>
         <span class="s2">&quot;job_name&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;job_definition&quot;</span><span class="p">,</span>
         <span class="s2">&quot;job_queue&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;job_definition&quot;</span><span class="p">,</span>
         <span class="n">aws_credentials</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">job_id</span>
@@ -933,8 +933,8 @@ for more details.</p></td>
 
 <span class="sd">    Args:</span>
 <span class="sd">        job_name: The AWS batch job name.</span>
-<span class="sd">        job_definition: The AWS batch job definition.</span>
 <span class="sd">        job_queue: Name of the AWS batch job queue.</span>
+<span class="sd">        job_definition: The AWS batch job definition.</span>
 <span class="sd">        aws_credentials: Credentials to use for authentication with AWS.</span>
 <span class="sd">        **batch_kwargs: Additional keyword arguments to pass to the boto3</span>
 <span class="sd">            `submit_job` function. See the documentation for</span>
@@ -961,8 +961,8 @@ for more details.</p></td>
 <span class="sd">            )</span>
 <span class="sd">            job_id = batch_submit(</span>
 <span class="sd">                &quot;job_name&quot;,</span>
-<span class="sd">                &quot;job_definition&quot;,</span>
 <span class="sd">                &quot;job_queue&quot;,</span>
+<span class="sd">                &quot;job_definition&quot;,</span>
 <span class="sd">                aws_credentials</span>
 <span class="sd">            )</span>
 <span class="sd">            return job_id</span>
