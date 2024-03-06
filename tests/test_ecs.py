@@ -2128,6 +2128,15 @@ def base_job_template_with_defaults(default_base_job_template, aws_credentials):
     base_job_template_with_defaults["variables"]["properties"][
         "auto_deregister_task_definition"
     ]["default"] = False
+    base_job_template_with_defaults["variables"]["properties"]["network_configuration"][
+        "default"
+    ] = {
+        "awsvpcConfiguration": {
+            "subnets": ["subnet-***"],
+            "assignPublicIp": "DISABLED",
+            "securityGroups": ["sg-***"],
+        }
+    }
     return base_job_template_with_defaults
 
 
@@ -2189,9 +2198,19 @@ async def test_generate_work_pool_base_job_template(
             memory=4096,
             task_customizations=[
                 {
+                    "op": "replace",
+                    "path": "/networkConfiguration/awsvpcConfiguration/assignPublicIp",
+                    "value": "DISABLED",
+                },
+                {
+                    "op": "add",
+                    "path": "/networkConfiguration/awsvpcConfiguration/subnets",
+                    "value": ["subnet-***"],
+                },
+                {
                     "op": "add",
                     "path": "/networkConfiguration/awsvpcConfiguration/securityGroups",
-                    "value": ["sg-d72e9599956a084f5"],
+                    "value": ["sg-***"],
                 },
             ],
             family="test-family",
@@ -2229,10 +2248,3 @@ async def test_generate_work_pool_base_job_template(
     template = await job.generate_work_pool_base_job_template()
 
     assert template == expected_template
-
-    if job_config == "custom":
-        assert (
-            "Unable to apply task customizations to the base job template."
-            "You may need to update the template manually."
-            in caplog.text
-        )

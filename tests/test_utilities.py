@@ -1,6 +1,10 @@
 import pytest
 
-from prefect_aws.utilities import hash_collection
+from prefect_aws.utilities import (
+    assemble_document_for_patches,
+    ensure_path_exists,
+    hash_collection,
+)
 
 
 class TestHashCollection:
@@ -32,3 +36,56 @@ class TestHashCollection:
         assert hash_collection(typically_unhashable_structure) == hash_collection(
             typically_unhashable_structure
         ), "Unhashable structure hashing failed after transformation"
+
+
+class TestAssembleDocumentForPatches:
+    def test_initial_document(self):
+        patches = [
+            {"op": "replace", "path": "/name", "value": "Jane"},
+            {"op": "add", "path": "/contact/address", "value": "123 Main St"},
+            {"op": "remove", "path": "/age"},
+        ]
+
+        initial_document = assemble_document_for_patches(patches)
+
+        expected_document = {"name": {}, "contact": {}, "age": {}}
+
+        assert initial_document == expected_document, "Initial document assembly failed"
+
+
+class TestEnsurePathExists:
+    def test_existing_path(self):
+        doc = {"key1": {"subkey1": "value1"}}
+        path = ["key1", "subkey1"]
+        ensure_path_exists(doc, path)
+        assert doc == {
+            "key1": {"subkey1": "value1"}
+        }, "Existing path modification failed"
+
+    def test_new_path_object(self):
+        doc = {}
+        path = ["key1", "subkey1"]
+        ensure_path_exists(doc, path)
+        assert doc == {"key1": {"subkey1": {}}}, "New path creation for object failed"
+
+    def test_new_path_array(self):
+        doc = {}
+        path = ["key1", "0"]
+        ensure_path_exists(doc, path)
+        assert doc == {"key1": [{}]}, "New path creation for array failed"
+
+    def test_existing_path_array(self):
+        doc = {"key1": [{"subkey1": "value1"}]}
+        path = ["key1", "0", "subkey1"]
+        ensure_path_exists(doc, path)
+        assert doc == {
+            "key1": [{"subkey1": "value1"}]
+        }, "Existing path modification for array failed"
+
+    def test_existing_path_array_index_out_of_range(self):
+        doc = {"key1": []}
+        path = ["key1", "0", "subkey1"]
+        ensure_path_exists(doc, path)
+        assert doc == {
+            "key1": [{"subkey1": {}}]
+        }, "Existing path modification for array index out of range failed"
