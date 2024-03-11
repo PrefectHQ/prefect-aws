@@ -1237,7 +1237,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         source_bucket_name = self.bucket_name
         source_path = self._resolve_path(Path(from_path).as_posix())
 
-        # Use given to_bucket or self otherwise
+        # Default to copying within the same bucket
         to_bucket = to_bucket or self
 
         target_bucket_name: str
@@ -1250,8 +1250,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             target_path = Path(to_path).as_posix()
         else:
             raise TypeError(
-                "to_bucket must be a string or S3Bucket, not"
-                f" {type(target_bucket_name)}"
+                f"to_bucket must be a string or S3Bucket, not {type(to_bucket)}"
             )
 
         self.logger.info(
