@@ -769,7 +769,7 @@ class ECSWorker(BaseWorker):
         ):
             family_name = task_definition.get("family", ECS_DEFAULT_FAMILY)
             try:
-                task_definition_from_family = self._retrieve_task_definition_by_family(
+                task_definition_from_family = self._retrieve_task_definition(
                     logger, ecs_client, family_name
                 )
                 if task_definition_from_family and self._task_definitions_equal(
@@ -779,7 +779,7 @@ class ECSWorker(BaseWorker):
                         "taskDefinitionArn"
                     ]
             except Exception:
-                pass
+                cached_task_definition_arn = None
 
         if not cached_task_definition_arn:
             task_definition_arn = self._register_task_definition(
