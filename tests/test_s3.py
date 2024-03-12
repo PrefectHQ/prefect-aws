@@ -1003,19 +1003,40 @@ class TestS3Bucket:
         assert s3_bucket_2_empty.read_path("object_copy_4") == b"TEST"
 
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
-    def test_copy_object_subpaths(
+    @pytest.mark.parametrize(
+        "to_bucket, bucket_folder, expected_path",
+        [
+            # to_bucket=None uses the s3_bucket_2_empty fixture
+            (None, None, "object"),
+            (None, "subfolder", "subfolder/object"),
+            ("bucket_2", None, "object"),
+            (None, None, "object"),
+            (None, "subfolder", "subfolder/object"),
+            ("bucket_2", None, "object"),
+        ],
+    )
+    def test_copy_subpaths(
         self,
         s3_bucket_with_object: S3Bucket,
         s3_bucket_2_empty: S3Bucket,
+        to_bucket,
+        bucket_folder,
+        expected_path,
     ):
-        s3_bucket_2_empty.bucket_folder = "bucket_folder"
-        # S3Bucket for second bucket has a basepath
+        if to_bucket is None:
+            to_bucket = s3_bucket_2_empty
+            if bucket_folder is not None:
+                to_bucket.bucket_folder = bucket_folder
+            else:
+                # For testing purposes, don't use bucket folder unless specified
+                to_bucket.bucket_folder = None
+
         key = s3_bucket_with_object.copy_object(
             "object",
-            "object_copy_1",
-            to_bucket=s3_bucket_2_empty,
+            "object",
+            to_bucket=to_bucket,
         )
-        assert key == "bucket_folder/object_copy_1"
+        assert key == expected_path
 
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
     def test_move_object_within_bucket(
@@ -1061,3 +1082,39 @@ class TestS3Bucket:
 
         with pytest.raises(ClientError):
             assert s3_bucket_with_object.read_path("object") == b"TEST"
+
+    @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
+    @pytest.mark.parametrize(
+        "to_bucket, bucket_folder, expected_path",
+        [
+            # to_bucket=None uses the s3_bucket_2_empty fixture
+            (None, None, "object"),
+            (None, "subfolder", "subfolder/object"),
+            ("bucket_2", None, "object"),
+            (None, None, "object"),
+            (None, "subfolder", "subfolder/object"),
+            ("bucket_2", None, "object"),
+        ],
+    )
+    def test_move_subpaths(
+        self,
+        s3_bucket_with_object: S3Bucket,
+        s3_bucket_2_empty: S3Bucket,
+        to_bucket,
+        bucket_folder,
+        expected_path,
+    ):
+        if to_bucket is None:
+            to_bucket = s3_bucket_2_empty
+            if bucket_folder is not None:
+                to_bucket.bucket_folder = bucket_folder
+            else:
+                # For testing purposes, don't use bucket folder unless specified
+                to_bucket.bucket_folder = None
+
+        key = s3_bucket_with_object.move_object(
+            "object",
+            "object",
+            to_bucket=to_bucket,
+        )
+        assert key == expected_path
