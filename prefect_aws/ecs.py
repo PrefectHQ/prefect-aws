@@ -1,4 +1,11 @@
 """
+DEPRECATION WARNING:
+
+This module is deprecated as of March 2024 and will not be available after September 2024.
+It has been replaced by the ECS worker, which offers enhanced functionality and better performance.
+
+For upgrade instructions, see https://docs.prefect.io/latest/guides/upgrade-guide-agents-to-workers/.
+
 Integrations with the Amazon Elastic Container Service.
 
 Examples:
@@ -102,7 +109,8 @@ Examples:
         ],
     )
     ```
-"""
+"""  # noqa
+
 import copy
 import difflib
 import json
@@ -118,6 +126,7 @@ import boto3
 import yaml
 from anyio.abc import TaskStatus
 from jsonpointer import JsonPointerException
+from prefect._internal.compatibility.deprecated import deprecated_class
 from prefect.blocks.core import BlockNotSavedError
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
@@ -205,6 +214,14 @@ def _pretty_diff(d1: dict, d2: dict) -> str:
     )
 
 
+@deprecated_class(
+    start_date="Mar 2024",
+    help=(
+        "Use the ECS worker instead."
+        " Refer to the upgrade guide for more information:"
+        " https://docs.prefect.io/latest/guides/upgrade-guide-agents-to-workers/."
+    ),
+)
 class ECSTask(Infrastructure):
     """
     Run a command as an ECS task.
