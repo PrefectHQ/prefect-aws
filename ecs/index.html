@@ -796,6 +796,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.__json_encoder__" class="md-nav__link">
     <span class="md-ellipsis">
       __json_encoder__()
@@ -1388,6 +1397,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#prefect_aws.ecs.ECSTask.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefect_aws.ecs.ECSTask.__json_encoder__" class="md-nav__link">
     <span class="md-ellipsis">
       __json_encoder__()
@@ -1601,7 +1619,11 @@
 
     <div class="doc doc-contents first">
 
-      <p>Integrations with the Amazon Elastic Container Service.</p>
+      <p>DEPRECATION WARNING:</p>
+<p>This module is deprecated as of March 2024 and will not be available after September 2024.
+It has been replaced by the ECS worker, which offers enhanced functionality and better performance.</p>
+<p>For upgrade instructions, see https://docs.prefect.io/latest/guides/upgrade-guide-agents-to-workers/.</p>
+<p>Integrations with the Amazon Elastic Container Service.</p>
 
 <p><strong>Examples:</strong></p>
     <p>Run a task using ECS Fargate
@@ -1879,7 +1901,15 @@ calls while monitoring the state of an ECS task.</p></td>
 </table>
         <details class="quote">
           <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ECSTask</span><span class="p">(</span><span class="n">Infrastructure</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="nd">@deprecated_class</span><span class="p">(</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;Mar 2024&quot;</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Use the ECS worker instead.&quot;</span>
+        <span class="s2">&quot; Refer to the upgrade guide for more information:&quot;</span>
+        <span class="s2">&quot; https://docs.prefect.io/latest/guides/upgrade-guide-agents-to-workers/.&quot;</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="k">class</span> <span class="nc">ECSTask</span><span class="p">(</span><span class="n">Infrastructure</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Run a command as an ECS task.</span>
 
@@ -3753,6 +3783,37 @@ Config        </code>
 
 
 <h4 id="prefect_aws.ecs.ECSTask-methods">Methods</h4>
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h5 id="prefect_aws.ecs.ECSTask.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+</h5>
+
+    <div class="doc doc-contents ">
+
+      <p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>prefect_aws/ecs.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">block_initialization</span><span class="p">()</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
 
   <div class="doc doc-object doc-method">
 
