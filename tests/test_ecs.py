@@ -12,6 +12,7 @@ import yaml
 from botocore.exceptions import ClientError
 from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
+from prefect._internal.compatibility.deprecated import PrefectDeprecationWarning
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.logging.configuration import setup_logging
 from prefect.server.schemas.core import Deployment, Flow, FlowRun
@@ -34,6 +35,20 @@ from prefect_aws.ecs import (
     get_prefect_container,
     parse_task_identifier,
 )
+
+
+def test_ecs_task_emits_deprecation_warning():
+    with pytest.warns(
+        PrefectDeprecationWarning,
+        match=(
+            "prefect_aws.ecs.ECSTask has been deprecated."
+            " It will not be available after Sep 2024."
+            " Use the ECS worker instead."
+            " Refer to the upgrade guide for more information"
+        ),
+    ):
+        ECSTask()
+
 
 setup_logging()
 
