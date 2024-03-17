@@ -15,6 +15,8 @@ else:
 
 from prefect_aws import AwsCredentials
 
+_GlueJobClient = Any
+
 
 class GlueJobRun(JobRun, BaseModel):
     """Execute a Glue Job"""
