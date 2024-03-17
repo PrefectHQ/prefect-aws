@@ -10,7 +10,7 @@ from prefect_aws.glue_job import GlueJobBlock, GlueJobRun
 def glue_job_client(aws_credentials):
     with mock_glue():
         boto_session = aws_credentials.get_boto3_session()
-        yield boto_session.client("glue")
+        yield boto_session.client("glue", region_name="us-east-1")
 
 
 async def test_fetch_result(aws_credentials, glue_job_client):
@@ -118,6 +118,7 @@ async def test_trigger(aws_credentials, glue_job_client):
         arguments={"arg1": "value1"},
         aws_credential=aws_credentials,
     )
+    glue_job._get_client = MagicMock(side_effect=[glue_job_client])
     glue_job._start_job = MagicMock(side_effect=["test_job_id"])
     glue_job_run = await glue_job.trigger()
     assert isinstance(glue_job_run, GlueJobRun)
