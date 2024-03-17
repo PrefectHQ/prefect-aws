@@ -21,9 +21,9 @@ async def test_fetch_result(aws_credentials, glue_job_client):
         JobName="test_job_name",
         Arguments={},
     )["JobRunId"]
-    glue_job_run = GlueJobRun(job_name="test_job_name", job_id="test_job_name")
-    glue_job_run.job_id = job_run_id
-    glue_job_run.client = glue_job_client
+    glue_job_run = GlueJobRun(
+        job_name="test_job_name", job_id=job_run_id, client=glue_job_client
+    )
     result = await glue_job_run.fetch_result()
     assert result == "SUCCEEDED"
 
@@ -42,6 +42,7 @@ def test_wait_for_completion(aws_credentials, glue_job_client):
             job_name="test_job_name",
             job_id=job_run_id,
             job_watch_poll_interval=0.1,
+            client=glue_job_client,
         )
 
         glue_job_client.get_job_run = MagicMock(
@@ -60,8 +61,6 @@ def test_wait_for_completion(aws_credentials, glue_job_client):
                 },
             ]
         )
-        glue_job_run.client = glue_job_client
-        glue_job_run.job_id = job_run_id
         glue_job_run.wait_for_completion()
 
 
