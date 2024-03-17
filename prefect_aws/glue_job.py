@@ -6,7 +6,6 @@ import time
 from typing import Any, Optional
 
 from prefect.blocks.abstract import JobBlock, JobRun
-from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from pydantic import VERSION as PYDANTIC_VERSION
 from pydantic import BaseModel
 
@@ -29,11 +28,12 @@ class GlueJobRun(JobRun, BaseModel):
         description="The name of the job definition to use.",
     )
 
-    arguments: Optional[dict] = Field(
-        default=None,
-        title="AWS Glue Job Arguments",
-        description="The job arguments associated with this run.",
+    job_id: str = Field(
+        ...,
+        title="AWS Glue Job ID",
+        description="The ID of the job run.",
     )
+
     job_watch_poll_interval: float = Field(
         default=60.0,
         description=(
@@ -50,44 +50,14 @@ class GlueJobRun(JobRun, BaseModel):
         description="The AWS credentials to use to connect to Glue.",
     )
 
-    client: Any = Field(default=None, description="")
-    job_id: str = Field(
-        default="",
-    )
-
-    async def wait_for_completion(self) -> None:
-        """run and wait for completion"""
-        await run_sync_in_worker_thread(self._get_client)
-        await run_sync_in_worker_thread(self._start_job)
-        await run_sync_in_worker_thread(self._watch_job)
+    client: _GlueJobClient = Field(default=None, description="")
 
     async def fetch_result(self) -> str:
-        """fetch glue job result"""
+        """fetch glue job state"""
         job = self._get_job_run()
         return job["JobRun"]["JobRunState"]
 
-    def _start_job(self) -> str:
-        """
-        Start the AWS Glue Job
-        [doc](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/glue/client/start_job_run.html)
-        """
-        self.logger.info(
-            f"starting job {self.job_name} with arguments {self.arguments}"
-        )
-        try:
-            response = self.client.start_job_run(
-                JobName=self.job_name,
-                Arguments=self.arguments,
-            )
-            job_run_id = str(response["JobRunId"])
-            self.logger.info(f"job started with job run id: {job_run_id}")
-            self.job_id = job_run_id
-            return job_run_id
-        except Exception as e:
-            self.logger.error(f"failed to start job: {e}")
-            raise RuntimeError
-
-    def _watch_job(self) -> None:
+    def wait_for_completion(self) -> None:
         """
         Wait for the job run to complete and get exit code
         """
@@ -104,13 +74,6 @@ class GlueJobRun(JobRun, BaseModel):
                 break
 
             time.sleep(self.job_watch_poll_interval)
-
-    def _get_client(self) -> None:
-        """
-        Retrieve a Glue Job Client
-        """
-        boto_session = self.aws_credentials.get_boto3_session()
-        self.client = boto_session.client("glue")
 
     def _get_job_run(self):
         """get glue job"""
@@ -188,8 +151,37 @@ class GlueJobBlock(JobBlock):
 
     async def trigger(self) -> GlueJobRun:
         """trigger for GlueJobRun"""
+        client = self._get_client()
+        job_run_id = self._start_job(client)
         return GlueJobRun(
             job_name=self.job_name,
-            arguments=self.arguments,
+            job_id=job_run_id,
             job_watch_poll_interval=self.job_watch_poll_interval,
         )
+
+    def _start_job(self, client: _GlueJobClient) -> str:
+        """
+        Start the AWS Glue Job
+        [doc](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/glue/client/start_job_run.html)
+        """
+        self.logger.info(
+            f"starting job {self.job_name} with arguments {self.arguments}"
+        )
+        try:
+            response = client.start_job_run(
+                JobName=self.job_name,
+                Arguments=self.arguments,
+            )
+            job_run_id = str(response["JobRunId"])
+            self.logger.info(f"job started with job run id: {job_run_id}")
+            return job_run_id
+        except Exception as e:
+            self.logger.error(f"failed to start job: {e}")
+            raise RuntimeError
+
+    def _get_client(self) -> _GlueJobClient:
+        """
+        Retrieve a Glue Job Client
+        """
+        boto_session = self.aws_credentials.get_boto3_session()
+        return boto_session.client("glue")

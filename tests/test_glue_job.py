@@ -28,30 +28,7 @@ async def test_fetch_result(aws_credentials, glue_job_client):
     assert result == "SUCCEEDED"
 
 
-def test_start_job(aws_credentials, glue_job_client):
-    with mock_glue():
-        glue_job_client.create_job(
-            Name="test_job_name", Role="test-role", Command={}, DefaultArguments={}
-        )
-        glue_job_run = GlueJobRun(
-            job_name="test_job_name", arguments={"arg1": "value1"}
-        )
-        glue_job_run.client = glue_job_client
-        glue_job_run._start_job()
-        assert glue_job_run.job_id != ""
-
-
-def test_start_job_fail_because_not_exist_job(aws_credentials, glue_job_client):
-    with mock_glue():
-        glue_job_run = GlueJobRun(
-            job_name="test_job_name", arguments={"arg1": "value1"}
-        )
-        glue_job_run.client = glue_job_client
-        with pytest.raises(RuntimeError):
-            glue_job_run._start_job()
-
-
-def test_watch_job(aws_credentials, glue_job_client):
+def test_wait_for_completion(aws_credentials, glue_job_client):
     with mock_glue():
         glue_job_client.create_job(
             Name="test_job_name", Role="test-role", Command={}, DefaultArguments={}
@@ -84,10 +61,10 @@ def test_watch_job(aws_credentials, glue_job_client):
         )
         glue_job_run.client = glue_job_client
         glue_job_run.job_id = job_run_id
-        glue_job_run._watch_job()
+        glue_job_run.wait_for_completion()
 
 
-def test_watch_job_fail(aws_credentials, glue_job_client):
+def test_wait_for_completion_fail(aws_credentials, glue_job_client):
     with mock_glue():
         glue_job_client.create_job(
             Name="test_job_name", Role="test-role", Command={}, DefaultArguments={}
@@ -113,16 +90,7 @@ def test_watch_job_fail(aws_credentials, glue_job_client):
             ]
         )
         with pytest.raises(RuntimeError):
-            glue_job_run._watch_job()
-
-
-def test_get_client(aws_credentials):
-    with mock_glue():
-        glue_job_run = GlueJobRun(
-            job_name="test_job_name", aws_credentials=aws_credentials
-        )
-        glue_job_run._get_client()
-        assert hasattr(glue_job_run.client, "get_job_run")
+            glue_job_run.wait_for_completion()
 
 
 def test__get_job_run(aws_credentials, glue_job_client):
@@ -144,7 +112,45 @@ def test__get_job_run(aws_credentials, glue_job_client):
         assert response["JobRun"]["JobRunState"] == "SUCCEEDED"
 
 
-async def test_trigger():
-    glue_job = GlueJobBlock(job_name="test_job_name", arguments={"arg1": "value1"})
+async def test_trigger(aws_credentials, glue_job_client):
+    glue_job_client.create_job(
+        Name="test_job_name", Role="test-role", Command={}, DefaultArguments={}
+    )
+    glue_job = GlueJobBlock(
+        job_name="test_job_name",
+        arguments={"arg1": "value1"},
+        aws_credential=aws_credentials,
+    )
+    glue_job._start_job = MagicMock(side_effect=["test_job_id"])
     glue_job_run = await glue_job.trigger()
     assert isinstance(glue_job_run, GlueJobRun)
+
+
+def test_start_job(aws_credentials, glue_job_client):
+    with mock_glue():
+        glue_job_client.create_job(
+            Name="test_job_name", Role="test-role", Command={}, DefaultArguments={}
+        )
+        glue_job = GlueJobBlock(job_name="test_job_name", arguments={"arg1": "value1"})
+
+        glue_job_client.start_job_run = MagicMock(
+            side_effect=[{"JobRunId": "test_job_run_id"}]
+        )
+        job_run_id = glue_job._start_job(glue_job_client)
+        assert job_run_id == "test_job_run_id"
+
+
+def test_start_job_fail_because_not_exist_job(aws_credentials, glue_job_client):
+    with mock_glue():
+        glue_job = GlueJobBlock(job_name="test_job_name", arguments={"arg1": "value1"})
+        with pytest.raises(RuntimeError):
+            glue_job._start_job(glue_job_client)
+
+
+def test_get_client(aws_credentials):
+    with mock_glue():
+        glue_job_run = GlueJobBlock(
+            job_name="test_job_name", aws_credentials=aws_credentials
+        )
+        client = glue_job_run._get_client()
+        assert hasattr(client, "get_job_run")
