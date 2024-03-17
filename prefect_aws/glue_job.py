@@ -80,8 +80,8 @@ class GlueJobRun(JobRun, BaseModel):
 
 
 class GlueJobBlock(JobBlock):
-    """
-    Execute a job to the AWS Glue Job service.
+    """Execute a job to the AWS Glue Job service.
+
     Attributes:
         job_name: The name of the job definition to use.
         arguments: The job arguments associated with this run.
@@ -98,6 +98,7 @@ class GlueJobBlock(JobBlock):
             default is 60s because of jobs that use AWS Glue versions 2.0 and later
             have a 1-minute minimum.
             [AWS Glue Pricing](https://aws.amazon.com/glue/pricing/?nc1=h_ls)
+
     Example:
         Start a job to AWS Glue Job.
         ```python
@@ -121,7 +122,8 @@ class GlueJobBlock(JobBlock):
 
 
         example_run_glue_job()
-        ```"""
+        ```
+    """
 
     job_name: str = Field(
         ...,
