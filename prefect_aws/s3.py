@@ -594,7 +594,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
             s3_bucket_block = S3Bucket(
                 bucket_name="bucket",
-                aws_credentials=aws_creds,
+                credentials=aws_creds,
                 basepath="subfolder"
             )
 
