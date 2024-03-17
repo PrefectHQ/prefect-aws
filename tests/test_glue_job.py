@@ -21,7 +21,7 @@ async def test_fetch_result(aws_credentials, glue_job_client):
         JobName="test_job_name",
         Arguments={},
     )["JobRunId"]
-    glue_job_run = GlueJobRun(job_name="test_job_name", arguments={"arg1": "value1"})
+    glue_job_run = GlueJobRun(job_name="test_job_name", job_id="test_job_name")
     glue_job_run.job_id = job_run_id
     glue_job_run.client = glue_job_client
     result = await glue_job_run.fetch_result()
@@ -33,15 +33,16 @@ def test_wait_for_completion(aws_credentials, glue_job_client):
         glue_job_client.create_job(
             Name="test_job_name", Role="test-role", Command={}, DefaultArguments={}
         )
-        glue_job_run = GlueJobRun(
-            job_name="test_job_name",
-            arguments={"arg1": "value1"},
-            job_watch_poll_interval=0.1,
-        )
         job_run_id = glue_job_client.start_job_run(
             JobName="test_job_name",
             Arguments={},
         )["JobRunId"]
+
+        glue_job_run = GlueJobRun(
+            job_name="test_job_name",
+            job_id=job_run_id,
+            job_watch_poll_interval=0.1,
+        )
 
         glue_job_client.get_job_run = MagicMock(
             side_effect=[
@@ -69,15 +70,10 @@ def test_wait_for_completion_fail(aws_credentials, glue_job_client):
         glue_job_client.create_job(
             Name="test_job_name", Role="test-role", Command={}, DefaultArguments={}
         )
-        glue_job_run = GlueJobRun(
-            job_name="test_job_name", arguments={"arg1": "value1"}
-        )
         job_run_id = glue_job_client.start_job_run(
             JobName="test_job_name",
             Arguments={},
         )["JobRunId"]
-        glue_job_run.client = glue_job_client
-        glue_job_run.job_id = job_run_id
         glue_job_client.get_job_run = MagicMock(
             side_effect=[
                 {
@@ -88,6 +84,10 @@ def test_wait_for_completion_fail(aws_credentials, glue_job_client):
                     }
                 },
             ]
+        )
+
+        glue_job_run = GlueJobRun(
+            job_name="test_job_name", job_id=job_run_id, client=glue_job_client
         )
         with pytest.raises(RuntimeError):
             glue_job_run.wait_for_completion()
@@ -104,10 +104,8 @@ def test__get_job_run(aws_credentials, glue_job_client):
         )["JobRunId"]
 
         glue_job_run = GlueJobRun(
-            job_name="test_job_name", arguments={"arg1": "value1"}
+            job_name="test_job_name", job_id=job_run_id, client=glue_job_client
         )
-        glue_job_run.job_id = job_run_id
-        glue_job_run.client = glue_job_client
         response = glue_job_run._get_job_run()
         assert response["JobRun"]["JobRunState"] == "SUCCEEDED"
 
