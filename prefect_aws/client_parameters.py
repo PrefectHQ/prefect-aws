@@ -7,6 +7,8 @@ from botocore import UNSIGNED
 from botocore.client import Config
 from pydantic import VERSION as PYDANTIC_VERSION
 
+from prefect_aws.utilities import hash_collection
+
 if PYDANTIC_VERSION.startswith("2."):
     from pydantic.v1 import BaseModel, Field, FilePath, root_validator, validator
 else:
@@ -78,7 +80,7 @@ class AwsClientParameters(BaseModel):
                 self.verify,
                 self.verify_cert_path,
                 self.endpoint_url,
-                self.config,
+                hash_collection(self.config),
             )
         )
 

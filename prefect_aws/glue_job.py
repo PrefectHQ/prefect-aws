@@ -7,16 +7,13 @@ from typing import Any, Optional
 
 from prefect.blocks.abstract import JobBlock, JobRun
 from pydantic import VERSION as PYDANTIC_VERSION
-from pydantic import BaseModel
 
 if PYDANTIC_VERSION.startswith("2."):
-    from pydantic.v1 import Field
+    from pydantic.v1 import BaseModel, Field
 else:
-    from pydantic import Field
+    from pydantic import BaseModel, Field
 
 from prefect_aws import AwsCredentials
-
-_GlueJobClient = Any
 
 
 class GlueJobRun(JobRun, BaseModel):

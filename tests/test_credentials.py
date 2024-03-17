@@ -164,3 +164,28 @@ def test_aws_credentials_hash_changes(credentials_type, initial_field, new_field
     new_hash = hash(credentials)
 
     assert initial_hash != new_hash, "Hash should change when region_name changes"
+
+
+def test_aws_credentials_nested_client_parameters_are_hashable():
+    """
+    Test to ensure that nested client parameters are hashable.
+    """
+
+    creds = AwsCredentials(
+        region_name="us-east-1",
+        aws_client_parameters=dict(
+            config=dict(
+                connect_timeout=5,
+                read_timeout=5,
+                retries=dict(max_attempts=10, mode="standard"),
+            )
+        ),
+    )
+
+    assert hash(creds) is not None
+
+    client = creds.get_client("s3")
+
+    _client = creds.get_client("s3")
+
+    assert client is _client
