@@ -670,10 +670,11 @@ class ECSWorker(BaseWorker):
         """
         task_definition_arn = configuration.task_run_request.get("taskDefinition")
         new_task_definition_registered = False
+        print(flow_run)
 
         if not task_definition_arn:
             task_definition = self._prepare_task_definition(
-                configuration, region=ecs_client.meta.region_name
+                configuration, region=ecs_client.meta.region_name, flow_run=flow_run
             )
             (
                 task_definition_arn,
@@ -1205,10 +1206,28 @@ class ECSWorker(BaseWorker):
                 )
             time.sleep(configuration.task_watch_poll_interval)
 
+    def _get_or_generate_family(self, task_definition: dict, flow_run: FlowRun) -> str:
+        """
+        Gets or generate a family for the task definition.
+        """
+        family = task_definition.get("family")
+        if not family:
+            assert self._work_pool_name and flow_run.deployment_id
+            family = (
+                f"{ECS_DEFAULT_FAMILY}_{self._work_pool_name}_{flow_run.deployment_id}"
+            )
+        slugify(
+            family,
+            max_length=255,
+            regex_pattern=r"[^a-zA-Z0-9-_]+",
+        )
+        return family
+
     def _prepare_task_definition(
         self,
         configuration: ECSJobConfiguration,
         region: str,
+        flow_run: FlowRun,
     ) -> dict:
         """
         Prepare a task definition by inferring any defaults and merging overrides.
@@ -1269,13 +1288,9 @@ class ECSWorker(BaseWorker):
                 },
             }
 
-        family = task_definition.get("family") or ECS_DEFAULT_FAMILY
-        task_definition["family"] = slugify(
-            family,
-            max_length=255,
-            regex_pattern=r"[^a-zA-Z0-9-_]+",
+        task_definition["family"] = self._get_or_generate_family(
+            task_definition, flow_run
         )
-
         # CPU and memory are required in some cases, retrieve the value to use
         cpu = task_definition.get("cpu") or ECS_DEFAULT_CPU
         memory = task_definition.get("memory") or ECS_DEFAULT_MEMORY
