@@ -594,8 +594,8 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
             s3_bucket_block = S3Bucket(
                 bucket_name="bucket",
-                aws_credentials=aws_creds,
-                basepath="subfolder"
+                credentials=aws_creds,
+                bucket_folder="subfolder"
             )
 
             key_contents = s3_bucket_block.read_path(path="subfolder/file1")
@@ -645,7 +645,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             s3_bucket_block = S3Bucket(
                 bucket_name="bucket",
                 minio_credentials=minio_creds,
-                basepath="dogs/smalldogs",
+                bucket_folder="dogs/smalldogs",
                 endpoint_url="http://localhost:9000",
             )
             s3_havanese_path = s3_bucket_block.write_path(path="havanese", content=data)
