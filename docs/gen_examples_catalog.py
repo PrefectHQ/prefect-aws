@@ -56,7 +56,7 @@ def get_code_examples(obj: Union[ModuleType, Callable]) -> Set[str]:
     for section in parsed_sections:
         if section.kind == DocstringSectionKind.examples:
             code_example = "\n".join(
-                (part[1] for part in section.as_dict().get("value", []))
+                part[1] for part in section.as_dict().get("value", [])
             )
             if not skip_block_load_code_example(code_example):
                 code_examples.add(code_example)

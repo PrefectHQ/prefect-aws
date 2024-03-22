@@ -8,7 +8,6 @@ from botocore.exceptions import ClientError, EndpointConnectionError
 from moto import mock_s3
 from prefect import flow
 from prefect.deployments import Deployment
-from pytest_lazyfixture import lazy_fixture
 
 from prefect_aws import AwsCredentials, MinIOCredentials
 from prefect_aws.client_parameters import AwsClientParameters
@@ -22,9 +21,9 @@ from prefect_aws.s3 import (
 )
 
 aws_clients = [
-    (lazy_fixture("aws_client_parameters_custom_endpoint")),
-    (lazy_fixture("aws_client_parameters_empty")),
-    (lazy_fixture("aws_client_parameters_public_bucket")),
+    "aws_client_parameters_custom_endpoint",
+    "aws_client_parameters_empty",
+    "aws_client_parameters_public_bucket",
 ]
 
 
@@ -38,7 +37,7 @@ def s3_mock(monkeypatch, client_parameters):
 
 @pytest.fixture
 def client_parameters(request):
-    client_parameters = request.param
+    client_parameters = request.getfixturevalue(request.param)
     return client_parameters
 
 
@@ -114,7 +113,7 @@ def a_lot_of_objects(bucket, tmp_path):
 
 @pytest.mark.parametrize(
     "client_parameters",
-    [lazy_fixture("aws_client_parameters_custom_endpoint")],
+    ["aws_client_parameters_custom_endpoint"],
     indirect=True,
 )
 async def test_s3_download_failed_with_wrong_endpoint_setup(
@@ -141,30 +140,30 @@ async def test_s3_download_failed_with_wrong_endpoint_setup(
     "client_parameters",
     [
         pytest.param(
-            lazy_fixture("aws_client_parameters_custom_endpoint"),
+            "aws_client_parameters_custom_endpoint",
             marks=pytest.mark.is_public(False),
         ),
         pytest.param(
-            lazy_fixture("aws_client_parameters_custom_endpoint"),
+            "aws_client_parameters_custom_endpoint",
             marks=pytest.mark.is_public(True),
         ),
         pytest.param(
-            lazy_fixture("aws_client_parameters_empty"),
+            "aws_client_parameters_empty",
             marks=pytest.mark.is_public(False),
         ),
         pytest.param(
-            lazy_fixture("aws_client_parameters_empty"),
+            "aws_client_parameters_empty",
             marks=pytest.mark.is_public(True),
         ),
         pytest.param(
-            lazy_fixture("aws_client_parameters_public_bucket"),
+            "aws_client_parameters_public_bucket",
             marks=[
                 pytest.mark.is_public(False),
                 pytest.mark.xfail(reason="Bucket is not a public one"),
             ],
         ),
         pytest.param(
-            lazy_fixture("aws_client_parameters_public_bucket"),
+            "aws_client_parameters_public_bucket",
             marks=pytest.mark.is_public(True),
         ),
     ],
@@ -822,7 +821,11 @@ class TestS3Bucket:
 
     def test_credentials_are_correct_type(self, credentials):
         s3_bucket = S3Bucket(bucket_name="bucket", credentials=credentials)
+        s3_bucket_parsed = S3Bucket.parse_obj(
+            {"bucket_name": "bucket", "credentials": dict(credentials)}
+        )
         assert isinstance(s3_bucket.credentials, type(credentials))
+        assert isinstance(s3_bucket_parsed.credentials, type(credentials))
 
     @pytest.mark.parametrize("client_parameters", aws_clients[-1:], indirect=True)
     def test_list_objects_empty(self, s3_bucket_empty, client_parameters):

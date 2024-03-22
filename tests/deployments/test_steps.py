@@ -11,6 +11,16 @@ from prefect_aws import AwsCredentials
 from prefect_aws.deployments.steps import get_s3_client, pull_from_s3, push_to_s3
 
 
+@pytest.fixture(scope="module", autouse=True)
+def set_custom_endpoint():
+    original = os.environ.get("MOTO_S3_CUSTOM_ENDPOINTS")
+    os.environ["MOTO_S3_CUSTOM_ENDPOINTS"] = "http://custom.minio.endpoint:9000"
+    yield
+    os.environ.pop("MOTO_S3_CUSTOM_ENDPOINTS")
+    if original is not None:
+        os.environ["MOTO_S3_CUSTOM_ENDPOINTS"] = original
+
+
 @pytest.fixture
 def s3_setup():
     with mock_s3():
@@ -215,8 +225,15 @@ def test_s3_session_with_params():
             },
         )
         get_s3_client(credentials=creds_block.dict())
+        get_s3_client(
+            credentials={
+                "minio_root_user": "MY_USER",
+                "minio_root_password": "MY_PASSWORD",
+            },
+            client_parameters={"endpoint_url": "http://custom.minio.endpoint:9000"},
+        )
         all_calls = mock_session.mock_calls
-        assert len(all_calls) == 6
+        assert len(all_calls) == 8
         assert all_calls[0].kwargs == {
             "aws_access_key_id": "THE_KEY",
             "aws_secret_access_key": "SHHH!",
@@ -265,6 +282,20 @@ def test_s3_session_with_params():
         }.items() <= all_calls[5].kwargs.items()
         assert all_calls[5].kwargs.get("config").connect_timeout == 123
         assert all_calls[5].kwargs.get("config").signature_version is None
+        assert all_calls[6].kwargs == {
+            "aws_access_key_id": "MY_USER",
+            "aws_secret_access_key": "MY_PASSWORD",
+            "aws_session_token": None,
+            "profile_name": None,
+            "region_name": None,
+        }
+        assert all_calls[7].args[0] == "s3"
+        assert {
+            "api_version": None,
+            "use_ssl": True,
+            "verify": None,
+            "endpoint_url": "http://custom.minio.endpoint:9000",
+        }.items() <= all_calls[7].kwargs.items()
 
 
 def test_custom_credentials_and_client_parameters(s3_setup, tmp_files):
@@ -280,6 +311,47 @@ def test_custom_credentials_and_client_parameters(s3_setup, tmp_files):
     custom_client_parameters = {
         "region_name": "us-west-1",
         "config": {"signature_version": "s3v4"},
+    }
+
+    os.chdir(tmp_files)
+
+    # Test push_to_s3 with custom credentials and client parameters
+    push_to_s3(
+        bucket_name,
+        folder,
+        credentials=custom_credentials,
+        client_parameters=custom_client_parameters,
+    )
+
+    # Test pull_from_s3 with custom credentials and client parameters
+    tmp_path = tmp_files / "test_pull"
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    os.chdir(tmp_path)
+
+    pull_from_s3(
+        bucket_name,
+        folder,
+        credentials=custom_credentials,
+        client_parameters=custom_client_parameters,
+    )
+
+    for file in tmp_files.iterdir():
+        if file.is_file() and file.name != ".prefectignore":
+            assert (tmp_path / file.name).exists()
+
+
+def test_custom_credentials_and_client_parameters_minio(s3_setup, tmp_files):
+    s3, bucket_name = s3_setup
+    folder = "my-project"
+
+    # Custom credentials and client parameters
+    custom_credentials = {
+        "minio_root_user": "fake_user",
+        "minio_root_password": "fake_password",
+    }
+
+    custom_client_parameters = {
+        "endpoint_url": "http://custom.minio.endpoint:9000",
     }
 
     os.chdir(tmp_files)

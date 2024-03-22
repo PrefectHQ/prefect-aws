@@ -1,6 +1,7 @@
 import json
 import logging
 import textwrap
+from copy import deepcopy
 from functools import partial
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 from unittest.mock import MagicMock
@@ -11,12 +12,15 @@ import yaml
 from botocore.exceptions import ClientError
 from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
+from prefect._internal.compatibility.deprecated import PrefectDeprecationWarning
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.logging.configuration import setup_logging
 from prefect.server.schemas.core import Deployment, Flow, FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
 from prefect.utilities.dockerutils import get_prefect_image_name
 from pydantic import VERSION as PYDANTIC_VERSION
+
+from prefect_aws.workers.ecs_worker import ECSWorker
 
 if PYDANTIC_VERSION.startswith("2."):
     from pydantic.v1 import ValidationError
@@ -31,6 +35,20 @@ from prefect_aws.ecs import (
     get_prefect_container,
     parse_task_identifier,
 )
+
+
+def test_ecs_task_emits_deprecation_warning():
+    with pytest.warns(
+        PrefectDeprecationWarning,
+        match=(
+            "prefect_aws.ecs.ECSTask has been deprecated."
+            " It will not be available after Sep 2024."
+            " Use the ECS worker instead."
+            " Refer to the upgrade guide for more information"
+        ),
+    ):
+        ECSTask()
+
 
 setup_logging()
 
@@ -2047,3 +2065,201 @@ async def test_kill_with_grace_period(aws_credentials, caplog):
 
     # Logs warning
     assert "grace period of 60s requested, but AWS does not support" in caplog.text
+
+
+@pytest.fixture
+def default_base_job_template():
+    return deepcopy(ECSWorker.get_default_base_job_template())
+
+
+@pytest.fixture
+def base_job_template_with_defaults(default_base_job_template, aws_credentials):
+    base_job_template_with_defaults = deepcopy(default_base_job_template)
+    base_job_template_with_defaults["variables"]["properties"]["command"][
+        "default"
+    ] = "python my_script.py"
+    base_job_template_with_defaults["variables"]["properties"]["env"]["default"] = {
+        "VAR1": "value1",
+        "VAR2": "value2",
+    }
+    base_job_template_with_defaults["variables"]["properties"]["labels"]["default"] = {
+        "label1": "value1",
+        "label2": "value2",
+    }
+    base_job_template_with_defaults["variables"]["properties"]["name"][
+        "default"
+    ] = "prefect-job"
+    base_job_template_with_defaults["variables"]["properties"]["image"][
+        "default"
+    ] = "docker.io/my_image:latest"
+    base_job_template_with_defaults["variables"]["properties"]["aws_credentials"][
+        "default"
+    ] = {"$ref": {"block_document_id": str(aws_credentials._block_document_id)}}
+    base_job_template_with_defaults["variables"]["properties"]["launch_type"][
+        "default"
+    ] = "FARGATE_SPOT"
+    base_job_template_with_defaults["variables"]["properties"]["vpc_id"][
+        "default"
+    ] = "vpc-123456"
+    base_job_template_with_defaults["variables"]["properties"]["task_role_arn"][
+        "default"
+    ] = "arn:aws:iam::123456789012:role/ecsTaskExecutionRole"
+    base_job_template_with_defaults["variables"]["properties"]["execution_role_arn"][
+        "default"
+    ] = "arn:aws:iam::123456789012:role/ecsTaskExecutionRole"
+    base_job_template_with_defaults["variables"]["properties"]["cluster"][
+        "default"
+    ] = "test-cluster"
+    base_job_template_with_defaults["variables"]["properties"]["cpu"]["default"] = 2048
+    base_job_template_with_defaults["variables"]["properties"]["memory"][
+        "default"
+    ] = 4096
+
+    base_job_template_with_defaults["variables"]["properties"]["family"][
+        "default"
+    ] = "test-family"
+    base_job_template_with_defaults["variables"]["properties"]["task_definition_arn"][
+        "default"
+    ] = "arn:aws:ecs:us-east-1:123456789012:task-definition/test-family:1"
+    base_job_template_with_defaults["variables"]["properties"][
+        "cloudwatch_logs_options"
+    ]["default"] = {
+        "awslogs-group": "prefect",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "prefect",
+    }
+    base_job_template_with_defaults["variables"]["properties"][
+        "configure_cloudwatch_logs"
+    ]["default"] = True
+    base_job_template_with_defaults["variables"]["properties"]["stream_output"][
+        "default"
+    ] = True
+    base_job_template_with_defaults["variables"]["properties"][
+        "task_watch_poll_interval"
+    ]["default"] = 5.1
+    base_job_template_with_defaults["variables"]["properties"][
+        "task_start_timeout_seconds"
+    ]["default"] = 60
+    base_job_template_with_defaults["variables"]["properties"][
+        "auto_deregister_task_definition"
+    ]["default"] = False
+    base_job_template_with_defaults["variables"]["properties"]["network_configuration"][
+        "default"
+    ] = {
+        "awsvpcConfiguration": {
+            "subnets": ["subnet-***"],
+            "assignPublicIp": "DISABLED",
+            "securityGroups": ["sg-***"],
+        }
+    }
+    return base_job_template_with_defaults
+
+
+@pytest.fixture
+def base_job_template_with_task_arn(default_base_job_template, aws_credentials):
+    base_job_template_with_task_arn = deepcopy(default_base_job_template)
+    base_job_template_with_task_arn["variables"]["properties"]["image"][
+        "default"
+    ] = "docker.io/my_image:latest"
+
+    base_job_template_with_task_arn["job_configuration"]["task_definition"] = {
+        "containerDefinitions": [
+            {"image": "docker.io/my_image:latest", "name": "prefect-job"}
+        ],
+        "cpu": "2048",
+        "family": "test-family",
+        "memory": "2024",
+        "executionRoleArn": "arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
+    }
+    return base_job_template_with_task_arn
+
+
+@pytest.mark.parametrize(
+    "job_config",
+    [
+        "default",
+        "custom",
+        "task_definition_arn",
+    ],
+)
+async def test_generate_work_pool_base_job_template(
+    job_config,
+    base_job_template_with_defaults,
+    aws_credentials,
+    default_base_job_template,
+    base_job_template_with_task_arn,
+    caplog,
+):
+    job = ECSTask()
+    expected_template = default_base_job_template
+    expected_template["variables"]["properties"]["image"][
+        "default"
+    ] = get_prefect_image_name()
+    if job_config == "custom":
+        expected_template = base_job_template_with_defaults
+        job = ECSTask(
+            command=["python", "my_script.py"],
+            env={"VAR1": "value1", "VAR2": "value2"},
+            labels={"label1": "value1", "label2": "value2"},
+            name="prefect-job",
+            image="docker.io/my_image:latest",
+            aws_credentials=aws_credentials,
+            launch_type="FARGATE_SPOT",
+            vpc_id="vpc-123456",
+            task_role_arn="arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
+            execution_role_arn="arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
+            cluster="test-cluster",
+            cpu=2048,
+            memory=4096,
+            task_customizations=[
+                {
+                    "op": "replace",
+                    "path": "/networkConfiguration/awsvpcConfiguration/assignPublicIp",
+                    "value": "DISABLED",
+                },
+                {
+                    "op": "add",
+                    "path": "/networkConfiguration/awsvpcConfiguration/subnets",
+                    "value": ["subnet-***"],
+                },
+                {
+                    "op": "add",
+                    "path": "/networkConfiguration/awsvpcConfiguration/securityGroups",
+                    "value": ["sg-***"],
+                },
+            ],
+            family="test-family",
+            task_definition_arn=(
+                "arn:aws:ecs:us-east-1:123456789012:task-definition/test-family:1"
+            ),
+            cloudwatch_logs_options={
+                "awslogs-group": "prefect",
+                "awslogs-region": "us-east-1",
+                "awslogs-stream-prefix": "prefect",
+            },
+            configure_cloudwatch_logs=True,
+            stream_output=True,
+            task_watch_poll_interval=5.1,
+            task_start_timeout_seconds=60,
+            auto_deregister_task_definition=False,
+        )
+    elif job_config == "task_definition_arn":
+        expected_template = base_job_template_with_task_arn
+        job = ECSTask(
+            image="docker.io/my_image:latest",
+            task_definition={
+                "containerDefinitions": [
+                    {"image": "docker.io/my_image:latest", "name": "prefect-job"}
+                ],
+                "cpu": "2048",
+                "family": "test-family",
+                "memory": "2024",
+                "executionRoleArn": (
+                    "arn:aws:iam::123456789012:role/ecsTaskExecutionRole"
+                ),
+            },
+        )
+
+    template = await job.generate_work_pool_base_job_template()
+
+    assert template == expected_template

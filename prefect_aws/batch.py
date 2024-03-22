@@ -21,8 +21,8 @@ async def batch_submit(
 
     Args:
         job_name: The AWS batch job name.
-        job_definition: The AWS batch job definition.
         job_queue: Name of the AWS batch job queue.
+        job_definition: The AWS batch job definition.
         aws_credentials: Credentials to use for authentication with AWS.
         **batch_kwargs: Additional keyword arguments to pass to the boto3
             `submit_job` function. See the documentation for
@@ -49,8 +49,8 @@ async def batch_submit(
             )
             job_id = batch_submit(
                 "job_name",
-                "job_definition",
                 "job_queue",
+                "job_definition",
                 aws_credentials
             )
             return job_id

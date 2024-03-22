@@ -1,6 +1,8 @@
 """Module handling AWS credentials"""
 
 from enum import Enum
+from functools import lru_cache
+from threading import Lock
 from typing import Any, Optional, Union
 
 import boto3
@@ -16,12 +18,41 @@ else:
 
 from prefect_aws.client_parameters import AwsClientParameters
 
+_LOCK = Lock()
+
 
 class ClientType(Enum):
+    """The supported boto3 clients."""
+
     S3 = "s3"
     ECS = "ecs"
     BATCH = "batch"
     SECRETS_MANAGER = "secretsmanager"
+
+
+@lru_cache(maxsize=8, typed=True)
+def _get_client_cached(ctx, client_type: Union[str, ClientType]) -> Any:
+    """
+    Helper method to cache and dynamically get a client type.
+
+    Args:
+        client_type: The client's service name.
+
+    Returns:
+        An authenticated client.
+
+    Raises:
+        ValueError: if the client is not supported.
+    """
+    with _LOCK:
+        if isinstance(client_type, ClientType):
+            client_type = client_type.value
+
+        client = ctx.get_boto3_session().client(
+            service_name=client_type,
+            **ctx.aws_client_parameters.get_params_override(),
+        )
+    return client
 
 
 class AwsCredentials(CredentialsBlock):
@@ -75,6 +106,22 @@ class AwsCredentials(CredentialsBlock):
         title="AWS Client Parameters",
     )
 
+    class Config:
+        """Config class for pydantic model."""
+
+        arbitrary_types_allowed = True
+
+    def __hash__(self):
+        field_hashes = (
+            hash(self.aws_access_key_id),
+            hash(self.aws_secret_access_key),
+            hash(self.aws_session_token),
+            hash(self.profile_name),
+            hash(self.region_name),
+            hash(self.aws_client_parameters),
+        )
+        return hash(field_hashes)
+
     def get_boto3_session(self) -> boto3.Session:
         """
         Returns an authenticated boto3 session that can be used to create clients
@@ -104,7 +151,7 @@ class AwsCredentials(CredentialsBlock):
             region_name=self.region_name,
         )
 
-    def get_client(self, client_type: Union[str, ClientType]) -> Any:
+    def get_client(self, client_type: Union[str, ClientType]):
         """
         Helper method to dynamically get a client type.
 
@@ -120,10 +167,7 @@ class AwsCredentials(CredentialsBlock):
         if isinstance(client_type, ClientType):
             client_type = client_type.value
 
-        client = self.get_boto3_session().client(
-            service_name=client_type, **self.aws_client_parameters.get_params_override()
-        )
-        return client
+        return _get_client_cached(ctx=self, client_type=client_type)
 
     def get_s3_client(self) -> S3Client:
         """
@@ -186,6 +230,21 @@ class MinIOCredentials(CredentialsBlock):
         description="Extra parameters to initialize the Client.",
     )
 
+    class Config:
+        """Config class for pydantic model."""
+
+        arbitrary_types_allowed = True
+
+    def __hash__(self):
+        return hash(
+            (
+                hash(self.minio_root_user),
+                hash(self.minio_root_password),
+                hash(self.region_name),
+                hash(frozenset(self.aws_client_parameters.dict().items())),
+            )
+        )
+
     def get_boto3_session(self) -> boto3.Session:
         """
         Returns an authenticated boto3 session that can be used to create clients
@@ -218,7 +277,7 @@ class MinIOCredentials(CredentialsBlock):
             region_name=self.region_name,
         )
 
-    def get_client(self, client_type: Union[str, ClientType]) -> Any:
+    def get_client(self, client_type: Union[str, ClientType]):
         """
         Helper method to dynamically get a client type.
 
@@ -234,10 +293,7 @@ class MinIOCredentials(CredentialsBlock):
         if isinstance(client_type, ClientType):
             client_type = client_type.value
 
-        client = self.get_boto3_session().client(
-            service_name=client_type, **self.aws_client_parameters.get_params_override()
-        )
-        return client
+        return _get_client_cached(ctx=self, client_type=client_type)
 
     def get_s3_client(self) -> S3Client:
         """

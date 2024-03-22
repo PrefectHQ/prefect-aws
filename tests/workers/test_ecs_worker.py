@@ -21,6 +21,7 @@ else:
 
 from tenacity import RetryError
 
+from prefect_aws.credentials import _get_client_cached
 from prefect_aws.workers.ecs_worker import (
     _TASK_DEFINITION_CACHE,
     ECS_DEFAULT_CONTAINER_NAME,
@@ -34,6 +35,7 @@ from prefect_aws.workers.ecs_worker import (
     InfrastructureNotFound,
     _get_container,
     get_prefect_image_name,
+    mask_sensitive_env_values,
     parse_identifier,
 )
 
@@ -1414,6 +1416,97 @@ async def test_deregister_task_definition_does_not_apply_to_linked_arn(
 
 
 @pytest.mark.usefixtures("ecs_mocks")
+async def test_match_latest_revision_in_family(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    configuration_1 = await construct_configuration(
+        aws_credentials=aws_credentials,
+    )
+
+    configuration_2 = await construct_configuration(
+        aws_credentials=aws_credentials,
+        execution_role_arn="test",
+    )
+
+    configuration_3 = await construct_configuration(
+        aws_credentials=aws_credentials,
+        match_latest_revision_in_family=True,
+        execution_role_arn="test",
+    )
+
+    # Let the first worker run and register two task definitions
+    async with ECSWorker(work_pool_name="test") as worker:
+        await run_then_stop_task(worker, configuration_1, flow_run)
+        result_1 = await run_then_stop_task(worker, configuration_2, flow_run)
+
+    # Start a new worker with an empty cache
+    async with ECSWorker(work_pool_name="test") as worker:
+        result_2 = await run_then_stop_task(worker, configuration_3, flow_run)
+
+    assert result_1.status_code == 0
+    _, task_arn_1 = parse_identifier(result_1.identifier)
+
+    assert result_2.status_code == 0
+    _, task_arn_2 = parse_identifier(result_2.identifier)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] == task_2["taskDefinitionArn"]
+    assert task_2["taskDefinitionArn"].endswith(":2")
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_match_latest_revision_in_family_custom_family(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    configuration_1 = await construct_configuration(
+        aws_credentials=aws_credentials,
+        family="test-family",
+    )
+
+    configuration_2 = await construct_configuration(
+        aws_credentials=aws_credentials,
+        execution_role_arn="test",
+        family="test-family",
+    )
+
+    configuration_3 = await construct_configuration(
+        aws_credentials=aws_credentials,
+        match_latest_revision_in_family=True,
+        execution_role_arn="test",
+        family="test-family",
+    )
+
+    # Let the first worker run and register two task definitions
+    async with ECSWorker(work_pool_name="test") as worker:
+        await run_then_stop_task(worker, configuration_1, flow_run)
+        result_1 = await run_then_stop_task(worker, configuration_2, flow_run)
+
+    # Start a new worker with an empty cache
+    async with ECSWorker(work_pool_name="test") as worker:
+        result_2 = await run_then_stop_task(worker, configuration_3, flow_run)
+
+    assert result_1.status_code == 0
+    _, task_arn_1 = parse_identifier(result_1.identifier)
+
+    assert result_2.status_code == 0
+    _, task_arn_2 = parse_identifier(result_2.identifier)
+
+    task_1 = describe_task(ecs_client, task_arn_1)
+    task_2 = describe_task(ecs_client, task_arn_2)
+
+    assert task_1["taskDefinitionArn"] == task_2["taskDefinitionArn"]
+    assert task_2["taskDefinitionArn"].endswith(":2")
+
+
+@pytest.mark.usefixtures("ecs_mocks")
 async def test_worker_caches_registered_task_definitions(
     aws_credentials: AwsCredentials, flow_run: FlowRun
 ):
@@ -2180,3 +2273,46 @@ async def test_retry_on_failed_task_start(
             await run_then_stop_task(worker, configuration, flow_run)
 
     assert run_task_mock.call_count == 3
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_worker_uses_cached_boto3_client(aws_credentials: AwsCredentials):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+    )
+
+    _get_client_cached.cache_clear()
+
+    assert _get_client_cached.cache_info().hits == 0, "Initial call count should be 0"
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        worker._get_client(configuration, "ecs")
+        worker._get_client(configuration, "ecs")
+        worker._get_client(configuration, "ecs")
+
+    assert _get_client_cached.cache_info().misses == 1
+    assert _get_client_cached.cache_info().hits == 2
+
+
+async def test_mask_sensitive_env_values():
+    task_run_request = {
+        "overrides": {
+            "containerOverrides": [
+                {
+                    "environment": [
+                        {"name": "PREFECT_API_KEY", "value": "SeNsItiVe VaLuE"},
+                        {"name": "PREFECT_API_URL", "value": "NORMAL_VALUE"},
+                    ]
+                }
+            ]
+        }
+    }
+
+    res = mask_sensitive_env_values(task_run_request, ["PREFECT_API_KEY"], 3, "***")
+    assert (
+        res["overrides"]["containerOverrides"][0]["environment"][0]["value"] == "SeN***"
+    )
+    assert (
+        res["overrides"]["containerOverrides"][0]["environment"][1]["value"]
+        == "NORMAL_VALUE"
+    )

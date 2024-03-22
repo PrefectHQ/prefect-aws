@@ -1,4 +1,11 @@
 """
+DEPRECATION WARNING:
+
+This module is deprecated as of March 2024 and will not be available after September 2024.
+It has been replaced by the ECS worker, which offers enhanced functionality and better performance.
+
+For upgrade instructions, see https://docs.prefect.io/latest/guides/upgrade-guide-agents-to-workers/.
+
 Integrations with the Amazon Elastic Container Service.
 
 Examples:
@@ -102,12 +109,14 @@ Examples:
         ],
     )
     ```
-"""
+"""  # noqa
+
 import copy
 import difflib
 import json
 import logging
 import pprint
+import shlex
 import sys
 import time
 import warnings
@@ -116,12 +125,17 @@ from typing import TYPE_CHECKING, Any, Dict, Generator, List, Optional, Tuple, U
 import boto3
 import yaml
 from anyio.abc import TaskStatus
+from jsonpointer import JsonPointerException
+from prefect._internal.compatibility.deprecated import deprecated_class
+from prefect.blocks.core import BlockNotSavedError
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
 from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compatible
 from prefect.utilities.dockerutils import get_prefect_image_name
 from prefect.utilities.pydantic import JsonPatch
 from pydantic import VERSION as PYDANTIC_VERSION
+
+from prefect_aws.utilities import assemble_document_for_patches
 
 if PYDANTIC_VERSION.startswith("2."):
     from pydantic.v1 import Field, root_validator, validator
@@ -132,7 +146,7 @@ from slugify import slugify
 from typing_extensions import Literal, Self
 
 from prefect_aws import AwsCredentials
-from prefect_aws.workers.ecs_worker import _TAG_REGEX
+from prefect_aws.workers.ecs_worker import _TAG_REGEX, ECSWorker
 
 # Internal type alias for ECS clients which are generated dynamically in botocore
 _ECSClient = Any
@@ -200,6 +214,14 @@ def _pretty_diff(d1: dict, d2: dict) -> str:
     )
 
 
+@deprecated_class(
+    start_date="Mar 2024",
+    help=(
+        "Use the ECS worker instead."
+        " Refer to the upgrade guide for more information:"
+        " https://docs.prefect.io/latest/guides/upgrade-guide-agents-to-workers/."
+    ),
+)
 class ECSTask(Infrastructure):
     """
     Run a command as an ECS task.
@@ -404,7 +426,7 @@ class ECSTask(Infrastructure):
             description=(
                 "The type of ECS task run infrastructure that should be used. Note that"
                 " 'FARGATE_SPOT' is not a formal ECS launch type, but we will configure"
-                " the proper capacity provider stategy if set here."
+                " the proper capacity provider strategy if set here."
             ),
         )
     )
@@ -680,6 +702,92 @@ class ECSTask(Infrastructure):
             )
         cluster, task = parse_task_identifier(identifier)
         await run_sync_in_worker_thread(self._stop_task, cluster, task)
+
+    @staticmethod
+    def get_corresponding_worker_type() -> str:
+        """Return the corresponding worker type for this infrastructure block."""
+        return ECSWorker.type
+
+    async def generate_work_pool_base_job_template(self) -> dict:
+        """
+        Generate a base job template for a cloud-run work pool with the same
+        configuration as this block.
+
+        Returns:
+            - dict: a base job template for a cloud-run work pool
+        """
+        base_job_template = copy.deepcopy(ECSWorker.get_default_base_job_template())
+        for key, value in self.dict(exclude_unset=True, exclude_defaults=True).items():
+            if key == "command":
+                base_job_template["variables"]["properties"]["command"]["default"] = (
+                    shlex.join(value)
+                )
+            elif key in [
+                "type",
+                "block_type_slug",
+                "_block_document_id",
+                "_block_document_name",
+                "_is_anonymous",
+                "task_customizations",
+            ]:
+                continue
+            elif key == "aws_credentials":
+                if not self.aws_credentials._block_document_id:
+                    raise BlockNotSavedError(
+                        "It looks like you are trying to use a block that"
+                        " has not been saved. Please call `.save` on your block"
+                        " before publishing it as a work pool."
+                    )
+                base_job_template["variables"]["properties"]["aws_credentials"][
+                    "default"
+                ] = {
+                    "$ref": {
+                        "block_document_id": str(
+                            self.aws_credentials._block_document_id
+                        )
+                    }
+                }
+            elif key == "task_definition":
+                base_job_template["job_configuration"]["task_definition"] = value
+            elif key in base_job_template["variables"]["properties"]:
+                base_job_template["variables"]["properties"][key]["default"] = value
+            else:
+                self.logger.warning(
+                    f"Variable {key!r} is not supported by Cloud Run work pools."
+                    " Skipping."
+                )
+
+        if self.task_customizations:
+            network_config_patches = JsonPatch(
+                [
+                    patch
+                    for patch in self.task_customizations
+                    if "networkConfiguration" in patch["path"]
+                ]
+            )
+            minimal_network_config = assemble_document_for_patches(
+                network_config_patches
+            )
+            if minimal_network_config:
+                minimal_network_config_with_patches = network_config_patches.apply(
+                    minimal_network_config
+                )
+                base_job_template["variables"]["properties"]["network_configuration"][
+                    "default"
+                ] = minimal_network_config_with_patches["networkConfiguration"]
+            try:
+                base_job_template["job_configuration"]["task_run_request"] = (
+                    self.task_customizations.apply(
+                        base_job_template["job_configuration"]["task_run_request"]
+                    )
+                )
+            except JsonPointerException:
+                self.logger.warning(
+                    "Unable to apply task customizations to the base job template."
+                    "You may need to update the template manually."
+                )
+
+        return base_job_template
 
     def _stop_task(self, cluster: str, task: str) -> None:
         """
