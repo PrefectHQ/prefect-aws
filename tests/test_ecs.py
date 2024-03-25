@@ -1232,7 +1232,6 @@ async def test_cloudwatch_log_options(aws_credentials):
         configure_cloudwatch_logs=True,
         execution_role_arn="test",
         cloudwatch_logs_options={
-            "awslogs-stream-prefix": "override-prefix",
             "max-buffer-size": "2m",
         },
     )
@@ -1243,6 +1242,46 @@ async def test_cloudwatch_log_options(aws_credentials):
 
     for container in task_definition["containerDefinitions"]:
         if container["name"] == "prefect":
+            # Assert that the 'prefect' container has logging configured with user
+            # provided options
+            assert container["logConfiguration"] == {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "prefect",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "override-prefix",
+                    "max-buffer-size": "2m",
+                },
+            }
+        else:
+            # Other containers should not be modifed
+            assert "logConfiguration" not in container
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_cloudwatch_log_options_no_new_defintion(aws_credentials):
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    task = ECSTask(
+        aws_credentials=aws_credentials,
+        auto_deregister_task_definition=False,
+        command=["prefect", "version"],
+        configure_cloudwatch_logs=True,
+        execution_role_arn="test",
+        cloudwatch_logs_options={
+            "max-buffer-size": "2m",
+        },
+    )
+
+    task_arn = await run_then_stop_task(task)
+    task = describe_task(ecs_client, task_arn)
+    task_definition = describe_task_definition(ecs_client, task)
+
+    for container in task_definition["containerDefinitions"]:
+        if container["name"] == "prefect":
+            print(container["logConfiguration"])
             # Assert that the 'prefect' container has logging configured with user
             # provided options
             assert container["logConfiguration"] == {

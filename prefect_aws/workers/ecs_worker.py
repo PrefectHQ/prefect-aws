@@ -508,7 +508,7 @@ class ECSVariables(BaseVariables):
             " for available options. "
         ),
     )
-    cloudwatch_logs_prefix: str = Field(
+    cloudwatch_logs_prefix: Optional[str] = Field(
         default=None,
         description=(
             "When `configure_cloudwatch_logs` is enabled, this setting may be used to"
@@ -722,6 +722,7 @@ class ECSWorker(BaseWorker):
         )
 
         try:
+            print("ttttttttask_run_requestttttt", task_run_request)
             task = self._create_task_run(ecs_client, task_run_request)
             task_arn = task["taskArn"]
             cluster_arn = task["clusterArn"]
@@ -1587,11 +1588,6 @@ class ECSWorker(BaseWorker):
 
         Returns the task run ARN.
         """
-        run = ecs_client.run_task(**task_run_request)
-        failures = run["failures"]
-        if failures:
-            raise RuntimeError(f"Failed to run ECS task: {failures}")
-
         return ecs_client.run_task(**task_run_request)["tasks"][0]
 
     def _task_definitions_equal(self, taskdef_1, taskdef_2) -> bool:
