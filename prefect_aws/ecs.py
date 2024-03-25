@@ -1,4 +1,11 @@
 """
+DEPRECATION WARNING:
+
+This module is deprecated as of March 2024 and will not be available after September 2024.
+It has been replaced by the ECS worker, which offers enhanced functionality and better performance.
+
+For upgrade instructions, see https://docs.prefect.io/latest/guides/upgrade-guide-agents-to-workers/.
+
 Integrations with the Amazon Elastic Container Service.
 
 Examples:
@@ -102,7 +109,8 @@ Examples:
         ],
     )
     ```
-"""
+"""  # noqa
+
 import copy
 import difflib
 import json
@@ -118,6 +126,7 @@ import boto3
 import yaml
 from anyio.abc import TaskStatus
 from jsonpointer import JsonPointerException
+from prefect._internal.compatibility.deprecated import deprecated_class
 from prefect.blocks.core import BlockNotSavedError
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.infrastructure.base import Infrastructure, InfrastructureResult
@@ -125,6 +134,8 @@ from prefect.utilities.asyncutils import run_sync_in_worker_thread, sync_compati
 from prefect.utilities.dockerutils import get_prefect_image_name
 from prefect.utilities.pydantic import JsonPatch
 from pydantic import VERSION as PYDANTIC_VERSION
+
+from prefect_aws.utilities import assemble_document_for_patches
 
 if PYDANTIC_VERSION.startswith("2."):
     from pydantic.v1 import Field, root_validator, validator
@@ -203,6 +214,14 @@ def _pretty_diff(d1: dict, d2: dict) -> str:
     )
 
 
+@deprecated_class(
+    start_date="Mar 2024",
+    help=(
+        "Use the ECS worker instead."
+        " Refer to the upgrade guide for more information:"
+        " https://docs.prefect.io/latest/guides/upgrade-guide-agents-to-workers/."
+    ),
+)
 class ECSTask(Infrastructure):
     """
     Run a command as an ECS task.
@@ -739,6 +758,23 @@ class ECSTask(Infrastructure):
                 )
 
         if self.task_customizations:
+            network_config_patches = JsonPatch(
+                [
+                    patch
+                    for patch in self.task_customizations
+                    if "networkConfiguration" in patch["path"]
+                ]
+            )
+            minimal_network_config = assemble_document_for_patches(
+                network_config_patches
+            )
+            if minimal_network_config:
+                minimal_network_config_with_patches = network_config_patches.apply(
+                    minimal_network_config
+                )
+                base_job_template["variables"]["properties"]["network_configuration"][
+                    "default"
+                ] = minimal_network_config_with_patches["networkConfiguration"]
             try:
                 base_job_template["job_configuration"]["task_run_request"] = (
                     self.task_customizations.apply(

@@ -12,6 +12,7 @@ import yaml
 from botocore.exceptions import ClientError
 from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
+from prefect._internal.compatibility.deprecated import PrefectDeprecationWarning
 from prefect.exceptions import InfrastructureNotAvailable, InfrastructureNotFound
 from prefect.logging.configuration import setup_logging
 from prefect.server.schemas.core import Deployment, Flow, FlowRun
@@ -34,6 +35,20 @@ from prefect_aws.ecs import (
     get_prefect_container,
     parse_task_identifier,
 )
+
+
+def test_ecs_task_emits_deprecation_warning():
+    with pytest.warns(
+        PrefectDeprecationWarning,
+        match=(
+            "prefect_aws.ecs.ECSTask has been deprecated."
+            " It will not be available after Sep 2024."
+            " Use the ECS worker instead."
+            " Refer to the upgrade guide for more information"
+        ),
+    ):
+        ECSTask()
+
 
 setup_logging()
 
@@ -2128,6 +2143,15 @@ def base_job_template_with_defaults(default_base_job_template, aws_credentials):
     base_job_template_with_defaults["variables"]["properties"][
         "auto_deregister_task_definition"
     ]["default"] = False
+    base_job_template_with_defaults["variables"]["properties"]["network_configuration"][
+        "default"
+    ] = {
+        "awsvpcConfiguration": {
+            "subnets": ["subnet-***"],
+            "assignPublicIp": "DISABLED",
+            "securityGroups": ["sg-***"],
+        }
+    }
     return base_job_template_with_defaults
 
 
@@ -2189,9 +2213,19 @@ async def test_generate_work_pool_base_job_template(
             memory=4096,
             task_customizations=[
                 {
+                    "op": "replace",
+                    "path": "/networkConfiguration/awsvpcConfiguration/assignPublicIp",
+                    "value": "DISABLED",
+                },
+                {
+                    "op": "add",
+                    "path": "/networkConfiguration/awsvpcConfiguration/subnets",
+                    "value": ["subnet-***"],
+                },
+                {
                     "op": "add",
                     "path": "/networkConfiguration/awsvpcConfiguration/securityGroups",
-                    "value": ["sg-d72e9599956a084f5"],
+                    "value": ["sg-***"],
                 },
             ],
             family="test-family",
@@ -2229,10 +2263,3 @@ async def test_generate_work_pool_base_job_template(
     template = await job.generate_work_pool_base_job_template()
 
     assert template == expected_template
-
-    if job_config == "custom":
-        assert (
-            "Unable to apply task customizations to the base job template."
-            "You may need to update the template manually."
-            in caplog.text
-        )
