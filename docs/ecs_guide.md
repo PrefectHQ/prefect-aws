@@ -15,7 +15,7 @@ Prefect enables remote flow execution via [workers](https://docs.prefect.io/conc
 
 For details on how workers and work pools are implemented for ECS, see the diagram below:
 
-#### Architecture Diagram
+#### Architecture diagram
 
 ```mermaid
 %%{
@@ -64,7 +64,7 @@ graph TB
   prefect_workpool -->|configures| fr_task_definition
 ```
 
-### ECS in Prefect Terms
+### ECS in Prefect terms
 
 !!! tip "ECS tasks != Prefect tasks"
     An ECS task is **not** the same thing as a [Prefect task](https://docs.prefect.io/latest/concepts/tasks/#tasks-overview).
@@ -103,9 +103,9 @@ Before you begin, make sure you have:
 - An [ECS Cluster](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html) to host both the worker and the flow runs it submits. This guide use the default cluster. To create your own follow [this guide](https://docs.aws.amazon.com/AmazonECS/latest/userguide/create_cluster.html).
 - A [VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) configured for your ECS tasks. This guide uses the default VPC.
 
-### Step 1: Set Up an ECS work pool
+### Step 1: Set up an ECS work pool
 
-Before setting up the worker, create a simple [work pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration) of type ECS for the worker to pull work from.
+Before setting up the worker, create a simple [work pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration) of type ECS for the worker to pull work from. If doing so from CLI be sure to [auth into prefect cloud](https://docs.prefect.io/latest/cloud/cloud-quickstart/#log-into-prefect-cloud-from-a-terminal).
 
 Create a work pool from the CLI:
 
@@ -125,11 +125,11 @@ Next, set up a Prefect ECS worker that will discover and pull work from this wor
 
 ### Step 2: Start a Prefect worker in your ECS cluster
 
-First start by creating the [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-custom.html#roles-creatingrole-custom-trust-policy-console) required in order for your worker and flows to run. The sample flow in this guide is very simple and therefore you will only be creating one role, `taskExecutionRole`.  To create a IAM role for the ECS task using the AWS CLI, follow these steps:
+First start by creating the [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-custom.html#roles-creatingrole-custom-trust-policy-console) required in order for your worker and flows to run. The sample flow in this guide doesn't interact with many other AWS services, so you will only be creating one role, `taskExecutionRole`.  To create a IAM role for the ECS task using the AWS CLI, follow these steps:
 
 1. **Create a trust policy**
 
-    The trust policy will specify that the ECS service containing the prefect worker will be able to assume the role required for calling other AWS services.
+    The trust policy will specify that the ECS service containing the Prefect worker will be able to assume the role required for calling other AWS services.
 
     Save this policy to a file, such as `ecs-trust-policy.json`:
 
@@ -161,7 +161,7 @@ First start by creating the [IAM role](https://docs.aws.amazon.com/IAM/latest/Us
     ```
 
  !!! tip
-    Depending on the requirements of your task, it is advised to create a [second role for your tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This will contain permissions required while running the task. Because our sample flow doesn't interact with AWS you don't have to.
+    Depending on the requirements of your task, it is advised to create a [second role for your tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This will contain permissions required while running the task. For example if, your workflow loaded data into an S3 bucket, you would need  Because our sample flow doesn't interact with AWS, you don't have to.
 3. **Attach the policy to the role**
     For this guide the ECS worker will require the permissions to pull images from ECR and publish logs to CloudWatch. Amazon has a managed policy named `AmazonECSTaskExecutionRolePolicy` that grants the permissions necessary for ECS tasks. [See here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html) for other common execution role permissions. Attach this policy to your task execution role:
 
@@ -224,7 +224,8 @@ First start by creating the [IAM role](https://docs.aws.amazon.com/IAM/latest/Us
 
     - For the `PREFECT_API_KEY`, individuals on the organization tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
 
-    - Replace both instances of `<ecs-task-role-arn>` with the ARN of the IAM role you created in Step 2.
+    - Replace both instances of `<ecs-task-role-arn>` with the ARN of the IAM role you created in Step 2. You can grab this by running:
+    ```aws iam get-role --role-name taskExecutionRole --query 'Role.[RoleName, Arn]' --output text```
 
     - Notice that the CPU and Memory allocations are relatively small. The worker's main responsibility is to submit work through API calls to AWS, _not_ to execute your Prefect flow code.
 
@@ -264,7 +265,7 @@ First start by creating the [IAM role](https://docs.aws.amazon.com/IAM/latest/Us
     - Replace `<security-group-ids>` with a comma-separated list of your VPC security group IDs.
 
     !!! tip "Sanity check"
-        The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is live! Although keep in mind it can take ECS a few minuter for a service to go online.
+        The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is live! Note that it can take a few minutes for an ECS service to come online.
 
 ### Step 4: Pick up a flow run with your new worker
 
@@ -292,11 +293,12 @@ First start by creating the [IAM role](https://docs.aws.amazon.com/IAM/latest/Us
     --region <region>
     ```
 
-    To have prefect build your image when deploying your flow create `prefect.yaml` with the following
+    To have Prefect build your image when deploying your flow create a `prefect.yaml` file with the following specification:
 
     ```yaml
     name: ecs-worker-guide
-    prefect-version: 2.14.20
+    # this is pre-populated by running prefect init
+    prefect-version: 2.14.20 
 
     # build section allows you to manage and build docker images
     build:
@@ -334,7 +336,7 @@ First start by creating the [IAM role](https://docs.aws.amazon.com/IAM/latest/Us
 
     ```
 
-2. [Deploy](https://docs.prefect.io/2.11.0/tutorial/deployments/#create-a-deployment) the flow to the server, specifying the ECS work pool when prompted.
+2. [Deploy](https://docs.prefect.io/tutorial/deployments/#create-a-deployment) the flow to the server, specifying the ECS work pool when prompted.
 
     ```bash
     prefect deploy my_flow.py:my_ecs_deployment
