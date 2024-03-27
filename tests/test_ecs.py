@@ -1232,8 +1232,8 @@ async def test_cloudwatch_log_options(aws_credentials):
         configure_cloudwatch_logs=True,
         execution_role_arn="test",
         cloudwatch_logs_options={
-            "awslogs-stream-prefix": "override-prefix",
             "max-buffer-size": "2m",
+            "awslogs-stream-prefix": "override-prefix",
         },
     )
 
@@ -1245,6 +1245,7 @@ async def test_cloudwatch_log_options(aws_credentials):
         if container["name"] == "prefect":
             # Assert that the 'prefect' container has logging configured with user
             # provided options
+            print(container["logConfiguration"])
             assert container["logConfiguration"] == {
                 "logDriver": "awslogs",
                 "options": {
