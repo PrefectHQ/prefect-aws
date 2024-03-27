@@ -722,7 +722,6 @@ class ECSWorker(BaseWorker):
         )
 
         try:
-            print("ttttttttask_run_requestttttt", task_run_request)
             task = self._create_task_run(ecs_client, task_run_request)
             task_arn = task["taskArn"]
             cluster_arn = task["clusterArn"]
