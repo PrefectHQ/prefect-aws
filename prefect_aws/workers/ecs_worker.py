@@ -670,7 +670,6 @@ class ECSWorker(BaseWorker):
         """
         task_definition_arn = configuration.task_run_request.get("taskDefinition")
         new_task_definition_registered = False
-        print(flow_run)
 
         if not task_definition_arn:
             task_definition = self._prepare_task_definition(
