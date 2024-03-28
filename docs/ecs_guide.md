@@ -155,9 +155,11 @@ Use the `aws iam create-role` command to create the roles that you will be using
     --assume-role-policy-document file://ecs-trust-policy.json
 ```
 
- !!! tip
+!!! tip
     Depending on the requirements of your task, it is advised to create a [second role for your tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This will contain permissions required while running the task. For example if, your workflow loaded data into an S3 bucket, you would need  Because our sample flow doesn't interact with AWS, you don't have to.
+
 ### 3. Attach the policy to the role
+
 For this guide the ECS worker will require the permissions to pull images from ECR and publish logs to CloudWatch. Amazon has a managed policy named `AmazonECSTaskExecutionRolePolicy` that grants the permissions necessary for ECS tasks. [See here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html) for other common execution role permissions. Attach this policy to your task execution role:
 
 ```bash
@@ -169,9 +171,9 @@ For this guide the ECS worker will require the permissions to pull images from E
 
 Remember to replace the `--role-name` and `--policy-arn` with the actual role name and policy Amazon Resource Name (ARN) you want to use.
 
-### Step 3: Creating ECS worker service
+## Step 3: Creating ECS worker service
 
-1. **Launch an ECS Service to host the worker**
+### 1. Launch an ECS Service to host the worker
 
 Next, create an ECS task definition that specifies the Docker image for the Prefect worker, the resources it requires, and the command it should run. In this example, the command to start the worker is `prefect worker start --pool my-ecs-pool`.
 
@@ -227,7 +229,7 @@ Next, create an ECS task definition that specifies the Docker image for the Pref
 !!! tip
     To avoid hardcoding your API key into the task definition JSON see [how to add sensitive data using AWS secrets manager to the container definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data-tutorial.html#specifying-sensitive-data-tutorial-create-taskdef).
 
-2. **Register the task definition:**
+### 2. Register the task definition
 
 Before creating a service, you first need to register a task definition. You can do that using the `register-task-definition` command in the AWS CLI. Here is an example:
 
@@ -237,7 +239,7 @@ Before creating a service, you first need to register a task definition. You can
 
 Replace `task-definition.json` with the name of your JSON file.
 
-3. **Create an ECS service to host your worker:**
+### 3. Create an ECS service to host your worker
 
 Finally, create a service that will manage your Prefect worker:
 
@@ -255,7 +257,7 @@ aws ecs create-service \
 
 - Replace `<ecs-cluster>` with the name of your ECS cluster.
 - Replace `<task-definition-arn>` with the ARN of the task definition you just registered.
-- Replace `<subnet-ids>` with a comma-separated list of your VPC subnet IDs. Ensure that these subnets are aligned with the vpc specified on the work pool in step 1. You can view subnet ids with the following command: 
+- Replace `<subnet-ids>` with a comma-separated list of your VPC subnet IDs. Ensure that these subnets are aligned with the vpc specified on the work pool in step 1. You can view subnet ids with the following command:
     `aws ec2 describe-subnets --filter Name=<vpc-id>`
 - Replace `<security-group-ids>` with a comma-separated list of your VPC security group IDs.
 
@@ -264,23 +266,23 @@ aws ecs create-service \
 
 ## Step 4: Pick up a flow run with your new worker
 
-1. Write a simple test flow in a repo of your choice:
+### 1. Write a simple test flow in a repo of your choice
 
-    `my_flow.py`
+`my_flow.py`
 
-    ```python
-    from prefect import flow, get_run_logger
+```python
+from prefect import flow, get_run_logger
 
-    @flow
-    def my_flow():
-        logger = get_run_logger()
-        logger.info("Hello from ECS!!")
+@flow
+def my_flow():
+    logger = get_run_logger()
+    logger.info("Hello from ECS!!")
 
-    if __name__ == "__main__":
-        my_flow()
-    ```
+if __name__ == "__main__":
+    my_flow()
+```
 
-2. This guide uses ECR to store you code data. Create a repo with the following command:
+### 2. This guide uses ECR to store you code data. Create a repo with the following command
 
 ```bash
 aws ecr create-repository \
@@ -331,13 +333,13 @@ pull:
 
 ```
 
-2. [Deploy](https://docs.prefect.io/tutorial/deployments/#create-a-deployment) the flow to the server, specifying the ECS work pool when prompted.
+### 2. [Deploy](https://docs.prefect.io/tutorial/deployments/#create-a-deployment) the flow to the server, specifying the ECS work pool when prompted
 
 ```bash
 prefect deploy my_flow.py:my_ecs_deployment
 ```
 
-3. Find the deployment in the UI and click the **Quick Run** button!
+### 3. Find the deployment in the UI and click the **Quick Run** button!
 
 ## Optional Next Steps
 
