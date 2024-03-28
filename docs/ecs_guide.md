@@ -2,7 +2,7 @@
 
 ## Why use ECS for flow run execution?
 
-ECS (Elastic Container Service) tasks are a good option for executing Prefect 2 flow runs for several reasons:
+ECS (Elastic Container Service) tasks are a good option for executing Prefect flow runs for several reasons:
 
 1. **Scalability**: ECS scales your infrastructure in response to demand, effectively managing Prefect flow runs. ECS automatically administers container distribution across multiple instances based on demand.
 2. **Flexibility**: ECS lets you choose between AWS Fargate and Amazon EC2 for container operation. Fargate abstracts the underlying infrastructure, while EC2 has faster job start times and offers additional control over instance management and configuration.
@@ -87,14 +87,12 @@ You can use either EC2 or Fargate as the capacity provider. Fargate simplifies i
 
 <hr>
 
-# AWS CLI Guide
+
 
 !!! tip
     If you prefer infrastructure as code check out this [Terraform module](https://github.com/PrefectHQ/prefect-recipes/tree/main/devops/infrastructure-as-code/aws/tf-prefect2-ecs-worker) to provision an ECS cluster with a worker.
 
 ## Prerequisites
-
-Before you begin, make sure you have:
 
 - An AWS account with permissions to create ECS services and IAM roles.
 - The AWS CLI installed on your local machine. You can [download it from the AWS website](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
@@ -222,7 +220,9 @@ Next, create an ECS task definition that specifies the Docker image for the Pref
 - For the `PREFECT_API_KEY`, individuals on the organization tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
 
 - Replace both instances of `<ecs-task-role-arn>` with the ARN of the IAM role you created in Step 2. You can grab this by running:
-    ```aws iam get-role --role-name taskExecutionRole --query 'Role.[RoleName, Arn]' --output text```
+```
+aws iam get-role --role-name taskExecutionRole --query 'Role.[RoleName, Arn]' --output text
+```
 
 - Notice that the CPU and Memory allocations are relatively small. The worker's main responsibility is to submit work through API calls to AWS, _not_ to execute your Prefect flow code.
 
@@ -234,7 +234,7 @@ Next, create an ECS task definition that specifies the Docker image for the Pref
 Before creating a service, you first need to register a task definition. You can do that using the `register-task-definition` command in the AWS CLI. Here is an example:
 
 ```bash
-    aws ecs register-task-definition --cli-input-json file://task-definition.json
+aws ecs register-task-definition --cli-input-json file://task-definition.json
 ```
 
 Replace `task-definition.json` with the name of your JSON file.
