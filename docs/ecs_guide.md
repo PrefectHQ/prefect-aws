@@ -145,7 +145,7 @@ Save this policy to a file, such as `ecs-trust-policy.json`:
 
 ### 2. Create the IAM roles
 
-Use the `aws iam create-role` command to create the roles that you will be using. The `ecsTaskExecutionRole` will be used by the worker to talk to make AWS API calls on your behalf when starting ecs tasks.
+Use the `aws iam create-role` command to create the roles that you will be using. The `ecsTaskExecutionRole` will be used by the worker to start ECS tasks.
 
 ```bash
     aws iam create-role \
@@ -154,11 +154,11 @@ Use the `aws iam create-role` command to create the roles that you will be using
 ```
 
 !!! tip
-    Depending on the requirements of your task, it is advised to create a [second role for your tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This will contain permissions required while running the task. For example if, your workflow loaded data into an S3 bucket, you would need  Because our sample flow doesn't interact with AWS, you don't have to.
+    Depending on the requirements of your flows, it is advised to create a [second role for your ECS tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This role will contain the permissions required by the ECS tasks in which your flows will run. For example, if your workflow loads data into an S3 bucket, you would need a role with additional permissions specific to accessing S3.
 
 ### 3. Attach the policy to the role
 
-For this guide the ECS worker will require the permissions to pull images from ECR and publish logs to CloudWatch. Amazon has a managed policy named `AmazonECSTaskExecutionRolePolicy` that grants the permissions necessary for ECS tasks. [See here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html) for other common execution role permissions. Attach this policy to your task execution role:
+For this guide the ECS worker will require permissions to pull images from ECR and publish logs to CloudWatch. Amazon has a managed policy named `AmazonECSTaskExecutionRolePolicy` that grants the permissions necessary for starting ECS tasks. [See here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html) for other common execution role permissions. Attach this policy to your task execution role:
 
 ```bash
 
@@ -169,7 +169,7 @@ For this guide the ECS worker will require the permissions to pull images from E
 
 Remember to replace the `--role-name` and `--policy-arn` with the actual role name and policy Amazon Resource Name (ARN) you want to use.
 
-## Step 3: Creating ECS worker service
+## Step 3: Creating an ECS worker service
 
 ### 1. Launch an ECS Service to host the worker
 
@@ -217,7 +217,7 @@ Next, create an ECS task definition that specifies the Docker image for the Pref
 
 - Use `prefect config view` to view the `PREFECT_API_URL` for your current Prefect profile. Use this to replace `<prefect-api-url>`.
 
-- For the `PREFECT_API_KEY`, individuals on the organization tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
+- For the `PREFECT_API_KEY`, individuals on the pro tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
 
 - Replace both instances of `<ecs-task-role-arn>` with the ARN of the IAM role you created in Step 2. You can grab this by running:
 ```
