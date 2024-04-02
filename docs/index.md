@@ -12,18 +12,16 @@
     <br>
     <a href="https://prefect-community.slack.com" alt="Slack">
         <img src="https://img.shields.io/badge/slack-join_community-red.svg?color=26272B&labelColor=090422&logo=slack" /></a>
-    <a href="https://discourse.prefect.io/" alt="Discourse">
-        <img src="https://img.shields.io/badge/discourse-browse_forum-red.svg?color=26272B&labelColor=090422&logo=discourse" /></a>
 </p>
 
-## Welcome!
+## Welcome
 
 `prefect-aws` makes it easy to leverage the capabilities of AWS in your workflows.
 
 ## Getting started
 
 ### Installation
-```
+
 Prefect requires Python 3.8 or newer.
 
 We recommend using a Python virtual environment manager such as pipenv, conda, or virtualenv.
@@ -36,12 +34,13 @@ pip install prefect-aws
 
 ### Registering blocks
 
+Register [blocks](https://docs.prefect.io/ui/blocks/) in this module to make them available for use.
+
 ```bash
 prefect block register -m prefect_aws
 ```
 
 A list of available blocks in `prefect-aws` and their setup instructions can be found [here](https://PrefectHQ.github.io/prefect-aws/#blocks-catalog).
-
 
 ### Saving credentials to a block
 
@@ -62,21 +61,11 @@ AwsCredentials(
 ```
 
 Congrats! You can now load the saved block to use your credentials in your Python code:
- 
+
 ```python
 from prefect_aws import AwsCredentials
 AwsCredentials.load("BLOCK-NAME-PLACEHOLDER")
 ```
-
-!!! info "Registering blocks"
-
-    Register blocks in this module to
-    [view and edit them](https://docs.prefect.io/ui/blocks/)
-    on Prefect Cloud:
-
-    ```bash
-    prefect block register -m prefect_aws
-    ```
 
 ### Using Prefect with AWS S3
 
@@ -133,6 +122,7 @@ def secrets_manager_flow():
 
 secrets_manager_flow()
 ```
+
 ### Using Prefect with AWS ECS
 
 `prefect_aws` allows you to use [AWS ECS](https://aws.amazon.com/ecs/) as infrastructure for your deployments. Using ECS for scheduled flow runs enables the dynamic provisioning of infrastructure for containers and unlocks greater scalability. This setup gives you all of the observation and orchestration benefits of Prefect, while also providing you the scalability of ECS.
@@ -150,5 +140,5 @@ For more information about how to use Prefect, please refer to the [Prefect docu
 If you encounter any bugs while using `prefect-aws`, feel free to open an issue in the [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) repository.
 
 If you have any questions or issues while using `prefect-aws`, you can find help in the [Prefect Slack community](https://prefect.io/slack).
- 
+
 Feel free to check out the source code and give [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) a ⭐️!
