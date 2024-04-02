@@ -513,7 +513,9 @@ class ECSVariables(BaseVariables):
         description=(
             "When `configure_cloudwatch_logs` is enabled, this setting may be used to"
             " set a prefix for the log group. If not provided, the default prefix will"
-            " be `prefect-logs_<work_pool_name>_<deployment_id>`."
+            " be `prefect-logs_<work_pool_name>_<deployment_id>`. If"
+            " `awslogs-stream-prefix` is present in `Cloudwatch logs options` this"
+            " setting will be ignored."
         ),
     )
 
