@@ -649,7 +649,6 @@ async def test_task_definition_arn(aws_credentials: AwsCredentials, flow_run: Fl
     _, task_arn = parse_identifier(result.identifier)
 
     task = describe_task(ecs_client, task_arn)
-    print(task)
     assert (
         task["taskDefinitionArn"] == task_definition_arn
     ), "The task definition should be used without registering a new one"
