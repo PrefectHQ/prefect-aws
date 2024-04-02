@@ -44,7 +44,7 @@ def test_client_waiter_custom(mock_waiter, aws_credentials):
         return waiter
 
     test_flow()
-    assert mock_waiter.wait.called_once_with("JobExists")
+    mock_waiter.wait.assert_called_once_with("JobExists")
 
 
 @mock_ec2
@@ -66,4 +66,4 @@ def test_client_waiter_boto(mock_waiter, mock_client, aws_credentials):
         return waiter
 
     test_flow()
-    assert mock_waiter.wait.called_once_with("instance_exists")
+    mock_waiter.wait.assert_called_once_with("instance_exists")
