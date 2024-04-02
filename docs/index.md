@@ -208,7 +208,7 @@ def s3_flow():
     aws_credentials = AwsCredentials.load("BLOCK-NAME-PLACEHOLDER")
     s3_bucket = S3Bucket(
         bucket_name="BUCKET-NAME-PLACEHOLDER",
-        aws_credentials=aws_credentials
+        credentials=aws_credentials
     )
 
     s3_bucket_path = s3_bucket.upload_from_path(file_path)
