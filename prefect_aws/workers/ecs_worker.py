@@ -1436,7 +1436,11 @@ class ECSWorker(BaseWorker):
         task_run_request.setdefault("taskDefinition", task_definition_arn)
         assert task_run_request["taskDefinition"] == task_definition_arn
 
-        if task_run_request.get("launchType") == "FARGATE_SPOT":
+        if "capacityProviderStrategy" in task_run_request:
+            # Should not be provided at all if capacityProviderStrategy is set, see https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html#ECS-RunTask-request-capacityProviderStrategy  # noqa
+            task_run_request.pop("launchType", None)
+
+        elif task_run_request.get("launchType") == "FARGATE_SPOT":
             # Should not be provided at all for FARGATE SPOT
             task_run_request.pop("launchType", None)
 
