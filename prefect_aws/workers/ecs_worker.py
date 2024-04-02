@@ -1575,12 +1575,13 @@ class ECSWorker(BaseWorker):
         Returns the task run ARN.
         """
         task = ecs_client.run_task(**task_run_request)
-        self._logger.info([e for e in dir(ecs_client.exceptions)])
         if task["failures"]:
-            self._logger.error(task["failures"])
-
             raise RuntimeError(
                 f"Failed to run ECS task: {task['failures'][0]['reason']}"
+            )
+        elif not task["tasks"]:
+            raise RuntimeError(
+                "Failed to run ECS task: no tasks or failures were returned."
             )
         return task["tasks"][0]
 
