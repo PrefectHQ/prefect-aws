@@ -1245,7 +1245,6 @@ async def test_cloudwatch_log_options(aws_credentials):
         if container["name"] == "prefect":
             # Assert that the 'prefect' container has logging configured with user
             # provided options
-            print(container["logConfiguration"])
             assert container["logConfiguration"] == {
                 "logDriver": "awslogs",
                 "options": {
