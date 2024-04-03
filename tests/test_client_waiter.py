@@ -9,7 +9,7 @@ from prefect_aws.client_waiter import client_waiter
 
 @pytest.fixture
 def mock_waiter(monkeypatch):
-    waiter = MagicMock()
+    waiter = MagicMock(name="mock_waiter")
     monkeypatch.setattr(
         "prefect_aws.client_waiter.create_waiter_with_client",
         waiter,
@@ -44,7 +44,7 @@ def test_client_waiter_custom(mock_waiter, aws_credentials):
         return waiter
 
     test_flow()
-    assert mock_waiter.wait.called_once_with("JobExists")
+    mock_waiter().wait.assert_called_once_with()
 
 
 @mock_ec2
@@ -66,4 +66,4 @@ def test_client_waiter_boto(mock_waiter, mock_client, aws_credentials):
         return waiter
 
     test_flow()
-    assert mock_waiter.wait.called_once_with("instance_exists")
+    mock_waiter.wait.assert_called_once_with()
