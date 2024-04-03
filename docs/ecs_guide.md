@@ -9,7 +9,7 @@ ECS (Elastic Container Service) tasks are a good option for executing Prefect fl
 3. **AWS Integration**: Easily connect with other AWS services, such as AWS IAM and CloudWatch.
 4. **Containerization**: ECS supports Docker containers and offers managed execution. Containerization encourages reproducible deployments.
 
-## ECS Flow run execution
+## ECS flow run execution
 
 Prefect enables remote flow execution via [workers](https://docs.prefect.io/concepts/work-pools/#worker-overview) and [work pools](https://docs.prefect.io/concepts/work-pools/#work-pool-overview). To learn more about these concepts please see our [deployment tutorial](https://docs.prefect.io/tutorial/deployments/).
 
@@ -83,7 +83,7 @@ Once the flow run completes, the ECS containers of the cluster are spun down to 
 
 If you specify a task definition [ARN (Amazon Resource Name)](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html) in the work pool, the worker will use that ARN when spinning up the ECS Task, rather than creating a task definition from the fields supplied in the work pool configuration.
 
-You can use either EC2 or Fargate as the capacity provider. Fargate simplifies initiation, but lengthens infrastructure setup time for each flow run. Using EC2 for the ECS cluster can reduce setup time. In this example, we will show how to use Fargate.
+You can use either EC2 or Fargate as the capacity provider. Fargate simplifies initiation, but lengthens infrastructure setup time for each flow run. Using EC2 for the ECS cluster can reduce setup time. In this example, we will show how to use Fargate. 
 
 <hr>
 
@@ -98,6 +98,7 @@ You can use either EC2 or Fargate as the capacity provider. Fargate simplifies i
 - The AWS CLI installed on your local machine. You can [download it from the AWS website](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
 - An [ECS Cluster](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html) to host both the worker and the flow runs it submits. This guide uses the default cluster. To create your own follow [this guide](https://docs.aws.amazon.com/AmazonECS/latest/userguide/create_cluster.html).
 - A [VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) configured for your ECS tasks. This guide uses the default VPC.
+- Prefect Cloud account or Prefect self-managed instance.
 
 ## Step 1: Set up an ECS work pool
 
@@ -124,7 +125,7 @@ First start by creating the [IAM role](https://docs.aws.amazon.com/IAM/latest/Us
 ### 1. Create a trust policy
 
 The trust policy will specify that the ECS service containing the Prefect worker will be able to assume the role required for calling other AWS services.
-
+os
 Save this policy to a file, such as `ecs-trust-policy.json`:
 
 ```json
@@ -216,7 +217,7 @@ Next, create an ECS task definition that specifies the Docker image for the Pref
 
 - Use `prefect config view` to view the `PREFECT_API_URL` for your current Prefect profile. Use this to replace `<prefect-api-url>`.
 
-- For the `PREFECT_API_KEY`, individuals on the pro tier can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If on a personal tier, you can pass a user’s API key.
+- For the `PREFECT_API_KEY`, if you are on a paid plan you can create a [service account](https://docs.prefect.io/latest/cloud/users/service-accounts/) for the worker. If your are on a free plan, you can pass a user’s API key.
 
 - Replace both instances of `<ecs-task-role-arn>` with the ARN of the IAM role you created in Step 2. You can grab this by running:
 ```
@@ -291,7 +292,7 @@ aws ecr create-repository \
 --region <region>
 ```
 
-### 3. Create a `prefect.yaml`
+### 3. Create a `prefect.yaml` file
 
 To have Prefect build your image when deploying your flow create a `prefect.yaml` file with the following specification:
 
@@ -336,7 +337,7 @@ pull:
 
 ```
 
-### 4. [Deploy](https://docs.prefect.io/tutorial/deployments/#create-a-deployment) the flow to the server, specifying the ECS work pool when prompted
+### 4. [Deploy](https://docs.prefect.io/tutorial/deployments/#create-a-deployment) the flow to the Prefect Cloud or your self-managed server instance, specifying the ECS work pool when prompted
 
 ```bash
 prefect deploy my_flow.py:my_ecs_deployment
