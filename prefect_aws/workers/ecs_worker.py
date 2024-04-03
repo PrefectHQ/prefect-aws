@@ -259,6 +259,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
     )
     configure_cloudwatch_logs: Optional[bool] = Field(default=None)
     cloudwatch_logs_options: Dict[str, str] = Field(default_factory=dict)
+    cloudwatch_logs_prefix: Optional[str] = Field(default=None)
     network_configuration: Dict[str, Any] = Field(default_factory=dict)
     stream_output: Optional[bool] = Field(default=None)
     task_start_timeout_seconds: int = Field(default=300)
@@ -505,6 +506,16 @@ class ECSVariables(BaseVariables):
             " the default options. See the [AWS"
             " documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options)"  # noqa
             " for available options. "
+        ),
+    )
+    cloudwatch_logs_prefix: Optional[str] = Field(
+        default=None,
+        description=(
+            "When `configure_cloudwatch_logs` is enabled, this setting may be used to"
+            " set a prefix for the log group. If not provided, the default prefix will"
+            " be `prefect-logs_<work_pool_name>_<deployment_id>`. If"
+            " `awslogs-stream-prefix` is present in `Cloudwatch logs options` this"
+            " setting will be ignored."
         ),
     )
 
@@ -1276,13 +1287,16 @@ class ECSWorker(BaseWorker):
                 container["environment"].remove(item)
 
         if configuration.configure_cloudwatch_logs:
+            prefix = f"prefect-logs_{self._work_pool_name}_{flow_run.deployment_id}"
             container["logConfiguration"] = {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-create-group": "true",
                     "awslogs-group": "prefect",
                     "awslogs-region": region,
-                    "awslogs-stream-prefix": configuration.name or "prefect",
+                    "awslogs-stream-prefix": (
+                        configuration.cloudwatch_logs_prefix or prefix
+                    ),
                     **configuration.cloudwatch_logs_options,
                 },
             }
