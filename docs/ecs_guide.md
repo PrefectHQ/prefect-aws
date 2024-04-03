@@ -83,10 +83,9 @@ Once the flow run completes, the ECS containers of the cluster are spun down to 
 
 If you specify a task definition [ARN (Amazon Resource Name)](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html) in the work pool, the worker will use that ARN when spinning up the ECS Task, rather than creating a task definition from the fields supplied in the work pool configuration.
 
-You can use either EC2 or Fargate as the capacity provider. Fargate simplifies initiation, but lengthens infrastructure setup time for each flow run. Using EC2 for the ECS cluster can reduce setup time. In this example, we will show how to use Fargate. 
+You can use either EC2 or Fargate as the capacity provider. Fargate simplifies initiation, but lengthens infrastructure setup time for each flow run. Using EC2 for the ECS cluster can reduce setup time. In this example, we will show how to use Fargate.
 
 <hr>
-
 
 
 !!! tip
@@ -102,7 +101,7 @@ You can use either EC2 or Fargate as the capacity provider. Fargate simplifies i
 
 ## Step 1: Set up an ECS work pool
 
-Before setting up the worker, create a [work pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration) of type ECS for the worker to pull work from. If doing so the from CLI be sure to [auth into prefect cloud](https://docs.prefect.io/latest/cloud/cloud-quickstart/#log-into-prefect-cloud-from-a-terminal).
+Before setting up the worker, create a [work pool](https://docs.prefect.io/latest/concepts/work-pools/#work-pool-configuration) of type ECS for the worker to pull work from. If doing so from the CLI, be sure to [authenticate with Prefect Cloud](https://docs.prefect.io/latest/cloud/cloud-quickstart/#log-into-prefect-cloud-from-a-terminal).
 
 Create a work pool from the CLI:
 
@@ -125,7 +124,7 @@ First start by creating the [IAM role](https://docs.aws.amazon.com/IAM/latest/Us
 ### 1. Create a trust policy
 
 The trust policy will specify that the ECS service containing the Prefect worker will be able to assume the role required for calling other AWS services.
-os
+
 Save this policy to a file, such as `ecs-trust-policy.json`:
 
 ```json
@@ -155,7 +154,7 @@ Use the `aws iam create-role` command to create the roles that you will be using
 ```
 
 !!! tip
-    Depending on the requirements of your flows, it is advised to create a [second role for your ECS tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This role will contain the permissions required by the ECS tasks in which your flows will run. For example, if your workflow loads data into an S3 bucket, you would need a role with additional permissions specific to accessing S3.
+    Depending on the requirements of your flows, it is advised to create a [second role for your ECS tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This role will contain the permissions required by the ECS tasks in which your flows will run. For example, if your workflow loads data into an S3 bucket, you would need a role with additional permissions to access S3.
 
 ### 3. Attach the policy to the role
 
