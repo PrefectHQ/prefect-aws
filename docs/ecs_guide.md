@@ -128,24 +128,23 @@ The trust policy will specify that the ECS service containing the Prefect worker
 Save this policy to a file, such as `ecs-trust-policy.json`:
 
 ```json
-
-    {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Effect": "Allow",
-                "Principal": {
-                    "Service": "ecs-tasks.amazonaws.com"
-                },
-                "Action": "sts:AssumeRole"
-            }
-        ]
-    }
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "ecs-tasks.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
 ```
 
 ### 2. Create the IAM roles
 
-Use the `aws iam create-role` command to create the roles that you will be using. The `ecsTaskExecutionRole` will be used by the worker to start ECS tasks.
+Use the `aws iam create-role` command to create the roles that you will be using. For this guide, the `ecsTaskExecutionRole` will be used by the worker to start ECS tasks, and will also be the role assigned to the ECS tasks running your Prefect flows.
 
 ```bash
     aws iam create-role \
@@ -177,41 +176,41 @@ Next, create an ECS task definition that specifies the Docker image for the Pref
 **Create a JSON file with the following contents:**
 
 ```json
-    {
-        "family": "prefect-worker-task",
-        "networkMode": "awsvpc",
-        "requiresCompatibilities": [
-            "FARGATE"
-        ],
-        "cpu": "512",
-        "memory": "1024",
-        "executionRoleArn": "<ecs-task-role-arn>",
-        "taskRoleArn": "<ecs-task-role-arn>",
-        "containerDefinitions": [
-            {
-                "name": "prefect-worker",
-                "image": "prefecthq/prefect:2-latest",
-                "cpu": 512,
-                "memory": 1024,
-                "essential": true,
-                "command": [
-                    "/bin/sh",
-                    "-c",
-                    "pip install prefect-aws && prefect worker start --pool my-ecs-pool --type ecs"
-                ],
-                "environment": [
-                    {
-                        "name": "PREFECT_API_URL",
-                        "value": "<prefect-api-url>"
-                    },
-                    {
-                        "name": "PREFECT_API_KEY",
-                        "value": "<prefect-api-key>"
-                    }
-                ]
-            }
-        ]
-    }
+{
+    "family": "prefect-worker-task",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024",
+    "executionRoleArn": "<ecs-task-role-arn>",
+    "taskRoleArn": "<ecs-task-role-arn>",
+    "containerDefinitions": [
+        {
+            "name": "prefect-worker",
+            "image": "prefecthq/prefect:2-latest",
+            "cpu": 512,
+            "memory": 1024,
+            "essential": true,
+            "command": [
+                "/bin/sh",
+                "-c",
+                "pip install prefect-aws && prefect worker start --pool my-ecs-pool --type ecs"
+            ],
+            "environment": [
+                {
+                    "name": "PREFECT_API_URL",
+                    "value": "prefect-api-url>"
+                },
+                {
+                    "name": "PREFECT_API_KEY",
+                    "value": "<prefect-api-key>"
+                }
+            ]
+        }
+    ]
+}
 ```
 
 - Use `prefect config view` to view the `PREFECT_API_URL` for your current Prefect profile. Use this to replace `<prefect-api-url>`.
@@ -251,7 +250,7 @@ aws ecs create-service \
     --task-definition <task-definition-arn> \
     --launch-type FARGATE \
     --desired-count 1 \
-    --network-configuration "awsvpcConfiguration={subnets=[<subnet-ids>],securityGroups=[<your-security-group-ids>],assignPublicIp='ENABLED'}"
+    --network-configuration "awsvpcConfiguration={subnets=[<subnet-ids>],securityGroups=[<security-group-ids>],assignPublicIp='ENABLED'}"
 ```
 
 - Replace `<ecs-cluster>` with the name of your ECS cluster.
@@ -262,10 +261,13 @@ aws ecs create-service \
 
 !!! tip "Sanity check"
     The work pool page in the Prefect UI allows you to check the health of your workers - make sure your new worker is live! Note that it can take a few minutes for an ECS service to come online.
+    If your worker does not come online and you are using the command from this guide, you may not be using the default VPC. For connectivity issues, check your VPC's configuration and refer to the [ECS outbound networking guide](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/networking-outbound.html).
 
 ## Step 4: Pick up a flow run with your new worker
 
-### 1. Write a simple test flow in a repo of your choice
+This guide uses ECR to store a Docker image containing your flow code. To do this, we will write a flow, then deploy it using build and push steps that copy flow code into a Docker image and push that image to an ECR repository.
+
+### 1. Write a simple test flow
 
 `my_flow.py`
 
@@ -281,7 +283,7 @@ if __name__ == "__main__":
     my_flow()
 ```
 
-### 2. This guide uses ECR to store you code data. Create a repo with the following command
+### 2. Create an ECR repository
 
 Use the following AWS CLI command to create an ECR repository. The name you choose for your repository will be reused in the next step when defining your Prefect deployment.
 
