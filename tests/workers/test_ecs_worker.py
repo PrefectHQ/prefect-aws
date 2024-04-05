@@ -304,6 +304,22 @@ def ecs_mocks(
                 # NOTE: Even when using FARGATE, moto requires container instances to be
                 #       registered. This differs from AWS behavior.
                 add_ec2_instance_to_ecs_cluster(session, "default")
+                ec2_client = session.client("ec2")
+                ec2_resource = session.resource("ec2")
+
+                images = ec2_client.describe_images()
+                image_id = images["Images"][0]["ImageId"]
+
+                test_instance = ec2_resource.create_instances(
+                    ImageId=image_id, MinCount=1, MaxCount=1
+                )[0]
+
+                session.client("ecs").register_container_instance(
+                    cluster="default",
+                    instanceIdentityDocument=json.dumps(
+                        generate_instance_identity_document(test_instance)
+                    ),
+                )
 
                 yield ecs
 
@@ -519,18 +535,24 @@ async def test_launch_types(
 
 @pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize("launch_type", ["EC2", "FARGATE", "FARGATE_SPOT"])
-@pytest.mark.parametrize(
-    "cpu,memory", [(None, None), (1024, None), (None, 2048), (2048, 4096)]
-)
+@pytest.mark.parametrize("cpu,memory", [(2048, 4096)])
+@pytest.mark.parametrize("container_cpu,container_memory", [(1024, 2048)])
 async def test_cpu_and_memory(
     aws_credentials: AwsCredentials,
     launch_type: str,
     flow_run: FlowRun,
     cpu: int,
     memory: int,
+    container_cpu: int,
+    container_memory: int,
 ):
     configuration = await construct_configuration(
-        aws_credentials=aws_credentials, launch_type=launch_type, cpu=cpu, memory=memory
+        aws_credentials=aws_credentials,
+        launch_type=launch_type,
+        task_cpu=cpu,
+        task_memory=memory,
+        container_cpu=container_cpu,
+        container_memory=container_memory,
     )
 
     session = aws_credentials.get_boto3_session()
@@ -553,8 +575,8 @@ async def test_cpu_and_memory(
 
     if launch_type == "EC2":
         # EC2 requires CPU and memory to be defined at the container level
-        assert container_definition["cpu"] == cpu or ECS_DEFAULT_CPU
-        assert container_definition["memory"] == memory or ECS_DEFAULT_MEMORY
+        assert container_definition["cpu"] == container_cpu or ECS_DEFAULT_CPU
+        assert container_definition["memory"] == container_memory or ECS_DEFAULT_MEMORY
     else:
         # Fargate requires CPU and memory to be defined at the task definition level
         assert task_definition["cpu"] == str(cpu or ECS_DEFAULT_CPU)
@@ -564,8 +586,8 @@ async def test_cpu_and_memory(
     assert overrides.get("cpu") == (str(cpu) if cpu else None)
     assert overrides.get("memory") == (str(memory) if memory else None)
     # And as overrides for the Prefect container
-    assert container_overrides.get("cpu") == cpu
-    assert container_overrides.get("memory") == memory
+    assert container_overrides.get("cpu") == container_cpu
+    assert container_overrides.get("memory") == container_memory
 
 
 @pytest.mark.usefixtures("ecs_mocks")

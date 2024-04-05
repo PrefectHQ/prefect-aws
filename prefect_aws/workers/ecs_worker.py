@@ -105,9 +105,9 @@ DEFAULT_TASK_DEFINITION_TEMPLATE = """
 containerDefinitions:
 - image: "{{ image }}"
   name: "{{ container_name }}"
-cpu: "{{ cpu }}"
+cpu: "{{ task_cpu }}"
 family: "{{ family }}"
-memory: "{{ memory }}"
+memory: "{{ task_memory }}"
 executionRoleArn: "{{ execution_role_arn }}"
 """
 
@@ -119,10 +119,10 @@ overrides:
     - name: "{{ container_name }}"
       command: "{{ command }}"
       environment: "{{ env }}"
-      cpu: "{{ cpu }}"
-      memory: "{{ memory }}"
-  cpu: "{{ cpu }}"
-  memory: "{{ memory }}"
+      cpu: "{{ container_cpu }}"
+      memory: "{{ container_memory }}"
+  cpu: "{{ task_cpu }}"
+  memory: "{{ task_memory }}"
   taskRoleArn: "{{ task_role_arn }}"
 tags: "{{ labels }}"
 taskDefinition: "{{ task_definition_arn }}"
@@ -267,6 +267,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
     auto_deregister_task_definition: bool = Field(default=False)
     vpc_id: Optional[str] = Field(default=None)
     container_name: Optional[str] = Field(default=None)
+
     cluster: Optional[str] = Field(default=None)
     match_latest_revision_in_family: bool = Field(default=False)
 
@@ -433,7 +434,7 @@ class ECSVariables(BaseVariables):
             "defaults to a Prefect base image matching your local versions."
         ),
     )
-    cpu: int = Field(
+    task_cpu: int = Field(
         title="CPU",
         default=None,
         description=(
@@ -442,7 +443,7 @@ class ECSVariables(BaseVariables):
             f"{ECS_DEFAULT_CPU} will be used unless present on the task definition."
         ),
     )
-    memory: int = Field(
+    task_memory: int = Field(
         default=None,
         description=(
             "The amount of memory to provide to the ECS task. Valid amounts are "
@@ -450,6 +451,25 @@ class ECSVariables(BaseVariables):
             f"{ECS_DEFAULT_MEMORY} will be used unless present on the task definition."
         ),
     )
+    container_cpu: int = Field(
+        title="CPU",
+        default=None,
+        description=(
+            "The amount of CPU to provide to the Prefect container. Valid amounts are "
+            "specified in the AWS documentation. If not provided, a default value of "
+            f"{ECS_DEFAULT_CPU} will be used unless present on the task definition."
+        ),
+    )
+    container_memory: int = Field(
+        default=None,
+        description=(
+            "The amount of memory to provide to the Prefect container. Valid amounts"
+            " are specified in the AWS documentation. If not provided, a default value"
+            f" of {ECS_DEFAULT_MEMORY} will be used unless present on the task"
+            " definition."
+        ),
+    )
+
     container_name: str = Field(
         default=None,
         description=(
@@ -1305,17 +1325,23 @@ class ECSWorker(BaseWorker):
             task_definition, flow_run
         )
         # CPU and memory are required in some cases, retrieve the value to use
-        cpu = task_definition.get("cpu") or ECS_DEFAULT_CPU
-        memory = task_definition.get("memory") or ECS_DEFAULT_MEMORY
-
+        task_cpu = task_definition.get("cpu") or ECS_DEFAULT_CPU
+        task_memory = task_definition.get("memory") or ECS_DEFAULT_MEMORY
+        container_cpu = configuration.task_run_request["overrides"][
+            "containerOverrides"
+        ][0].get("cpu")
+        container_memory = configuration.task_run_request["overrides"][
+            "containerOverrides"
+        ][0].get("cpu")
         launch_type = configuration.task_run_request.get(
             "launchType", ECS_DEFAULT_LAUNCH_TYPE
         )
+        print(task_definition)
 
         if launch_type == "FARGATE" or launch_type == "FARGATE_SPOT":
             # Task level memory and cpu are required when using fargate
-            task_definition["cpu"] = str(cpu)
-            task_definition["memory"] = str(memory)
+            task_definition["cpu"] = str(task_cpu)
+            task_definition["memory"] = str(task_memory)
 
             # The FARGATE compatibility is required if it will be used as as launch type
             requires_compatibilities = task_definition.setdefault(
@@ -1330,8 +1356,8 @@ class ECSWorker(BaseWorker):
 
         elif launch_type == "EC2":
             # Container level memory and cpu are required when using ec2
-            container.setdefault("cpu", cpu)
-            container.setdefault("memory", memory)
+            container.setdefault("cpu", container_cpu or ECS_DEFAULT_CPU)
+            container.setdefault("memory", container_memory or ECS_DEFAULT_MEMORY)
 
             # Ensure set values are cast to integers
             container["cpu"] = int(container["cpu"])
