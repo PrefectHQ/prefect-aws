@@ -346,7 +346,7 @@ prefect deploy my_flow.py:my_ecs_deployment
 
 ### 5. Find the deployment in the UI and click the **Quick Run** button!
 
-## Optional Next Steps
+## Optional next steps
 
 1. Now that you are confident your ECS worker is healthy, you can experiment with different work pool configurations.
 
