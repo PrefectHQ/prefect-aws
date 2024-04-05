@@ -1438,6 +1438,10 @@ class ECSWorker(BaseWorker):
 
         if "capacityProviderStrategy" in task_run_request:
             # Should not be provided at all if capacityProviderStrategy is set, see https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html#ECS-RunTask-request-capacityProviderStrategy  # noqa
+            self._logger.warning(
+                "Removing launchType from task run request. Due to finding"
+                " capacityProviderStrategy in the request."
+            )
             task_run_request.pop("launchType", None)
 
         elif task_run_request.get("launchType") == "FARGATE_SPOT":
