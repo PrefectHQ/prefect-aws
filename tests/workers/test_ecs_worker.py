@@ -535,7 +535,9 @@ async def test_launch_types(
 
 @pytest.mark.usefixtures("ecs_mocks")
 @pytest.mark.parametrize("launch_type", ["EC2", "FARGATE", "FARGATE_SPOT"])
-@pytest.mark.parametrize("cpu,memory", [(2048, 4096)])
+@pytest.mark.parametrize(
+    "cpu,memory", [(None, None), (1024, None), (None, 2048), (2048, 4096)]
+)
 @pytest.mark.parametrize("container_cpu,container_memory", [(1024, 2048)])
 async def test_cpu_and_memory(
     aws_credentials: AwsCredentials,
@@ -549,8 +551,8 @@ async def test_cpu_and_memory(
     configuration = await construct_configuration(
         aws_credentials=aws_credentials,
         launch_type=launch_type,
-        task_cpu=cpu,
-        task_memory=memory,
+        cpu=cpu,
+        memory=memory,
         container_cpu=container_cpu,
         container_memory=container_memory,
     )

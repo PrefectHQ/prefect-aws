@@ -107,7 +107,7 @@ containerDefinitions:
   name: "{{ container_name }}"
 cpu: "{{ cpu }}"
 family: "{{ family }}"
-memory: "{{ task_memory }}"
+memory: "{{ memory }}"
 executionRoleArn: "{{ execution_role_arn }}"
 """
 
