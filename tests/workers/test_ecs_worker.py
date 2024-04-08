@@ -522,23 +522,15 @@ async def test_launch_types(
 @pytest.mark.parametrize(
     "cpu,memory", [(None, None), (1024, None), (None, 2048), (2048, 4096)]
 )
-@pytest.mark.parametrize("container_cpu,container_memory", [(None, None), (1024, 2048)])
 async def test_cpu_and_memory(
     aws_credentials: AwsCredentials,
     launch_type: str,
     flow_run: FlowRun,
-    task_cpu: int,
-    task_memory: int,
-    container_cpu: int,
-    container_memory: int,
+    cpu: int,
+    memory: int,
 ):
     configuration = await construct_configuration(
-        aws_credentials=aws_credentials,
-        launch_type=launch_type,
-        task_cpu=task_cpu,
-        task_memory=task_memory,
-        container_cpu=container_cpu,
-        container_memory=container_memory,
+        aws_credentials=aws_credentials, launch_type=launch_type, cpu=cpu, memory=memory
     )
 
     session = aws_credentials.get_boto3_session()
@@ -561,19 +553,19 @@ async def test_cpu_and_memory(
 
     if launch_type == "EC2":
         # EC2 requires CPU and memory to be defined at the container level
-        assert container_definition["cpu"] == container_cpu or ECS_DEFAULT_CPU
-        assert container_definition["memory"] == container_memory or ECS_DEFAULT_MEMORY
+        assert container_definition["cpu"] == cpu or ECS_DEFAULT_CPU
+        assert container_definition["memory"] == memory or ECS_DEFAULT_MEMORY
     else:
         # Fargate requires CPU and memory to be defined at the task definition level
-        assert task_definition["cpu"] == str(task_cpu or ECS_DEFAULT_CPU)
-        assert task_definition["memory"] == str(task_memory or ECS_DEFAULT_MEMORY)
+        assert task_definition["cpu"] == str(cpu or ECS_DEFAULT_CPU)
+        assert task_definition["memory"] == str(memory or ECS_DEFAULT_MEMORY)
 
     # We always provide non-null values as overrides on the task run
-    assert overrides.get("cpu") == (str(task_cpu) if task_cpu else None)
-    assert overrides.get("memory") == (str(task_memory) if task_memory else None)
+    assert overrides.get("cpu") == (str(cpu) if cpu else None)
+    assert overrides.get("memory") == (str(memory) if memory else None)
     # And as overrides for the Prefect container
-    assert container_overrides.get("cpu") == task_cpu
-    assert container_overrides.get("memory") == container_memory
+    assert container_overrides.get("cpu") == cpu
+    assert container_overrides.get("memory") == memory
 
 
 @pytest.mark.usefixtures("ecs_mocks")
