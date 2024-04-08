@@ -105,7 +105,7 @@ DEFAULT_TASK_DEFINITION_TEMPLATE = """
 containerDefinitions:
 - image: "{{ image }}"
   name: "{{ container_name }}"
-cpu: "{{ task_cpu }}"
+cpu: "{{ cpu }}"
 family: "{{ family }}"
 memory: "{{ task_memory }}"
 executionRoleArn: "{{ execution_role_arn }}"
@@ -121,8 +121,8 @@ overrides:
       environment: "{{ env }}"
       cpu: "{{ container_cpu }}"
       memory: "{{ container_memory }}"
-  cpu: "{{ task_cpu }}"
-  memory: "{{ task_memory }}"
+  cpu: "{{ cpu }}"
+  memory: "{{ memory }}"
   taskRoleArn: "{{ task_role_arn }}"
 tags: "{{ labels }}"
 taskDefinition: "{{ task_definition_arn }}"
@@ -434,7 +434,7 @@ class ECSVariables(BaseVariables):
             "defaults to a Prefect base image matching your local versions."
         ),
     )
-    task_cpu: int = Field(
+    cpu: int = Field(
         title="CPU",
         default=None,
         description=(
@@ -443,7 +443,7 @@ class ECSVariables(BaseVariables):
             f"{ECS_DEFAULT_CPU} will be used unless present on the task definition."
         ),
     )
-    task_memory: int = Field(
+    memory: int = Field(
         default=None,
         description=(
             "The amount of memory to provide to the ECS task. Valid amounts are "
@@ -1336,7 +1336,6 @@ class ECSWorker(BaseWorker):
         launch_type = configuration.task_run_request.get(
             "launchType", ECS_DEFAULT_LAUNCH_TYPE
         )
-        print(task_definition)
 
         if launch_type == "FARGATE" or launch_type == "FARGATE_SPOT":
             # Task level memory and cpu are required when using fargate
