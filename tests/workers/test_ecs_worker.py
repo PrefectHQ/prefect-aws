@@ -304,22 +304,6 @@ def ecs_mocks(
                 # NOTE: Even when using FARGATE, moto requires container instances to be
                 #       registered. This differs from AWS behavior.
                 add_ec2_instance_to_ecs_cluster(session, "default")
-                ec2_client = session.client("ec2")
-                ec2_resource = session.resource("ec2")
-
-                images = ec2_client.describe_images()
-                image_id = images["Images"][0]["ImageId"]
-
-                test_instance = ec2_resource.create_instances(
-                    ImageId=image_id, MinCount=1, MaxCount=1
-                )[0]
-
-                session.client("ecs").register_container_instance(
-                    cluster="default",
-                    instanceIdentityDocument=json.dumps(
-                        generate_instance_identity_document(test_instance)
-                    ),
-                )
 
                 yield ecs
 
@@ -344,7 +328,6 @@ async def construct_configuration_with_job_template(
     print(f"Using variables: {variables.json(indent=2)}")
 
     base_template = ECSWorker.get_default_base_job_template()
-    print(f"Using base template configuration: {json.dumps(base_template, indent=2)}")
     for key in template_overrides:
         base_template["job_configuration"][key] = template_overrides[key]
 

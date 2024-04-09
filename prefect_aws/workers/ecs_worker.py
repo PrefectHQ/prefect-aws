@@ -1353,8 +1353,8 @@ class ECSWorker(BaseWorker):
 
         elif launch_type == "EC2":
             # Container level memory and cpu are required when using ec2
-            container.setdefault("cpu", container_cpu or ECS_DEFAULT_CPU)
-            container.setdefault("memory", container_memory or ECS_DEFAULT_MEMORY)
+            container.setdefault("cpu", container_cpu)
+            container.setdefault("memory", container_memory)
 
             # Ensure set values are cast to integers
             container["cpu"] = int(container["cpu"])
