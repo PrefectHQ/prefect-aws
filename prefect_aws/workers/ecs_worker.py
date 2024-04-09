@@ -70,9 +70,9 @@ from prefect.workers.base import (
 from pydantic import VERSION as PYDANTIC_VERSION
 
 if PYDANTIC_VERSION.startswith("2."):
-    from pydantic.v1 import Field, root_validator
+    from pydantic.v1 import BaseModel, Field, root_validator
 else:
-    from pydantic import Field, root_validator
+    from pydantic import Field, root_validator, BaseModel
 
 from slugify import slugify
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
@@ -367,6 +367,16 @@ class ECSJobConfiguration(BaseJobConfiguration):
         return values
 
 
+class CapacityProvider(BaseModel):
+    """
+    The capacity provider strategy to use when running the task.
+    """
+
+    capacity_provider: str
+    weight: int
+    base: int
+
+
 class ECSVariables(BaseVariables):
     """
     Variables for templating an ECS job.
@@ -424,6 +434,13 @@ class ECSVariables(BaseVariables):
                 " the proper capacity provider strategy if set here."
             ),
         )
+    )
+    capacity_provider_strategy: Optional[List[CapacityProvider]] = Field(
+        default=None,
+        description=(
+            "The capacity provider strategy to use when running the task. This is only"
+            "If a capacityProviderStrategy is specified, we will omit the launchType"
+        ),
     )
     image: Optional[str] = Field(
         default=None,

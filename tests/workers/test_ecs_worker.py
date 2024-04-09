@@ -2020,15 +2020,11 @@ async def test_user_defined_environment_variables_in_task_definition_template(
 async def test_user_defined_capacity_provider_strategy(
     aws_credentials: AwsCredentials, flow_run: FlowRun
 ):
-    configuration = await construct_configuration_with_job_template(
-        template_overrides=dict(
-            task_run_request={
-                "capacityProviderStrategy": [
-                    {"base": 0, "weight": 1, "capacityProvider": "r6i.large"},
-                ]
-            },
-        ),
+    configuration = await construct_configuration(
         aws_credentials=aws_credentials,
+        capacity_provider_strategy=[
+            {"base": 0, "weight": 1, "capacityProvider": "r6i.large"}
+        ],
     )
 
     assert "launchType" not in configuration.task_run_request
