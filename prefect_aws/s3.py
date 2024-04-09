@@ -594,8 +594,8 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
 
             s3_bucket_block = S3Bucket(
                 bucket_name="bucket",
-                aws_credentials=aws_creds,
-                basepath="subfolder"
+                credentials=aws_creds,
+                bucket_folder="subfolder"
             )
 
             key_contents = s3_bucket_block.read_path(path="subfolder/file1")
@@ -645,7 +645,7 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
             s3_bucket_block = S3Bucket(
                 bucket_name="bucket",
                 minio_credentials=minio_creds,
-                basepath="dogs/smalldogs",
+                bucket_folder="dogs/smalldogs",
                 endpoint_url="http://localhost:9000",
             )
             s3_havanese_path = s3_bucket_block.write_path(path="havanese", content=data)
@@ -1234,20 +1234,23 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         """
         s3_client = self.credentials.get_s3_client()
 
-        source_path = self._resolve_path(Path(from_path).as_posix())
-        target_path = self._resolve_path(Path(to_path).as_posix())
-
         source_bucket_name = self.bucket_name
-        target_bucket_name = self.bucket_name
+        source_path = self._resolve_path(Path(from_path).as_posix())
+
+        # Default to copying within the same bucket
+        to_bucket = to_bucket or self
+
+        target_bucket_name: str
+        target_path: str
         if isinstance(to_bucket, S3Bucket):
             target_bucket_name = to_bucket.bucket_name
-            target_path = to_bucket._resolve_path(target_path)
+            target_path = to_bucket._resolve_path(Path(to_path).as_posix())
         elif isinstance(to_bucket, str):
             target_bucket_name = to_bucket
-        elif to_bucket is not None:
+            target_path = Path(to_path).as_posix()
+        else:
             raise TypeError(
-                "to_bucket must be a string or S3Bucket, not"
-                f" {type(target_bucket_name)}"
+                f"to_bucket must be a string or S3Bucket, not {type(to_bucket)}"
             )
 
         self.logger.info(
@@ -1316,20 +1319,23 @@ class S3Bucket(WritableFileSystem, WritableDeploymentStorage, ObjectStorageBlock
         """
         s3_client = self.credentials.get_s3_client()
 
-        source_path = self._resolve_path(Path(from_path).as_posix())
-        target_path = self._resolve_path(Path(to_path).as_posix())
-
         source_bucket_name = self.bucket_name
-        target_bucket_name = self.bucket_name
+        source_path = self._resolve_path(Path(from_path).as_posix())
+
+        # Default to moving within the same bucket
+        to_bucket = to_bucket or self
+
+        target_bucket_name: str
+        target_path: str
         if isinstance(to_bucket, S3Bucket):
             target_bucket_name = to_bucket.bucket_name
-            target_path = to_bucket._resolve_path(target_path)
+            target_path = to_bucket._resolve_path(Path(to_path).as_posix())
         elif isinstance(to_bucket, str):
             target_bucket_name = to_bucket
-        elif to_bucket is not None:
+            target_path = Path(to_path).as_posix()
+        else:
             raise TypeError(
-                "to_bucket must be a string or S3Bucket, not"
-                f" {type(target_bucket_name)}"
+                f"to_bucket must be a string or S3Bucket, not {type(to_bucket)}"
             )
 
         self.logger.info(

@@ -259,6 +259,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
     )
     configure_cloudwatch_logs: Optional[bool] = Field(default=None)
     cloudwatch_logs_options: Dict[str, str] = Field(default_factory=dict)
+    cloudwatch_logs_prefix: Optional[str] = Field(default=None)
     network_configuration: Dict[str, Any] = Field(default_factory=dict)
     stream_output: Optional[bool] = Field(default=None)
     task_start_timeout_seconds: int = Field(default=300)
@@ -507,6 +508,16 @@ class ECSVariables(BaseVariables):
             " for available options. "
         ),
     )
+    cloudwatch_logs_prefix: Optional[str] = Field(
+        default=None,
+        description=(
+            "When `configure_cloudwatch_logs` is enabled, this setting may be used to"
+            " set a prefix for the log group. If not provided, the default prefix will"
+            " be `prefect-logs_<work_pool_name>_<deployment_id>`. If"
+            " `awslogs-stream-prefix` is present in `Cloudwatch logs options` this"
+            " setting will be ignored."
+        ),
+    )
 
     network_configuration: Dict[str, Any] = Field(
         default_factory=dict,
@@ -673,7 +684,7 @@ class ECSWorker(BaseWorker):
 
         if not task_definition_arn:
             task_definition = self._prepare_task_definition(
-                configuration, region=ecs_client.meta.region_name
+                configuration, region=ecs_client.meta.region_name, flow_run=flow_run
             )
             (
                 task_definition_arn,
@@ -1205,10 +1216,28 @@ class ECSWorker(BaseWorker):
                 )
             time.sleep(configuration.task_watch_poll_interval)
 
+    def _get_or_generate_family(self, task_definition: dict, flow_run: FlowRun) -> str:
+        """
+        Gets or generate a family for the task definition.
+        """
+        family = task_definition.get("family")
+        if not family:
+            assert self._work_pool_name and flow_run.deployment_id
+            family = (
+                f"{ECS_DEFAULT_FAMILY}_{self._work_pool_name}_{flow_run.deployment_id}"
+            )
+        slugify(
+            family,
+            max_length=255,
+            regex_pattern=r"[^a-zA-Z0-9-_]+",
+        )
+        return family
+
     def _prepare_task_definition(
         self,
         configuration: ECSJobConfiguration,
         region: str,
+        flow_run: FlowRun,
     ) -> dict:
         """
         Prepare a task definition by inferring any defaults and merging overrides.
@@ -1258,24 +1287,23 @@ class ECSWorker(BaseWorker):
                 container["environment"].remove(item)
 
         if configuration.configure_cloudwatch_logs:
+            prefix = f"prefect-logs_{self._work_pool_name}_{flow_run.deployment_id}"
             container["logConfiguration"] = {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-create-group": "true",
                     "awslogs-group": "prefect",
                     "awslogs-region": region,
-                    "awslogs-stream-prefix": configuration.name or "prefect",
+                    "awslogs-stream-prefix": (
+                        configuration.cloudwatch_logs_prefix or prefix
+                    ),
                     **configuration.cloudwatch_logs_options,
                 },
             }
 
-        family = task_definition.get("family") or ECS_DEFAULT_FAMILY
-        task_definition["family"] = slugify(
-            family,
-            max_length=255,
-            regex_pattern=r"[^a-zA-Z0-9-_]+",
+        task_definition["family"] = self._get_or_generate_family(
+            task_definition, flow_run
         )
-
         # CPU and memory are required in some cases, retrieve the value to use
         cpu = task_definition.get("cpu") or ECS_DEFAULT_CPU
         memory = task_definition.get("memory") or ECS_DEFAULT_MEMORY
