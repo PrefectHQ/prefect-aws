@@ -344,6 +344,7 @@ async def construct_configuration_with_job_template(
     print(f"Using variables: {variables.json(indent=2)}")
 
     base_template = ECSWorker.get_default_base_job_template()
+    print(f"Using base template configuration: {json.dumps(base_template, indent=2)}")
     for key in template_overrides:
         base_template["job_configuration"][key] = template_overrides[key]
 

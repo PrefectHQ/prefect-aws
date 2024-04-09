@@ -267,7 +267,8 @@ class ECSJobConfiguration(BaseJobConfiguration):
     auto_deregister_task_definition: bool = Field(default=False)
     vpc_id: Optional[str] = Field(default=None)
     container_name: Optional[str] = Field(default=None)
-
+    container_cpu: Optional[int] = Field(default=None)
+    container_memory: Optional[int] = Field(default=None)
     cluster: Optional[str] = Field(default=None)
     match_latest_revision_in_family: bool = Field(default=False)
 
@@ -1327,12 +1328,9 @@ class ECSWorker(BaseWorker):
         # CPU and memory are required in some cases, retrieve the value to use
         task_cpu = task_definition.get("cpu") or ECS_DEFAULT_CPU
         task_memory = task_definition.get("memory") or ECS_DEFAULT_MEMORY
-        container_cpu = configuration.task_run_request["overrides"][
-            "containerOverrides"
-        ][0].get("cpu")
-        container_memory = configuration.task_run_request["overrides"][
-            "containerOverrides"
-        ][0].get("cpu")
+        container_cpu = configuration.container_cpu or task_cpu
+        container_memory = configuration.container_memory or task_memory
+
         launch_type = configuration.task_run_request.get(
             "launchType", ECS_DEFAULT_LAUNCH_TYPE
         )
