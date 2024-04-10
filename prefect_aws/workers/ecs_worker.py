@@ -246,6 +246,16 @@ def mask_api_key(task_run_request):
     )
 
 
+class CapacityProvider(BaseModel):
+    """
+    The capacity provider strategy to use when running the task.
+    """
+
+    capacityProvider: str
+    weight: int
+    base: int
+
+
 class ECSJobConfiguration(BaseJobConfiguration):
     """
     Job configuration for an ECS worker.
@@ -268,6 +278,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
     auto_deregister_task_definition: bool = Field(default=False)
     vpc_id: Optional[str] = Field(default=None)
     container_name: Optional[str] = Field(default=None)
+
     cluster: Optional[str] = Field(default=None)
     match_latest_revision_in_family: bool = Field(default=False)
 
@@ -368,16 +379,6 @@ class ECSJobConfiguration(BaseJobConfiguration):
         return values
 
 
-class CapacityProvider(BaseModel):
-    """
-    The capacity provider strategy to use when running the task.
-    """
-
-    capacityProvider: str
-    weight: int
-    base: int
-
-
 class ECSVariables(BaseVariables):
     """
     Variables for templating an ECS job.
@@ -437,7 +438,7 @@ class ECSVariables(BaseVariables):
         )
     )
     capacity_provider_strategy: Optional[List[CapacityProvider]] = Field(
-        default_factory=List[CapacityProvider],
+        default_factory=list,
         description=(
             "The capacity provider strategy to use when running the task. This is only"
             "If a capacityProviderStrategy is specified, we will omit the launchType"
@@ -1467,10 +1468,7 @@ class ECSWorker(BaseWorker):
 
         task_run_request.setdefault("taskDefinition", task_definition_arn)
         assert task_run_request["taskDefinition"] == task_definition_arn
-        capacityProviderStrategy = (
-            task_run_request.get("capacityProviderStrategy")
-            or configuration.capacity_provider_strategy
-        )
+        capacityProviderStrategy = task_run_request.get("capacityProviderStrategy")
 
         if capacityProviderStrategy:
             # Should not be provided at all if capacityProviderStrategy is set, see https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html#ECS-RunTask-request-capacityProviderStrategy  # noqa
@@ -1485,11 +1483,9 @@ class ECSWorker(BaseWorker):
             task_run_request.pop("launchType", None)
 
             # A capacity provider strategy is required for FARGATE SPOT
-            task_run_request.setdefault(
-                "capacityProviderStrategy",
-                [{"capacityProvider": "FARGATE_SPOT", "weight": 1}],
-            )
-
+            task_run_request["capacityProviderStrategy"] = [
+                {"capacityProvider": "FARGATE_SPOT", "weight": 1}
+            ]
         overrides = task_run_request.get("overrides", {})
         container_overrides = overrides.get("containerOverrides", [])
 

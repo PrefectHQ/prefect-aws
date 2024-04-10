@@ -8,7 +8,7 @@ from uuid import uuid4
 import anyio
 import pytest
 import yaml
-from moto import mock_autoscaling, mock_ec2, mock_ecs, mock_logs
+from moto import mock_ec2, mock_ecs, mock_logs
 from moto.ec2.utils import generate_instance_identity_document
 from prefect.server.schemas.core import FlowRun
 from prefect.utilities.asyncutils import run_sync_in_worker_thread
@@ -275,7 +275,7 @@ def ecs_mocks(
     aws_credentials: AwsCredentials, flow_run: FlowRun, container_status_code
 ):
     with mock_ecs() as ecs:
-        with mock_ec2(), mock_autoscaling():
+        with mock_ec2():
             with mock_logs():
                 session = aws_credentials.get_boto3_session()
 
@@ -506,6 +506,7 @@ async def test_launch_types(
         # Instead, it requires a capacity provider strategy but this is not supported
         # by moto and is not present on the task even when provided so we assert on the
         # mock call to ensure it is sent
+
         assert mock_run_task.call_args[0][1].get("capacityProviderStrategy") == [
             {"capacityProvider": "FARGATE_SPOT", "weight": 1}
         ]
