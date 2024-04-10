@@ -21,8 +21,6 @@ if PYDANTIC_VERSION.startswith("2."):
 else:
     from pydantic import ValidationError
 
-from tenacity import RetryError
-
 from prefect_aws.credentials import _get_client_cached
 from prefect_aws.workers.ecs_worker import (
     _TASK_DEFINITION_CACHE,
@@ -2320,7 +2318,7 @@ async def test_retry_on_failed_task_start(
         },
     )
 
-    with pytest.raises(RetryError):
+    with pytest.raises(RuntimeError):
         async with ECSWorker(work_pool_name="test") as worker:
             await run_then_stop_task(worker, configuration, flow_run)
 
