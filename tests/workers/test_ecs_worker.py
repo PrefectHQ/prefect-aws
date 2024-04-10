@@ -3,9 +3,11 @@ import logging
 from functools import partial
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 from unittest.mock import ANY, MagicMock
+from unittest.mock import patch as mock_patch
 from uuid import uuid4
 
 import anyio
+import botocore
 import pytest
 import yaml
 from moto import mock_ec2, mock_ecs, mock_logs
@@ -1320,6 +1322,41 @@ async def test_stream_output(
     # TODO: When moto supports reading logs, fix this
     # out, err = capsys.readouterr()
     # assert "test-message-{i}" in err
+
+
+orig = botocore.client.BaseClient._make_api_call
+
+
+def mock_make_api_call(self, operation_name, kwarg):
+    if operation_name == "RunTask":
+        return {
+            "failures": [
+                {"arn": "string", "reason": "string", "detail": "string"},
+            ]
+        }
+    return orig(self, operation_name, kwarg)
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_run_task_error_handling(
+    aws_credentials: AwsCredentials,
+    flow_run: FlowRun,
+    capsys,
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        task_role_arn="test",
+    )
+
+    with mock_patch(
+        "botocore.client.BaseClient._make_api_call", new=mock_make_api_call
+    ):
+        async with ECSWorker(work_pool_name="test") as worker:
+            with pytest.raises(RuntimeError) as exc:
+                await run_then_stop_task(worker, configuration, flow_run)
+
+    print(exc.value)
+    assert "Failed to run ECS task: string" in capsys.readouterr().out
 
 
 @pytest.mark.usefixtures("ecs_mocks")

@@ -1567,6 +1567,7 @@ class ECSWorker(BaseWorker):
             CREATE_TASK_RUN_MIN_DELAY_JITTER_SECONDS,
             CREATE_TASK_RUN_MAX_DELAY_JITTER_SECONDS,
         ),
+        reraise=True,
     )
     def _create_task_run(self, ecs_client: _ECSClient, task_run_request: dict) -> str:
         """
