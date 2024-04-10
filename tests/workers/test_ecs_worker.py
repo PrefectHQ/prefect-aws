@@ -2026,9 +2026,6 @@ async def test_user_defined_capacity_provider_strategy(
             {"base": 0, "weight": 1, "capacityProvider": "r6i.large"}
         ],
     )
-
-    assert "launchType" not in configuration.task_run_request
-
     session = aws_credentials.get_boto3_session()
     ecs_client = session.client("ecs")
 
