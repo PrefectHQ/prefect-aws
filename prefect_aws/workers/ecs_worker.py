@@ -456,9 +456,10 @@ class ECSVariables(BaseVariables):
         title="CPU",
         default=None,
         description=(
-            "The amount of CPU to provide to the Prefect container. Valid amounts are "
-            "specified in the AWS documentation. If not provided, a default value of "
-            f"{ECS_DEFAULT_CPU} will be used unless present on the task definition."
+            "The amount of CPU to provide to the Prefect container. Valid amounts are"
+            " specified in the AWS documentation. If not provided, the value supplied"
+            " to `cpu` for the task will be used. If neither are provided,"
+            f" {ECS_DEFAULT_CPU} will be used unless present on the task definition."
         ),
     )
     container_memory: int = Field(
@@ -467,17 +468,22 @@ class ECSVariables(BaseVariables):
             "The amount of memory to provide to the Prefect container. Valid amounts"
             " are specified in the AWS documentation. If not provided, a default value"
             f" of {ECS_DEFAULT_MEMORY} will be used unless present on the task"
-            " definition."
+            " definition. Only use these variables when your ECS tasks have multiple"
+            " containers. The total CPU and memory for all of a task's containers"
+            " cannot exceed the CPU and memory set for the task."
         ),
     )
 
     container_name: str = Field(
         default=None,
         description=(
-            "The name of the container flow run orchestration will occur in. If not "
-            f"specified, a default value of {ECS_DEFAULT_CONTAINER_NAME} will be used "
-            "and if that is not found in the task definition the first container will "
-            "be used."
+            "The amount of memory to provide to the Prefect container. Valid amounts"
+            " are specified in the AWS documentation. If not provided, the value"
+            " supplied to `cpu` for the task will be used. If neither are provided,"
+            f" {ECS_DEFAULT_CPU} will be used unless present on the task definition."
+            " Only use these variables when your ECS tasks have multiple containers."
+            " The total CPU and memory for all of a task's containers cannot exceed"
+            " the CPU and memory set for the task."
         ),
     )
     task_role_arn: str = Field(

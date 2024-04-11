@@ -522,7 +522,7 @@ async def test_launch_types(
 @pytest.mark.parametrize(
     "cpu,memory", [(None, None), (1024, None), (None, 2048), (2048, 4096)]
 )
-@pytest.mark.parametrize("container_cpu,container_memory", [(1024, 2048)])
+@pytest.mark.parametrize("container_cpu,container_memory", [(None, None), (1024, 2048)])
 async def test_cpu_and_memory(
     aws_credentials: AwsCredentials,
     launch_type: str,
