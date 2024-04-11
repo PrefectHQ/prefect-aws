@@ -70,9 +70,9 @@ from prefect.workers.base import (
 from pydantic import VERSION as PYDANTIC_VERSION
 
 if PYDANTIC_VERSION.startswith("2."):
-    from pydantic.v1 import Field, root_validator
+    from pydantic.v1 import BaseModel, Field, root_validator
 else:
-    from pydantic import Field, root_validator
+    from pydantic import Field, root_validator, BaseModel
 
 from slugify import slugify
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
@@ -126,6 +126,7 @@ overrides:
   taskRoleArn: "{{ task_role_arn }}"
 tags: "{{ labels }}"
 taskDefinition: "{{ task_definition_arn }}"
+capacityProviderStrategy: "{{ capacity_provider_strategy }}"
 """
 
 # Create task run retry settings
@@ -243,6 +244,16 @@ def mask_api_key(task_run_request):
     return mask_sensitive_env_values(
         deepcopy(task_run_request), ["PREFECT_API_KEY"], keep_length=6
     )
+
+
+class CapacityProvider(BaseModel):
+    """
+    The capacity provider strategy to use when running the task.
+    """
+
+    capacityProvider: str
+    weight: int
+    base: int
 
 
 class ECSJobConfiguration(BaseJobConfiguration):
@@ -424,6 +435,14 @@ class ECSVariables(BaseVariables):
                 " the proper capacity provider strategy if set here."
             ),
         )
+    )
+    capacity_provider_strategy: Optional[List[CapacityProvider]] = Field(
+        default_factory=list,
+        description=(
+            "The capacity provider strategy to use when running the task. "
+            "If a capacity provider strategy is specified, the selected launch"
+            " type will be ignored."
+        ),
     )
     image: Optional[str] = Field(
         default=None,
@@ -1449,17 +1468,24 @@ class ECSWorker(BaseWorker):
 
         task_run_request.setdefault("taskDefinition", task_definition_arn)
         assert task_run_request["taskDefinition"] == task_definition_arn
+        capacityProviderStrategy = task_run_request.get("capacityProviderStrategy")
 
-        if task_run_request.get("launchType") == "FARGATE_SPOT":
+        if capacityProviderStrategy:
+            # Should not be provided at all if capacityProviderStrategy is set, see https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html#ECS-RunTask-request-capacityProviderStrategy  # noqa
+            self._logger.warning(
+                "Found capacityProviderStrategy. "
+                "Removing launchType from task run request."
+            )
+            task_run_request.pop("launchType", None)
+
+        elif task_run_request.get("launchType") == "FARGATE_SPOT":
             # Should not be provided at all for FARGATE SPOT
             task_run_request.pop("launchType", None)
 
             # A capacity provider strategy is required for FARGATE SPOT
-            task_run_request.setdefault(
-                "capacityProviderStrategy",
-                [{"capacityProvider": "FARGATE_SPOT", "weight": 1}],
-            )
-
+            task_run_request["capacityProviderStrategy"] = [
+                {"capacityProvider": "FARGATE_SPOT", "weight": 1}
+            ]
         overrides = task_run_request.get("overrides", {})
         container_overrides = overrides.get("containerOverrides", [])
 

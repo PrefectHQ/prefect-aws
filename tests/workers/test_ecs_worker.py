@@ -506,6 +506,7 @@ async def test_launch_types(
         # Instead, it requires a capacity provider strategy but this is not supported
         # by moto and is not present on the task even when provided so we assert on the
         # mock call to ensure it is sent
+
         assert mock_run_task.call_args[0][1].get("capacityProviderStrategy") == [
             {"capacityProvider": "FARGATE_SPOT", "weight": 1}
         ]
@@ -2047,6 +2048,41 @@ async def test_user_defined_environment_variables_in_task_definition_template(
     assert prefect_container_overrides.get("environment") == [
         {"name": "FOO", "value": "BAR"},
         {"name": "OVERRIDE", "value": "NEW"},
+    ]
+
+
+@pytest.mark.usefixtures("ecs_mocks")
+async def test_user_defined_capacity_provider_strategy(
+    aws_credentials: AwsCredentials, flow_run: FlowRun
+):
+    configuration = await construct_configuration(
+        aws_credentials=aws_credentials,
+        capacity_provider_strategy=[
+            {"base": 0, "weight": 1, "capacityProvider": "r6i.large"}
+        ],
+    )
+    session = aws_credentials.get_boto3_session()
+    ecs_client = session.client("ecs")
+
+    async with ECSWorker(work_pool_name="test") as worker:
+        # Capture the task run call because moto does not track
+        # 'capacityProviderStrategy'
+        original_run_task = worker._create_task_run
+        mock_run_task = MagicMock(side_effect=original_run_task)
+        worker._create_task_run = mock_run_task
+
+        result = await run_then_stop_task(worker, configuration, flow_run)
+
+    assert result.status_code == 0
+    _, task_arn = parse_identifier(result.identifier)
+
+    task = describe_task(ecs_client, task_arn)
+    assert not task.get("launchType")
+    # Instead, it requires a capacity provider strategy but this is not supported
+    # by moto and is not present on the task even when provided so we assert on the
+    # mock call to ensure it is sent
+    assert mock_run_task.call_args[0][1].get("capacityProviderStrategy") == [
+        {"base": 0, "weight": 1, "capacityProvider": "r6i.large"},
     ]
 
 
