@@ -278,7 +278,6 @@ class ECSJobConfiguration(BaseJobConfiguration):
     auto_deregister_task_definition: bool = Field(default=False)
     vpc_id: Optional[str] = Field(default=None)
     container_name: Optional[str] = Field(default=None)
-
     cluster: Optional[str] = Field(default=None)
     match_latest_revision_in_family: bool = Field(default=False)
 
@@ -440,8 +439,9 @@ class ECSVariables(BaseVariables):
     capacity_provider_strategy: Optional[List[CapacityProvider]] = Field(
         default_factory=list,
         description=(
-            "The capacity provider strategy to use when running the task. This is only"
-            "If a capacityProviderStrategy is specified, we will omit the launchType"
+            "The capacity provider strategy to use when running the task. "
+            "If a capacity provider strategy is specified, the selected launch"
+            " type will be ignored."
         ),
     )
     image: Optional[str] = Field(
@@ -1473,8 +1473,8 @@ class ECSWorker(BaseWorker):
         if capacityProviderStrategy:
             # Should not be provided at all if capacityProviderStrategy is set, see https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html#ECS-RunTask-request-capacityProviderStrategy  # noqa
             self._logger.warning(
-                "Removing launchType from task run request. Due to finding"
-                " capacityProviderStrategy in the request."
+                "Found capacityProviderStrategy. "
+                "Removing launchType from task run request."
             )
             task_run_request.pop("launchType", None)
 
