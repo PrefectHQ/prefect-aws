@@ -70,9 +70,9 @@ from prefect.workers.base import (
 from pydantic import VERSION as PYDANTIC_VERSION
 
 if PYDANTIC_VERSION.startswith("2."):
-    from pydantic.v1 import Field, root_validator
+    from pydantic.v1 import BaseModel, Field, root_validator
 else:
-    from pydantic import Field, root_validator
+    from pydantic import Field, root_validator, BaseModel
 
 from slugify import slugify
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
@@ -126,6 +126,7 @@ overrides:
   taskRoleArn: "{{ task_role_arn }}"
 tags: "{{ labels }}"
 taskDefinition: "{{ task_definition_arn }}"
+capacityProviderStrategy: "{{ capacity_provider_strategy }}"
 """
 
 # Create task run retry settings
@@ -245,6 +246,16 @@ def mask_api_key(task_run_request):
     )
 
 
+class CapacityProvider(BaseModel):
+    """
+    The capacity provider strategy to use when running the task.
+    """
+
+    capacityProvider: str
+    weight: int
+    base: int
+
+
 class ECSJobConfiguration(BaseJobConfiguration):
     """
     Job configuration for an ECS worker.
@@ -259,6 +270,7 @@ class ECSJobConfiguration(BaseJobConfiguration):
     )
     configure_cloudwatch_logs: Optional[bool] = Field(default=None)
     cloudwatch_logs_options: Dict[str, str] = Field(default_factory=dict)
+    cloudwatch_logs_prefix: Optional[str] = Field(default=None)
     network_configuration: Dict[str, Any] = Field(default_factory=dict)
     stream_output: Optional[bool] = Field(default=None)
     task_start_timeout_seconds: int = Field(default=300)
@@ -424,6 +436,14 @@ class ECSVariables(BaseVariables):
             ),
         )
     )
+    capacity_provider_strategy: Optional[List[CapacityProvider]] = Field(
+        default_factory=list,
+        description=(
+            "The capacity provider strategy to use when running the task. "
+            "If a capacity provider strategy is specified, the selected launch"
+            " type will be ignored."
+        ),
+    )
     image: Optional[str] = Field(
         default=None,
         description=(
@@ -505,6 +525,16 @@ class ECSVariables(BaseVariables):
             " the default options. See the [AWS"
             " documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html#create_awslogs_logdriver_options)"  # noqa
             " for available options. "
+        ),
+    )
+    cloudwatch_logs_prefix: Optional[str] = Field(
+        default=None,
+        description=(
+            "When `configure_cloudwatch_logs` is enabled, this setting may be used to"
+            " set a prefix for the log group. If not provided, the default prefix will"
+            " be `prefect-logs_<work_pool_name>_<deployment_id>`. If"
+            " `awslogs-stream-prefix` is present in `Cloudwatch logs options` this"
+            " setting will be ignored."
         ),
     )
 
@@ -673,7 +703,7 @@ class ECSWorker(BaseWorker):
 
         if not task_definition_arn:
             task_definition = self._prepare_task_definition(
-                configuration, region=ecs_client.meta.region_name
+                configuration, region=ecs_client.meta.region_name, flow_run=flow_run
             )
             (
                 task_definition_arn,
@@ -1205,10 +1235,28 @@ class ECSWorker(BaseWorker):
                 )
             time.sleep(configuration.task_watch_poll_interval)
 
+    def _get_or_generate_family(self, task_definition: dict, flow_run: FlowRun) -> str:
+        """
+        Gets or generate a family for the task definition.
+        """
+        family = task_definition.get("family")
+        if not family:
+            assert self._work_pool_name and flow_run.deployment_id
+            family = (
+                f"{ECS_DEFAULT_FAMILY}_{self._work_pool_name}_{flow_run.deployment_id}"
+            )
+        slugify(
+            family,
+            max_length=255,
+            regex_pattern=r"[^a-zA-Z0-9-_]+",
+        )
+        return family
+
     def _prepare_task_definition(
         self,
         configuration: ECSJobConfiguration,
         region: str,
+        flow_run: FlowRun,
     ) -> dict:
         """
         Prepare a task definition by inferring any defaults and merging overrides.
@@ -1258,24 +1306,23 @@ class ECSWorker(BaseWorker):
                 container["environment"].remove(item)
 
         if configuration.configure_cloudwatch_logs:
+            prefix = f"prefect-logs_{self._work_pool_name}_{flow_run.deployment_id}"
             container["logConfiguration"] = {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-create-group": "true",
                     "awslogs-group": "prefect",
                     "awslogs-region": region,
-                    "awslogs-stream-prefix": configuration.name or "prefect",
+                    "awslogs-stream-prefix": (
+                        configuration.cloudwatch_logs_prefix or prefix
+                    ),
                     **configuration.cloudwatch_logs_options,
                 },
             }
 
-        family = task_definition.get("family") or ECS_DEFAULT_FAMILY
-        task_definition["family"] = slugify(
-            family,
-            max_length=255,
-            regex_pattern=r"[^a-zA-Z0-9-_]+",
+        task_definition["family"] = self._get_or_generate_family(
+            task_definition, flow_run
         )
-
         # CPU and memory are required in some cases, retrieve the value to use
         cpu = task_definition.get("cpu") or ECS_DEFAULT_CPU
         memory = task_definition.get("memory") or ECS_DEFAULT_MEMORY
@@ -1421,17 +1468,24 @@ class ECSWorker(BaseWorker):
 
         task_run_request.setdefault("taskDefinition", task_definition_arn)
         assert task_run_request["taskDefinition"] == task_definition_arn
+        capacityProviderStrategy = task_run_request.get("capacityProviderStrategy")
 
-        if task_run_request.get("launchType") == "FARGATE_SPOT":
+        if capacityProviderStrategy:
+            # Should not be provided at all if capacityProviderStrategy is set, see https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html#ECS-RunTask-request-capacityProviderStrategy  # noqa
+            self._logger.warning(
+                "Found capacityProviderStrategy. "
+                "Removing launchType from task run request."
+            )
+            task_run_request.pop("launchType", None)
+
+        elif task_run_request.get("launchType") == "FARGATE_SPOT":
             # Should not be provided at all for FARGATE SPOT
             task_run_request.pop("launchType", None)
 
             # A capacity provider strategy is required for FARGATE SPOT
-            task_run_request.setdefault(
-                "capacityProviderStrategy",
-                [{"capacityProvider": "FARGATE_SPOT", "weight": 1}],
-            )
-
+            task_run_request["capacityProviderStrategy"] = [
+                {"capacityProvider": "FARGATE_SPOT", "weight": 1}
+            ]
         overrides = task_run_request.get("overrides", {})
         container_overrides = overrides.get("containerOverrides", [])
 
@@ -1567,6 +1621,7 @@ class ECSWorker(BaseWorker):
             CREATE_TASK_RUN_MIN_DELAY_JITTER_SECONDS,
             CREATE_TASK_RUN_MAX_DELAY_JITTER_SECONDS,
         ),
+        reraise=True,
     )
     def _create_task_run(self, ecs_client: _ECSClient, task_run_request: dict) -> str:
         """
@@ -1574,7 +1629,16 @@ class ECSWorker(BaseWorker):
 
         Returns the task run ARN.
         """
-        return ecs_client.run_task(**task_run_request)["tasks"][0]
+        task = ecs_client.run_task(**task_run_request)
+        if task["failures"]:
+            raise RuntimeError(
+                f"Failed to run ECS task: {task['failures'][0]['reason']}"
+            )
+        elif not task["tasks"]:
+            raise RuntimeError(
+                "Failed to run ECS task: no tasks or failures were returned."
+            )
+        return task["tasks"][0]
 
     def _task_definitions_equal(self, taskdef_1, taskdef_2) -> bool:
         """
