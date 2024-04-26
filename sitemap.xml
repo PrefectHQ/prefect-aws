@@ -2,72 +2,77 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/batch/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/blocks_catalog/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/client_waiter/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/contributing/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/credentials/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/ecs/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/ecs_guide/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/ecs_worker/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/examples_catalog/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://PrefectHQ.github.io/prefect-aws/glue_job/</loc>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/lambda_function/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/s3/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/secrets_manager/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://PrefectHQ.github.io/prefect-aws/deployments/steps/</loc>
-         <lastmod>2024-04-17</lastmod>
+         <lastmod>2024-04-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

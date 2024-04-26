@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.18">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.19">
     
     
       
@@ -413,6 +413,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#glue-job-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      Glue Job Module
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -693,6 +702,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../glue_job/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Glue Job
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../s3/" class="md-nav__link">
         
   
@@ -799,6 +829,15 @@
   <a href="#secrets-manager-module" class="md-nav__link">
     <span class="md-ellipsis">
       Secrets Manager Module
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#glue-job-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      Glue Job Module
     </span>
   </a>
   
@@ -917,6 +956,20 @@ For additional examples, check out the <a href="../examples_catalog/#ecs-module"
 <span class="n">my_flow</span><span class="p">()</span>
 </code></pre></div>
 For additional examples, check out the <a href="../examples_catalog/#secrets_manager-module">Secrets Manager Module</a> under Examples Catalog.</p>
+<h2 id="glue-job-module"><a class="autorefs autorefs-internal" href="../glue_job/#prefect_aws.glue_job">Glue Job Module</a></h2>
+<p><a class="autorefs autorefs-internal" href="../glue_job/#prefect_aws.glue_job.GlueJobBlock">GlueJobBlock</a></p>
+<p>Execute a job to the AWS Glue Job service.</p>
+<p>To load the GlueJobBlock:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span>
+<span class="kn">from</span> <span class="nn">prefect_aws.glue_job</span> <span class="kn">import</span> <span class="n">GlueJobBlock</span>
+
+<span class="nd">@flow</span>
+<span class="k">def</span> <span class="nf">my_flow</span><span class="p">():</span>
+    <span class="n">my_block</span> <span class="o">=</span> <span class="n">GlueJobBlock</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MY_BLOCK_NAME&quot;</span><span class="p">)</span>
+
+<span class="n">my_flow</span><span class="p">()</span>
+</code></pre></div>
+For additional examples, check out the <a href="../examples_catalog/#glue_job-module">Glue Job Module</a> under Examples Catalog.</p>
 
 
 
@@ -1071,7 +1124,7 @@ For additional examples, check out the <a href="../examples_catalog/#secrets_man
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.3220b9d7.min.js"></script>
+      <script src="../assets/javascripts/bundle.dd8806f2.min.js"></script>
       
     
   </body>
